@@ -7,6 +7,7 @@ from function_library import *
 import multiprocessing
 import time
 
+# Use 'TkAgg' as the backend for Matplotlib
 # global Intensity
 # Intensity = np.zeros((len(phiP_list), len(thetaP_list)))
 # Use 'TkAgg' as the backend for Matplotlib
