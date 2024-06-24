@@ -14,7 +14,7 @@ a = 0.02 * AU  # km, semi-major axis of the Earth's orbit / 10
 camera = np.array([-1, 0, 0])
 #normalize the camera vector
 camera = camera / np.linalg.norm(camera)
-SIZE = [15, 30]  # Size of the meshgrid
+SIZE = [50, 100]  # Size of the meshgrid
 # Create meshgrid for the planet
 phiP_list = np.linspace(-np.pi / 2, np.pi / 2, SIZE[0])
 thetaP_list = np.linspace(0, 2 * np.pi, SIZE[1])

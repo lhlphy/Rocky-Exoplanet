@@ -62,13 +62,11 @@ if __name__ == '__main__':
             process = multiprocessing.Process(target=main, args=(i, j, Intensity, diffuse_ratio))
             processes.append(process)
             process.start()
-
-        for process in processes:
-            process.join()
         
-        processes = []
         print(i)
 
+    for process in processes:
+        process.join()
 
     Intensity = Intensity* blackbody_radiation(6000, 1e-6)
     Intensity = np.array(Intensity[:]).reshape(SIZE[0], SIZE[1])
@@ -107,6 +105,8 @@ if __name__ == '__main__':
 
     # Show the plot
     plt.show()
+    #save the plot to temp/ folder
+    plt.savefig('temp/plot.png')
     
     t2 = time.time()
     print("Program run time:",t2-t1,'s')
