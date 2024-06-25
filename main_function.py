@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from parameter_list import *
 from function_library import *
 import multiprocessing
+import os
 #import time
 
 # Use 'TkAgg' as the backend for Matplotlib
@@ -57,7 +58,7 @@ def BRDF(i, j, Intensity, diffuse_ratio, Theta, SPE_REF, DIF_REF, Coarse, Temper
     #print(Intensity[SIZE[1]*i+j])
 
 
-def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = Coarse_g, Temperature=6000, Wavelengh=1e-6):
+def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = Coarse_g, Temperature=6000, Wavelengh=1e-6, id=0):
     processes = []
     Intensity = multiprocessing.Array('d', SIZE[0]*SIZE[1])   
     diffuse_ratio = multiprocessing.Array('d', SIZE[0]*SIZE[1])
@@ -114,7 +115,8 @@ def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = C
     # Show the plot
     #plt.show()
     #save the plot to temp/ folder
-    name = 'temp/plots/plot_'+str(int(Coarse*180/np.pi))+'_'+str(int(Theta*180/np.pi))+'.png'
+    os.makedirs(f'temp/{id}/plots', exist_ok=True)
+    name = f'temp/{id}/plots/plot_'+str(int(Coarse*180/np.pi))+'_'+str(int(Theta*180/np.pi))+'.png'
     plt.savefig(name)
     plt.close()
     
