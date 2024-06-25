@@ -16,7 +16,7 @@ a = 0.05 * AU  # km, semi-major axis of the Earth's orbit / 10
 
 ### Observation parameters
 # Define the direction of the camera (observation vector)
-camera = np.array([1, 0, 1])
+camera = np.array([1, 0, 0])
 #normalize the camera vector
 camera = camera / np.linalg.norm(camera)
 

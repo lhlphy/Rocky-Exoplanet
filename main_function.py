@@ -88,7 +88,7 @@ def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = C
     ax = fig.add_subplot(111, projection='3d')
 
     # Plot the surface with intensity as color
-    temp = 1.9*1e19    #np.max(Intensity)
+    temp = np.max(Intensity)
     if temp == 0:
         mappable = ax.plot_surface(x, y, z, facecolors=plt.cm.gray(Intensity.T ), rstride=1, cstride=1, antialiased=False)
     else:
