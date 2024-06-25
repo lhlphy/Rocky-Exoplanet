@@ -30,6 +30,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--id', default="0" , type=str)
     parser.add_argument('--coarse', default=0 , type=float)
+    parser.add_argument('--specular', default=0.5 , type=float)
+    parser.add_argument('--diffuse', default=0.5 , type=float)
     args = parser.parse_args()
 
 
@@ -40,7 +42,7 @@ if __name__ == "__main__":
     # 创建一个空字典来存储变量  
     variables = {}  
     
-    cal_size = [3]
+    cal_size = [36]
     TOT_Intensity = np.zeros(cal_size)
     TOT_Diffuse = np.zeros(cal_size)
     TOT_Specular = np.zeros(cal_size)
@@ -53,7 +55,7 @@ if __name__ == "__main__":
     # Coarse_list = np.linspace(0 , np.pi/3 , cal_size[0])
     Theta_list = np.linspace(0, 2*np.pi, cal_size[0]+1)
     Theta_list = Theta_list[:-1]
-    Coarse = args.coarse
+    Coarse = args.coarse * np.pi/180
 
     for j, Theta in enumerate(Theta_list):
         t1 = time.time()
@@ -61,7 +63,7 @@ if __name__ == "__main__":
         var_name = "Intensity_" + str(int(Coarse*180/np.pi)) + "_" + str(int(Theta*180/np.pi))
         var_name2 = "Diffuse_ratio_" + str(int(Coarse*180/np.pi)) + "_" + str(int(Theta*180/np.pi))
 
-        variables[var_name], variables[var_name2] = mf.global_intensity(Theta, Coarse = Coarse, id = args.id)
+        variables[var_name], variables[var_name2] = mf.global_intensity(Theta, Coarse = Coarse, SPE_REF=args.specular,DIF_REF=args.diffuse, id = args.id)
         TOT_Intensity[j] = variables[var_name].sum()
         TOT_Diffuse[j] = (variables[var_name2] * variables[var_name]).sum()
         TOT_Specular[j] = TOT_Intensity[j] - TOT_Diffuse[j]
