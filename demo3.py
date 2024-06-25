@@ -30,7 +30,7 @@ if __name__ == "__main__":
     # 创建一个空字典来存储变量  
     variables = {}  
     
-    cal_size = (3, 12)
+    cal_size = (3, 24)
     TOT_Intensity = np.zeros(cal_size)
     TOT_Diffuse = np.zeros(cal_size)
     TOT_Specular = np.zeros(cal_size)
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     # # 现在，可以通过字典访问该变量  
     # print(variables[variable_name])  # 输出: 42
     Coarse_list = np.linspace(0 , np.pi/3 , cal_size[0])
-    Theta_list = np.linspace(0, 2*np.pi - np.pi/6, cal_size[1])
+    Theta_list = np.linspace(0, 2*np.pi - np.pi/12, cal_size[1])
 
     for i, Coarse in enumerate(Coarse_list):
         t3 = time.time()
