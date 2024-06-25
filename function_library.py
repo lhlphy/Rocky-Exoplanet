@@ -235,7 +235,7 @@ def I_dist_afterreflect(R1, r, angle, normal, RV, Pos):
     return I *a**2 *2
 
 
-def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Temperature, Wavelengh):
+def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Coarse = 0, DIF_REF = 0.5, Temperature = 6000, Wavelengh = 1e-6):
     """
     Calculate the intensity of reflected sunlight considering reflectivity and diffusion.
     
@@ -266,8 +266,6 @@ def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Temperature, Wavelengh):
     Pos_local = np.array([Px, Py, Pz])
 
     theta_c = angle_between(camera, normal)
-    sigma = 0  ##################
-    rho = 0.5 ####################
     t , phi_camera = vec2Euler(camera_local)
 
 
@@ -292,7 +290,7 @@ def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Temperature, Wavelengh):
         if angle > angle_max:
             return 0
         else:
-            return fr(theta_i, theta_c, sigma, rho, phi_diff) * np.sin(theta_i)
+            return fr(theta_i, theta_c, Coarse, DIF_REF, phi_diff) * np.sin(theta_i)
             
         #phi_diff = np.pi - angle_between(np.cross(Pos, normal), np.cross(camera, normal))
         # res = fr(theta_i, theta_c, sigma, rho, phi_diff) * blackbody_radiation(6000, 1e-6) * np.sin(theta_i)
@@ -318,7 +316,7 @@ def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Temperature, Wavelengh):
     return Integ[0] * R2**2 *np.sin(theta) *Dtheta *Dphi *np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelengh)   
 
 
-def specular_reflection(REF ,RV, camera, normal, r, Temperature, Wavelengh):
+def specular_reflection(specular_coefficent ,RV, camera, normal, r, Temperature= 6000, Wavelengh = 1e-6):
     """
     Calculate the intensity of specular reflection.
     
@@ -344,5 +342,5 @@ def specular_reflection(REF ,RV, camera, normal, r, Temperature, Wavelengh):
     Dphi = 2*np.pi/SIZE[1]
     DA = R2**2 *np.sin(theta)*Dtheta*Dphi
     
-    return REF * DA #* blackbody_radiation(Temperature, Wavelengh)
+    return specular_coefficent * DA #* blackbody_radiation(Temperature, Wavelengh)
 

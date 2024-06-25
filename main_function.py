@@ -21,7 +21,7 @@ import time
 # plt.plot(angle, I)
 
 
-def BRDF(i, j, Intensity, diffuse_ratio, Theta):
+def BRDF(i, j, Intensity, diffuse_ratio, Theta, Temperature=6000, Wavelengh=1e-6):
     
     phiP = phiP_list[i]
     thetaP = thetaP_list[j]
@@ -35,8 +35,8 @@ def BRDF(i, j, Intensity, diffuse_ratio, Theta):
         # Calculate the angle between the camera and the reflected vector
         #angle = angle_between(camera, RV)
         # Calculate the intensity of the reflected light
-        Diffuse = Oren_Nayar_BRDF(R1, r, nv, Pos,camera, 6000,1e-6)
-        SR  = specular_reflection(0.5, RV, camera, nv, r, 6000, 1e-6)
+        Diffuse = Oren_Nayar_BRDF(R1, r, nv, Pos, camera, Coarse, DIF_REF, Temperature, Wavelengh)
+        SR  = specular_reflection(SPE_REF, RV, camera, nv, r, Temperature, Wavelengh)
         with Intensity.get_lock():
             Intensity[SIZE[1]*i+j] = (Diffuse + SR) #* blackbody_radiation(6000, 1e-6)
 
@@ -50,7 +50,7 @@ def BRDF(i, j, Intensity, diffuse_ratio, Theta):
     #print(Intensity[SIZE[1]*i+j])
 
 
-def global_intensity(Theta):
+def global_intensity(Theta, Temperature=6000, Wavelengh=1e-6):
     processes = []
     Intensity = multiprocessing.Array('d', SIZE[0]*SIZE[1])   
     diffuse_ratio = multiprocessing.Array('d', SIZE[0]*SIZE[1])
@@ -58,14 +58,14 @@ def global_intensity(Theta):
     # Loop through all points on the planet's surface
     for i, phiP in enumerate(phiP_list):
         for j, thetaP in enumerate(thetaP_list):
-            process = multiprocessing.Process(target = BRDF, args=(i, j, Intensity, diffuse_ratio, Theta))
+            process = multiprocessing.Process(target = BRDF, args=(i, j, Intensity, diffuse_ratio, Theta, Temperature, Wavelengh))
             processes.append(process)
             process.start()
 
     for process in processes:
         process.join()
 
-    Intensity = Intensity* blackbody_radiation(6000, 1e-6)
+    Intensity = Intensity* blackbody_radiation(Temperature, Wavelengh)
     Intensity = np.array(Intensity[:]).reshape(SIZE[0], SIZE[1])
 
     #print(Intensity)
@@ -84,8 +84,8 @@ def global_intensity(Theta):
     mappable = ax.plot_surface(x, y, z, facecolors=plt.cm.gray(Intensity.T /np.max(Intensity)), rstride=1, cstride=1, antialiased=False)
 
     # Plot the incident and reflected vectors
-    ax.quiver(-(2000 + R2) * np.cos(Theta), -(2000 + R2) * np.sin(Theta), 0, np.cos(Theta), np.sin(Theta), 0, color='r', length=2000.0, normalize=True)
-    ax.quiver(R2 * camera[0], R2 * camera[1], R2 * camera[2], camera[0], camera[1], camera[2], color='g', length=2000.0, normalize=True, linestyle='dashed')
+    #ax.quiver(-(2000 + R2) * np.cos(Theta), -(2000 + R2) * np.sin(Theta), 0, np.cos(Theta), np.sin(Theta), 0, color='r', length=2000.0, normalize=True)
+    #ax.quiver(R2 * camera[0], R2 * camera[1], R2 * camera[2], camera[0], camera[1], camera[2], color='g', length=2000.0, normalize=True, linestyle='dashed')
 
     # Set axis labels
     ax.set_xlabel('X (km)') 
@@ -103,9 +103,10 @@ def global_intensity(Theta):
     # Show the plot
     #plt.show()
     #save the plot to temp/ folder
-    name = 'temp/plot1.png'
+    name = 'temp/plot'+str(int(Theta*180/np.pi))+'.png'
     plt.savefig(name)
     
+    return Intensity, diffuse_ratio
     #print("Program run time:",t2-t1,'s')
     
 
