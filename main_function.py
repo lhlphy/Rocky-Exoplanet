@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from parameter_list import *
 from function_library import *
 import multiprocessing
-import time
+#import time
 
 # Use 'TkAgg' as the backend for Matplotlib
 # global Intensity
@@ -21,7 +21,7 @@ import time
 # plt.plot(angle, I)
 
 
-def BRDF(i, j, Intensity, diffuse_ratio, Theta, Temperature=6000, Wavelengh=1e-6):
+def BRDF(i, j, Intensity, diffuse_ratio, Theta, SPE_REF, DIF_REF, Coarse, Temperature=6000, Wavelengh=1e-6):
     
     phiP = phiP_list[i]
     thetaP = thetaP_list[j]
@@ -50,7 +50,7 @@ def BRDF(i, j, Intensity, diffuse_ratio, Theta, Temperature=6000, Wavelengh=1e-6
     #print(Intensity[SIZE[1]*i+j])
 
 
-def global_intensity(Theta, Temperature=6000, Wavelengh=1e-6):
+def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = Coarse_g, Temperature=6000, Wavelengh=1e-6):
     processes = []
     Intensity = multiprocessing.Array('d', SIZE[0]*SIZE[1])   
     diffuse_ratio = multiprocessing.Array('d', SIZE[0]*SIZE[1])
@@ -58,7 +58,7 @@ def global_intensity(Theta, Temperature=6000, Wavelengh=1e-6):
     # Loop through all points on the planet's surface
     for i, phiP in enumerate(phiP_list):
         for j, thetaP in enumerate(thetaP_list):
-            process = multiprocessing.Process(target = BRDF, args=(i, j, Intensity, diffuse_ratio, Theta, Temperature, Wavelengh))
+            process = multiprocessing.Process(target = BRDF, args=(i, j, Intensity, diffuse_ratio, Theta, SPE_REF, DIF_REF, Coarse, Temperature, Wavelengh))
             processes.append(process)
             process.start()
 
@@ -81,7 +81,11 @@ def global_intensity(Theta, Temperature=6000, Wavelengh=1e-6):
     ax = fig.add_subplot(111, projection='3d')
 
     # Plot the surface with intensity as color
-    mappable = ax.plot_surface(x, y, z, facecolors=plt.cm.gray(Intensity.T /np.max(Intensity)), rstride=1, cstride=1, antialiased=False)
+    temp = np.max(Intensity)
+    if temp == 0:
+        mappable = ax.plot_surface(x, y, z, facecolors=plt.cm.gray(Intensity.T ), rstride=1, cstride=1, antialiased=False)
+    else:
+        mappable = ax.plot_surface(x, y, z, facecolors=plt.cm.gray(Intensity.T /temp), rstride=1, cstride=1, antialiased=False)
 
     # Plot the incident and reflected vectors
     #ax.quiver(-(2000 + R2) * np.cos(Theta), -(2000 + R2) * np.sin(Theta), 0, np.cos(Theta), np.sin(Theta), 0, color='r', length=2000.0, normalize=True)
@@ -103,9 +107,11 @@ def global_intensity(Theta, Temperature=6000, Wavelengh=1e-6):
     # Show the plot
     #plt.show()
     #save the plot to temp/ folder
-    name = 'temp/plot'+str(int(Theta*180/np.pi))+'.png'
+    name = 'temp/plots/plot_'+str(int(Coarse*180/np.pi))+'_'+str(int(Theta*180/np.pi))+'.png'
     plt.savefig(name)
+    plt.close()
     
+    diffuse_ratio = np.array(diffuse_ratio[:]).reshape(SIZE[0], SIZE[1])
     return Intensity, diffuse_ratio
     #print("Program run time:",t2-t1,'s')
     
