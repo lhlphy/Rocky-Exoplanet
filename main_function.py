@@ -27,13 +27,20 @@ def BRDF(i, j, Intensity, diffuse_ratio, Theta, SPE_REF, DIF_REF, Coarse, Temper
     thetaP = thetaP_list[j]
     # Calculate the normal vector and position
     nv, Pos, r = normal_vec(phiP, thetaP, Theta, a, e, R2)
+
+    if check_intersection_with_star(Pos, camera):  # Check if the line intersects with the star--Check block
+        with Intensity.get_lock():
+            Intensity[SIZE[1]*i+j] = 0
+
+        return
+    
     # Calculate the reflected vector
     RV = reflect(Pos, nv)
     
     # Check if the reflection direction is towards the camera
     if check_direction(RV, nv, camera, Pos):
         # Calculate the angle between the camera and the reflected vector
-        #angle = angle_between(camera, RV)
+        # angle = angle_between(camera, RV)
         # Calculate the intensity of the reflected light
         Diffuse = Oren_Nayar_BRDF(R1, r, nv, Pos, camera, Coarse, DIF_REF, Temperature, Wavelengh)
         SR  = specular_reflection(SPE_REF, RV, camera, nv, r, Temperature, Wavelengh)
@@ -68,8 +75,8 @@ def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = C
     Intensity = Intensity* blackbody_radiation(Temperature, Wavelengh)
     Intensity = np.array(Intensity[:]).reshape(SIZE[0], SIZE[1])
 
-    #print(Intensity)
-    #Intensity = Intensity / np.max(Intensity)
+    # print(Intensity)
+    # Intensity = Intensity / np.max(Intensity)
     # Create a sphere plot
     phiP, thetaP = np.meshgrid(phiP_list, thetaP_list)
     x = R2 * np.cos(phiP) * np.cos(thetaP)
@@ -88,8 +95,8 @@ def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = C
         mappable = ax.plot_surface(x, y, z, facecolors=plt.cm.gray(Intensity.T /temp), rstride=1, cstride=1, antialiased=False)
 
     # Plot the incident and reflected vectors
-    #ax.quiver(-(2000 + R2) * np.cos(Theta), -(2000 + R2) * np.sin(Theta), 0, np.cos(Theta), np.sin(Theta), 0, color='r', length=2000.0, normalize=True)
-    #ax.quiver(R2 * camera[0], R2 * camera[1], R2 * camera[2], camera[0], camera[1], camera[2], color='g', length=2000.0, normalize=True, linestyle='dashed')
+    # ax.quiver(-(2000 + R2) * np.cos(Theta), -(2000 + R2) * np.sin(Theta), 0, np.cos(Theta), np.sin(Theta), 0, color='r', length=2000.0, normalize=True)
+    # ax.quiver(R2 * camera[0], R2 * camera[1], R2 * camera[2], camera[0], camera[1], camera[2], color='g', length=2000.0, normalize=True, linestyle='dashed')
 
     # Set axis labels
     ax.set_xlabel('X (km)') 

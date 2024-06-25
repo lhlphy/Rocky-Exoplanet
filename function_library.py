@@ -184,55 +184,55 @@ def blackbody_radiation(T, lam, B=1):
 #print(blackbody_radiation(6000, 1e-6))
 
 
-def I_dist_afterreflect(R1, r, angle, normal, RV, Pos):
-    """
-    Calculate the intensity of reflected sunlight considering reflectivity and diffusion.
+# def I_dist_afterreflect(R1, r, angle, normal, RV, Pos): #old version
+#     """
+#     Calculate the intensity of reflected sunlight considering reflectivity and diffusion.
     
-    Parameters:
-    R1 (float): Radius of the Sun.
-    r (float): Distance from the Sun to the Earth.
-    angle (float): Angle of incidence.
-    normal (array): Normal vector at the point of reflection.
-    RV (array): Reflected vector.
-    Pos (array): Position vector.
+#     Parameters:
+#     R1 (float): Radius of the Sun.
+#     r (float): Distance from the Sun to the Earth.
+#     angle (float): Angle of incidence.
+#     normal (array): Normal vector at the point of reflection.
+#     RV (array): Reflected vector.
+#     Pos (array): Position vector.
     
-    Returns:
-    float: Intensity I after reflection.
-    """
-    C = 1  # Coefficient of proportionality
-    R = 0.1  # Reflectivity of the planet
-    M = 0.2  # Diffusion coefficient of the planet
+#     Returns:
+#     float: Intensity I after reflection.
+#     """
+#     C = 1  # Coefficient of proportionality
+#     R = 0.1  # Reflectivity of the planet
+#     M = 0.2  # Diffusion coefficient of the planet
 
-    # Ensure the angle is within the valid range  {angle = angle_between(camera, RV)}
-    # if angle > np.pi / 2:
-    #     raise ValueError("The angle is larger than pi/2")
+#     # Ensure the angle is within the valid range  {angle = angle_between(camera, RV)}
+#     # if angle > np.pi / 2:
+#     #     raise ValueError("The angle is larger than pi/2")
 
-    # Calculate the total intensity
-    S_hat = 1     #2 * np.pi * R1**2 / r * np.sqrt(r**2 - R1**2) * (1 - R1 / r)
-    I_tot = C * S_hat/r**2
+#     # Calculate the total intensity
+#     S_hat = 1     #2 * np.pi * R1**2 / r * np.sqrt(r**2 - R1**2) * (1 - R1 / r)
+#     I_tot = C * S_hat/r**2
 
-    # Calculate the diffused intensity
-    ID = I_tot * M * max(0, np.dot(normal, RV))
+#     # Calculate the diffused intensity
+#     ID = I_tot * M * max(0, np.dot(normal, RV))
 
-    if check_intersection_with_star(Pos, camera):
-        return 0
+#     if check_intersection_with_star(Pos, camera):
+#         return 0
     
-    # Calculate the final intensity considering the reflectivity
-    if r * np.sin(angle) < R1 and angle < np.pi/2:
-        cosbeta = np.sqrt(1 - (r/R1*np.sin(angle))**2)
-        sinS = (r/R1 * np.sin(2 * angle) / 2 + np.sin(angle) * cosbeta)
-        if angle == 0:
-            dis = r - R1
-        else:
-            dis = R1/np.sin(angle)*sinS
+#     # Calculate the final intensity considering the reflectivity
+#     if r * np.sin(angle) < R1 and angle < np.pi/2:
+#         cosbeta = np.sqrt(1 - (r/R1*np.sin(angle))**2)
+#         sinS = (r/R1 * np.sin(2 * angle) / 2 + np.sin(angle) * cosbeta)
+#         if angle == 0:
+#             dis = r - R1
+#         else:
+#             dis = R1/np.sin(angle)*sinS
 
-        I =  cosbeta /dis**2 + ID
-        #print(cosbeta /dis**2,',',ID)
-    else:
-        I = ID
+#         I =  cosbeta /dis**2 + ID
+#         #print(cosbeta /dis**2,',',ID)
+#     else:
+#         I = ID
 
     
-    return I *a**2 *2
+#     return I *a**2 *2
 
 
 def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Coarse = 0, DIF_REF = 0.5, Temperature = 6000, Wavelengh = 1e-6):
