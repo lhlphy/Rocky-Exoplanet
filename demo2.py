@@ -21,7 +21,7 @@ import time
 # plt.plot(angle, I)
 
 
-def main(i, j, Intensity, diffuse_ratio):
+def main(i, j, Intensity, diffuse_ratio, Theta):
     
     phiP = phiP_list[i]
     thetaP = thetaP_list[j]
@@ -51,6 +51,7 @@ def main(i, j, Intensity, diffuse_ratio):
 
 
 if __name__ == '__main__':
+    Theta = np.pi/3 # The orbit angle
     t1 = time.time()
     processes = []
     Intensity = multiprocessing.Array('d', SIZE[0]*SIZE[1])   
@@ -59,7 +60,7 @@ if __name__ == '__main__':
     # Loop through all points on the planet's surface
     for i, phiP in enumerate(phiP_list):
         for j, thetaP in enumerate(thetaP_list):
-            process = multiprocessing.Process(target=main, args=(i, j, Intensity, diffuse_ratio))
+            process = multiprocessing.Process(target=main, args=(i, j, Intensity, diffuse_ratio,Theta))
             processes.append(process)
             process.start()
         

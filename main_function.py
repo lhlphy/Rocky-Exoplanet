@@ -103,7 +103,8 @@ def global_intensity(Theta):
     # Show the plot
     #plt.show()
     #save the plot to temp/ folder
-    plt.savefig('temp/plot.png')
+    name = 'temp/plot1.png'
+    plt.savefig(name)
     
     #print("Program run time:",t2-t1,'s')
     
