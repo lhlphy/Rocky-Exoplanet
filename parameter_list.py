@@ -5,7 +5,7 @@ import numpy as np
 AU = 149_597_870.7  # km, 1 Astronomical Unit
 R1 = 1_392_000  # km, radius of the Star
 R2 = 4880      # km, radius of the Planet
-e = 0.205630   # Eccentricity of the Earth's orbit
+e = 0  # Eccentricity of the Earth's orbit
 a = 0.05 * AU  # km, semi-major axis of the Earth's orbit / 10
 # m1 = 1.989e30   # kg, mass of the Sun
 # m2 = 5.972e24   # kg, mass of the Earth
@@ -31,7 +31,7 @@ thetaP_list = np.linspace(0, 2 * np.pi, SIZE[1])
 ### Thermal and optical parameters
 Temperature = 6000  # K, temperature of the Star
 Wavelengh = 1e-6  # m, wavelength of the light
-SPE_REF_g = 0.5  # Specular reflection coefficient
+SPE_REF_g = 0.5  # Specular reflection coefficient  #if SPE_REF == -1, using the experiment data
 DIF_REF_g = 0.5  # Diffuse reflection coefficient
 Coarse_g = 0.5  # Coarseness of the surface
 

@@ -18,7 +18,7 @@ def result_ploter(Var, name, cal_size, Theta_list, Coarse, id):
     plt.figure()
 
     plt.plot(Theta_list, Var[:], label = "Coarse = " + str(int(Coarse*180/np.pi)))
-    plt.xlabel('Theta')
+    plt.xlabel('Orbit angle')
     plt.ylabel(name)
     plt.legend()
 

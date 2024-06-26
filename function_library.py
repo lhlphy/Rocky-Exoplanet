@@ -1,6 +1,8 @@
 import numpy as np
 from parameter_list import *
 from scipy.integrate import dblquad
+from scipy import interpolate
+
 
 
 def orbit_calculator(a, e, Theta):
@@ -341,6 +343,44 @@ def specular_reflection(specular_coefficent ,RV, camera, normal, r, Temperature=
     Dtheta = np.pi/SIZE[0]
     Dphi = 2*np.pi/SIZE[1]
     DA = R2**2 *np.sin(theta)*Dtheta*Dphi
+    if specular_coefficent > 1:
+        specular_coefficent = REF_fit(angle_between(normal,camera))
     
     return specular_coefficent * DA #* blackbody_radiation(Temperature, Wavelengh)
+
+
+def REF_fit(theta_r):
+# 将数据导入 numpy.array
+    data = np.array([
+        [0.5001124098736187, 0.032118887679963626],
+        [0.5736634148850275, 0.033408595176071754],
+        [0.6427189168144851, 0.06128842237195531],
+        [0.6756905530154491, 0.061634824962347956],
+        [0.7072081925499654, 0.14880020720629672],
+        [0.7377997362818145, 0.07614928554558476],
+        [0.7657341464915512, 0.05993461959404889],
+        [0.8190099736814429, 0.0539751987302266],
+        [0.8658608940248835, 0.08729094197427156],
+        [0.9063547987087033, 0.128163086839302],
+        [0.939014585557566, 0.2742055067313157],
+        [0.9655296573641872, 0.32861747980467393],
+        [0.9843427928509834, 0.42644452403552857],
+        [0.9956399613573477, 0.4808017640592614],
+        [0.9991605507473171, 0.6134471897978909]
+    ])
+
+    # 拆分数据为 x 和 y
+    x = data[:, 0]
+    y = data[:, 1]
+
+    # 使用 scipy 的线型插值拟合
+    
+    
+    xq = np.cos(theta_r)
+    if xq < 0.5
+
+    # 计算对应的 y 值
+    yq = spl()
+    return yq
+
 
