@@ -370,17 +370,18 @@ def REF_fit(theta_r):
     ])
 
     # 拆分数据为 x 和 y
-    x = data[:, 0]
-    y = data[:, 1]
+    x = data[:, 0] 
+    y = data[:, 1] 
 
-    # 使用 scipy 的线型插值拟合
-    
+    # 使用 scipy 的线性插值Linear拟合数据
+    spl = interpolate.interp1d(x, y, kind='linear')
     
     xq = np.cos(theta_r)
-    if xq < 0.5
-
+    if xq < 0.5:
+        yq = 0.032 
+    else:
+        yq = spl(xq)
     # 计算对应的 y 值
-    yq = spl()
     return yq
 
 
