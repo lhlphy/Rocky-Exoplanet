@@ -32,8 +32,8 @@ thetaP_list = np.linspace(0, 2 * np.pi, SIZE[1])
 Temperature = 5800  # K, temperature of the Star
 Wavelengh = 6e-7  # m, wavelength of the light
 SPE_REF_g = 555  # Specular reflection coefficient  #if SPE_REF == -1, using the experiment data
-DIF_REF_g = 0.2 # Diffuse reflection coefficient
-Coarse_g = 0.5  # Coarseness of the surface
+DIF_REF_g = 0.1 # Diffuse reflection coefficient
+Coarse_g = 0  # Coarseness of the surface
 N1 = 1  # Refractive index of the Vacuum
 N2 = 1.333  # Refractive index of the water
 

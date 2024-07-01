@@ -460,7 +460,7 @@ def Cal_star_area(Theta):
     if np.dot(camera,Planet) < 0:  # Planet is behind the star, impossible to block the light
         return Area
     else:
-        d = np.linalg.norm(np.corss(Planet, camera))
+        d = np.linalg.norm(np.cross(Planet, camera))
         return Area - Cal_intersection_area(d, R1, R2) 
 
 
