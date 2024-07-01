@@ -34,6 +34,8 @@ Wavelengh = 6e-7  # m, wavelength of the light
 SPE_REF_g = 0.5  # Specular reflection coefficient  #if SPE_REF == -1, using the experiment data
 DIF_REF_g = 0.5  # Diffuse reflection coefficient
 Coarse_g = 0.5  # Coarseness of the surface
+N1 = 1  # Refractive index of the Vacuum
+N2 = 1.333  # Refractive index of the water
 
 
 

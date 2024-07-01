@@ -345,7 +345,7 @@ def specular_reflection(specular_coefficent ,RV, camera, normal, r, Temperature=
     Dphi = 2*np.pi/SIZE[1]
     DA = R2**2 *np.sin(theta)*Dtheta*Dphi
     if specular_coefficent > 1:
-        specular_coefficent = REF_fit(angle_between(normal,camera))
+        specular_coefficent = Fresnel(angle_between(normal,camera), N1, N2)        # Change here for different model of the reflection
     
     return specular_coefficent * DA * np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelengh)
    #Bug repaired in 7/1: * np.cos(theta_c)
@@ -480,5 +480,17 @@ def Cal_star_flux(Theta):
 
     return Flux * blackbody_radiation(Temperature, Wavelengh)
 
+def Fresnel(theta_i, n1, n2):
+    # Calculate the Fresnel coefficient
+    # n1, n2: refractive index of the two media
+    # theta_i: angle of incidence
+    # no polarized light
+    # Reference: https://en.wikipedia.org/wiki/Fresnel_equations
 
+    theta_t = np.arcsin(n1/n2 * np.sin(theta_i))
+    Rs = ((n1 * np.cos(theta_i) - n2 * np.cos(theta_t)) / (n1 * np.cos(theta_i) + n2 * np.cos(theta_t)) )**2
+    Rp = ((n1 * np.cos(theta_t) - n2 * np.cos(theta_i)) / (n1 * np.cos(theta_t) + n2 * np.cos(theta_i)) )**2
+    Reff = (Rs + Rp) / 2
+
+    return Reff
 
