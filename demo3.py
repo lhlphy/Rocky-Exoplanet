@@ -11,19 +11,6 @@ import matplotlib.pyplot as plt
   
 # 忽略 IntegrationWarning  
 warnings.filterwarnings('ignore', category=IntegrationWarning)  
-  
-
-# 按列绘制TOT_Intensity,x轴为Theta_list,绘制在同一副图中
-def result_ploter(Var, name, cal_size, Theta_list, Coarse, id):
-    plt.figure()
-
-    plt.plot(Theta_list, Var[:], label = "Coarse = " + str(int(Coarse*180/np.pi)))
-    plt.xlabel('Orbit angle')
-    plt.ylabel(name)
-    plt.legend()
-
-    plt.savefig(f'temp/{id}/Results/{name}.png')
-    plt.close()
 
 
 if __name__ == "__main__":
@@ -74,14 +61,24 @@ if __name__ == "__main__":
     t6 = time.time()
     print("Total Time = ", t6 - t5, "s, Processing ALL DONE!")
 
+    star_flux = mf.Cal_star_flux(Theta_list)
+
     # save "variables" to temp/ folder
     np.save(f'temp/{args.id}/variables/variables.npy', variables)
     np.save(f'temp/{args.id}/variables/TOT_Intensity.npy', TOT_Intensity)
     np.save(f'temp/{args.id}/variables/TOT_Diffuse.npy', TOT_Diffuse)
     np.save(f'temp/{args.id}/variables/TOT_Specular.npy', TOT_Specular)
     np.save(f'temp/{args.id}/variables/Theta_list.npy', Theta_list)
+    np.save(f'temp/{args.id}/variables/star_flux.npy', star_flux)
 
     # plot the results
-    result_ploter(TOT_Intensity, "TOT_Intensity", cal_size, Theta_list, Coarse, args.id)
-    result_ploter(TOT_Diffuse, "TOT_Diffuse", cal_size, Theta_list, Coarse, args.id)
-    result_ploter(TOT_Specular, "TOT_Specular", cal_size, Theta_list, Coarse, args.id)
+    # result_ploter(TOT_Intensity, "TOT_Intensity", Theta_list, Coarse, args.id)
+    # result_ploter(TOT_Diffuse, "TOT_Diffuse", Theta_list, Coarse, args.id)
+    # result_ploter(TOT_Specular, "TOT_Specular", Theta_list, Coarse, args.id)
+
+    vars = [TOT_Intensity, TOT_Diffuse, TOT_Specular]/star_flux
+    name = ["Total reflect", "Diffuse", "Specular"]
+    mf.multi_result_plotter(vars, name, Theta_list, Coarse, args.id)
+
+
+

@@ -2,7 +2,7 @@ import numpy as np
 from parameter_list import *
 from scipy.integrate import dblquad
 from scipy import interpolate
-
+import matplotlib.pyplot as plt
 
 
 def orbit_calculator(a, e, Theta):
@@ -315,7 +315,8 @@ def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Coarse = 0, DIF_REF = 0.5, Tempe
     Dtheta = np.pi/SIZE[0]
     Dphi = 2*np.pi/SIZE[1]
     theta = angle_between(normal, np.array([0,0,1]))
-    return Integ[0] * R2**2 *np.sin(theta) *Dtheta *Dphi *np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelengh)   
+    DA = R2**2 *np.sin(theta) *Dtheta *Dphi 
+    return Integ[0] *DA *np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelengh)   
 
 
 def specular_reflection(specular_coefficent ,RV, camera, normal, r, Temperature= 6000, Wavelengh = 1e-6):
@@ -337,7 +338,7 @@ def specular_reflection(specular_coefficent ,RV, camera, normal, r, Temperature=
     if angle > angle_max:
         return 0
     
-    #theta_c = angle_between(camera, normal)
+    theta_c = angle_between(camera, normal)
     theta = angle_between(normal, np.array([0,0,1]))
     # Calculate the intensity of the reflected light
     Dtheta = np.pi/SIZE[0]
@@ -346,7 +347,8 @@ def specular_reflection(specular_coefficent ,RV, camera, normal, r, Temperature=
     if specular_coefficent > 1:
         specular_coefficent = REF_fit(angle_between(normal,camera))
     
-    return specular_coefficent * DA #* blackbody_radiation(Temperature, Wavelengh)
+    return specular_coefficent * DA * np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelengh)
+   #Bug repaired in 7/1: * np.cos(theta_c)
 
 
 def REF_fit(theta_r):
@@ -383,5 +385,100 @@ def REF_fit(theta_r):
         yq = spl(xq)
     # 计算对应的 y 值
     return yq
+
+
+# 按列绘制TOT_Intensity,x轴为Theta_list,绘制在同一副图中
+def result_ploter(Var, name, Theta_list, Coarse, id):
+    plt.figure()
+
+    plt.plot(Theta_list, Var[:], label = "Coarse = " + str(int(Coarse*180/np.pi)))
+    plt.xlabel('Orbit angle')
+    plt.ylabel(name)
+    plt.legend()
+
+    plt.savefig(f'temp/{id}/Results/{name}.png')
+    plt.close()
+
+def multi_result_plotter(Var, name, Theta_list, Coarse, id):
+    plt.figure()
+    # 启用 LaTeX 渲染
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
+
+    si = np.size(Var, 0)
+    for i in range(si):
+        plt.plot(Theta_list, Var[i, :], label = name[i])
+
+    plt.legend()
+    plt.xlabel(r'Orbit angle')
+    plt.ylabel(r"$Flux_{planet}/Flux_{star}$")
+
+    plt.savefig(f'temp/{id}/Results/Result.png')
+    plt.close()
+
+
+def wave_dist(alpha):
+    #the distribution of the wave on the ocean obey Gaussian distribution
+    #  alpha is the angle between the wave and the normal vector of the ocean
+    # CITE: https://arxiv.org/pdf/0801.1852
+    v = 10   #wind speed
+    sigma2 = 0.003 + 0.00512* v
+    return 1/np.sqrt(2*np.pi*sigma2)*np.exp(- np.tan(alpha)^2 /(2*sigma2))
+
+
+def Cal_intersection_area(d, r1, r2):
+    """
+    Calculate the area of the intersection of two circles.
+    d : float, distance between the centers of the two circles
+    r1 : float, radius of the first circle
+    r2 : float, radius of the second circle
+    """
+    if d >= (r1 + r2):  # 两圆相离
+        return 0
+    if (r1 - r2) >= d:  # 两圆内含，r1 大
+        return np.pi * r2 ** 2
+    if (r2 - r1) >= d:  # 两圆内含，r2 大
+        return np.pi * r1 ** 2
+    
+    angle1 = np.arccos((r1 ** 2 + d ** 2 - r2 ** 2) / (2 * r1 * d))
+    angle2 = np.arccos((r2 ** 2 + d ** 2 - r1 ** 2) / (2 * r2 * d))
+    
+    s1 = angle1 * r1 ** 2
+    s2 = angle2 * r2 ** 2
+    s3 = r1 * d * np.sin(angle1)
+    s = s1 + s2 - s3
+    
+    return s
+
+
+def Cal_star_area(Theta):
+    # Calculate the area of the star that radiates light to the Earth, considering the blocking effect of the planet
+    r = orbit_calculator(a, e, Theta) # Distance from the Sun to the Earth
+    Planet = np.array([r * np.cos(Theta), r * np.sin(Theta), 0])  # Position vector of the planet
+
+    Area = np.pi * R1 ** 2
+    if np.dot(camera,Planet) < 0:  # Planet is behind the star, impossible to block the light
+        return Area
+    else:
+        d = np.linalg.norm(np.corss(Planet, camera))
+        return Area - Cal_intersection_area(d, R1, R2) 
+
+
+def Cal_star_flux(Theta):
+    # Calculate the flux of the star that radiates light to the Earth
+    #检查Theta的数据类型是数还是数组？
+    Si = np.size(Theta)
+    if Si == 1:
+        Area = Cal_star_area(Theta)
+        return Area * blackbody_radiation(Temperature, Wavelengh)
+    
+    Flux = np.zeros(Si)
+    
+    for i, Th in enumerate(Theta):
+        Area = Cal_star_area(Th)
+        Flux[i] = Area 
+
+    return Flux * blackbody_radiation(Temperature, Wavelengh)
+
 
 
