@@ -29,11 +29,11 @@ def BRDF(i, j, Intensity, diffuse_ratio, Theta, SPE_REF, DIF_REF, Coarse, Temper
     # Calculate the normal vector and position
     nv, Pos, r = normal_vec(phiP, thetaP, Theta, a, e, R2)
 
-    if check_intersection_with_star(Pos, camera):  # Check if the line intersects with the star--Check block
-        with Intensity.get_lock():
-            Intensity[SIZE[1]*i+j] = 0
+    # if check_intersection_with_star(Pos, camera):  # Check if the line intersects with the star--Check block
+    #     with Intensity.get_lock():
+    #         Intensity[SIZE[1]*i+j] = 0
 
-        return
+    #     return
     
     # Calculate the reflected vector
     RV = reflect(Pos, nv)
