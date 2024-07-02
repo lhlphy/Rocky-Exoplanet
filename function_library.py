@@ -347,7 +347,8 @@ def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Coarse = 0, DIF_REF = 0.5, Tempe
         if angle > angle_max:
             return 0
         else:
-            return fr(theta_i, theta_c, Coarse, DIF_REF, phi_diff) * np.sin(theta_i)
+            return fr(theta_i, theta_c, Coarse, DIF_REF, phi_diff) * np.cos(theta_i)
+        #Bug Repaired in 7/2: np.sin(theta_i) -> np.cos(theta_i) 
             
         #phi_diff = np.pi - angle_between(np.cross(Pos, normal), np.cross(camera, normal))
         # res = fr(theta_i, theta_c, sigma, rho, phi_diff) * blackbody_radiation(6000, 1e-6) * np.sin(theta_i)
