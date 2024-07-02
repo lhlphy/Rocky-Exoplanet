@@ -494,7 +494,7 @@ def wave_dist(alpha):
     # CITE: https://arxiv.org/pdf/0801.1852
     v = 10   #wind speed
     sigma2 = 0.003 + 0.00512* v
-    return 1/np.sqrt(2*np.pi*sigma2)*np.exp(- np.tan(alpha)^2 /(2*sigma2))
+    return 1/np.sqrt(2*np.pi*sigma2)*np.exp(- np.tan(alpha)**2 /(2*sigma2))
 
 
 def Cal_intersection_area(d, r1, r2):
