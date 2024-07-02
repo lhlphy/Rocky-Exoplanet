@@ -22,7 +22,7 @@ import os
 # plt.plot(angle, I)
 
 
-def BRDF(i, j, Intensity, diffuse_ratio, Theta, SPE_REF, DIF_REF, Coarse, Temperature=6000, Wavelengh=1e-6):
+def BRDF(i, j, Intensity, diffuse_ratio, Theta, SPE_REF, DIF_REF, Coarse, Temperature=6000, Wavelengh=1e-6, Model='Lambert'):
     
     phiP = phiP_list[i]
     thetaP = thetaP_list[j]
@@ -43,8 +43,18 @@ def BRDF(i, j, Intensity, diffuse_ratio, Theta, SPE_REF, DIF_REF, Coarse, Temper
         # Calculate the angle between the camera and the reflected vector
         # angle = angle_between(camera, RV)
         # Calculate the intensity of the reflected light
-        Diffuse = Oren_Nayar_BRDF(R1, r, nv, Pos, camera, Coarse, DIF_REF, Temperature, Wavelengh)
-        SR  = specular_reflection(SPE_REF, RV, camera, nv, r, Temperature, Wavelengh)
+        # Model Choice 
+        if Model == 'Lambert':   #Coarse = 0
+            Diffuse = Oren_Nayar_BRDF(R1, r, nv, Pos, camera, 0, DIF_REF )
+            SR  = specular_reflection(SPE_REF, RV, camera, nv, r, Temperature, Wavelengh)
+        elif Model == 'Oren_Nayar':
+            Diffuse = Oren_Nayar_BRDF(R1, r, nv, Pos, camera, Coarse, DIF_REF )
+            SR  = specular_reflection(SPE_REF, RV, camera, nv, r, Temperature, Wavelengh)
+        elif Model == 'Gaussian_wave':  # In this model Diffuse and RF are considered together
+            Diffuse = Wave_reflect(R1, r, nv, Pos, camera )
+            SR = 0
+
+    
         with Intensity.get_lock():
             Intensity[SIZE[1]*i+j] = (Diffuse + SR) #* blackbody_radiation(6000, 1e-6)
 
@@ -58,7 +68,7 @@ def BRDF(i, j, Intensity, diffuse_ratio, Theta, SPE_REF, DIF_REF, Coarse, Temper
     #print(Intensity[SIZE[1]*i+j])
 
 
-def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = Coarse_g, Temperature=6000, Wavelengh=1e-6, id=0):
+def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = Coarse_g, Temperature=6000, Wavelengh=1e-6, id=0, Model = 'Lambert'):
     processes = []
     Intensity = multiprocessing.Array('d', SIZE[0]*SIZE[1])   
     diffuse_ratio = multiprocessing.Array('d', SIZE[0]*SIZE[1])
@@ -66,7 +76,7 @@ def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = C
     # Loop through all points on the planet's surface
     for i, phiP in enumerate(phiP_list):
         for j, thetaP in enumerate(thetaP_list):
-            process = multiprocessing.Process(target = BRDF, args=(i, j, Intensity, diffuse_ratio, Theta, SPE_REF, DIF_REF, Coarse, Temperature, Wavelengh))
+            process = multiprocessing.Process(target = BRDF, args=(i, j, Intensity, diffuse_ratio, Theta, SPE_REF, DIF_REF, Coarse, Temperature, Wavelengh, Model))
             processes.append(process)
             process.start()
 

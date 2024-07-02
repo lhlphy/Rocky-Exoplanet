@@ -235,7 +235,7 @@ def blackbody_radiation(T, lam, B=1):
 
     
 #     return I *a**2 *2
-def Wave_reflect(R1, r, normal, Pos, camera, Coarse = 0, DIF_REF = 0.5, Temperature = 6000, Wavelengh = 1e-6):
+def Wave_reflect(R1, r, normal, Pos, camera ):
     """
     Calculate the intensity of reflected sunlight considering reflectivity and diffusion.
     
@@ -269,11 +269,6 @@ def Wave_reflect(R1, r, normal, Pos, camera, Coarse = 0, DIF_REF = 0.5, Temperat
     theta_c = angle_between(camera, normal)
     t , phi_camera = vec2Euler(camera_local)
 
-
-    def fr(theta_i, theta_c, sigma, rho, phi_diff):
-        #https://zhuanlan.zhihu.com/p/500809166
-        
-        return fr
     
     def integrate_func(theta_i, phi):
         #theta_i = np.pi - angle_between(Pos, normal)
@@ -282,17 +277,29 @@ def Wave_reflect(R1, r, normal, Pos, camera, Coarse = 0, DIF_REF = 0.5, Temperat
         angle = angle_between(mWi, -Pos_local)
         angle_max = np.arcsin(R1/r)
 
-        if angle > angle_max:
+        if angle > angle_max:   #超出star的范围
             return 0
-        else:
-            return fr(theta_i, theta_c, Coarse, DIF_REF, phi_diff) * np.sin(theta_i)
        
+        theta_i = angle_between(mWi, camera_local)/2
+
+        ref_normal = check_normalization(check_normalization(mWi) + check_normalization(camera_local))   #mid vector
+        titl = angle_between(ref_normal, normal)   #the titl of surface reflect needed
+
+        return wave_dist(titl)* np.sin(theta_i) *Fresnel(theta_i, N1, N2)
+    # np.sin(theta_i) is from the derivative of solid angle
+
+    
+    Integ = dblquad(integrate_func, 0, 2*np.pi,0, np.pi/2 ,epsrel=1e-2,epsabs=1e-3)
+    #print(Integ)
+    Dtheta = np.pi/SIZE[0]
+    Dphi = 2*np.pi/SIZE[1]
+    theta = angle_between(normal, np.array([0,0,1]))
+    DA = R2**2 *np.sin(theta) *Dtheta *Dphi 
+    return Integ[0] *DA *np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelengh) 
 
 
 
-    return 0
-
-def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Coarse = 0, DIF_REF = 0.5, Temperature = 6000, Wavelengh = 1e-6):
+def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Coarse = 0, DIF_REF = 0.5 ):
     """
     Calculate the intensity of reflected sunlight considering reflectivity and diffusion.
     
@@ -347,8 +354,9 @@ def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Coarse = 0, DIF_REF = 0.5, Tempe
         if angle > angle_max:
             return 0
         else:
-            return fr(theta_i, theta_c, Coarse, DIF_REF, phi_diff) * np.cos(theta_i)
-        #Bug Repaired in 7/2: np.sin(theta_i) -> np.cos(theta_i) 
+            return fr(theta_i, theta_c, Coarse, DIF_REF, phi_diff) * np.cos(theta_i) *np.sin(theta_i)
+        #Bug Repaired in 7/2: np.sin(theta_i) -> np.cos(theta_i) *np.sin(theta_i)
+        # the first cos is from the Equation, the second sin is from the expression of solid angle dOmega = sin(theta)*dTheta*dPhi
             
         #phi_diff = np.pi - angle_between(np.cross(Pos, normal), np.cross(camera, normal))
         # res = fr(theta_i, theta_c, sigma, rho, phi_diff) * blackbody_radiation(6000, 1e-6) * np.sin(theta_i)
