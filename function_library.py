@@ -272,13 +272,7 @@ def Wave_reflect(R1, r, normal, Pos, camera, Coarse = 0, DIF_REF = 0.5, Temperat
 
     def fr(theta_i, theta_c, sigma, rho, phi_diff):
         #https://zhuanlan.zhihu.com/p/500809166
-        A = 1 - 0.5 * sigma**2 / (sigma**2 + 0.33)
-        B = 0.45 * sigma**2 / (sigma**2 + 0.09)
-        alpha = max(theta_i, theta_c)
-        beta = min(theta_i, theta_c)
-
-        max_cosphi = max(0, np.cos(phi_diff))
-        fr = rho / np.pi *(A + B * max_cosphi * np.sin(alpha) * np.tan(beta))
+        
         return fr
     
     def integrate_func(theta_i, phi):
