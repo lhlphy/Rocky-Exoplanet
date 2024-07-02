@@ -268,9 +268,16 @@ def Wave_reflect(R1, r, normal, Pos, camera ):
 
     theta_c = angle_between(camera, normal)
     t , phi_camera = vec2Euler(camera_local)
+    theta_P, phi_P = vec2Euler(Pos_local)
 
     
     def integrate_func(theta_i, phi):
+        tvec = Euler2vec(theta_i, phi)
+        tvec2 = rotate_vector(tvec, 'z', -phi_P)
+        tvec2 = rotate_vector(tvec2, 'y', -theta_P)
+
+        theta_i, phi = vec2Euler(tvec2)
+
         #theta_i = np.pi - angle_between(Pos, normal)
         phi_diff = phi - phi_camera
         mWi = Euler2vec(theta_i, phi)
@@ -288,8 +295,8 @@ def Wave_reflect(R1, r, normal, Pos, camera ):
         return wave_dist(titl)* np.sin(theta_i) *Fresnel(theta_i, N1, N2)
     # np.sin(theta_i) is from the derivative of solid angle
 
-    
-    Integ = dblquad(integrate_func, 0, 2*np.pi,0, np.pi/2 ,epsrel=1e-2,epsabs=1e-3)
+    theta_max = np.arcsin(R1/r)
+    Integ = dblquad(integrate_func, 0, 2*np.pi, 0, theta_max ,epsrel=1e-2,epsabs=1e-3)
     #print(Integ)
     Dtheta = np.pi/SIZE[0]
     Dphi = 2*np.pi/SIZE[1]
@@ -373,8 +380,8 @@ def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Coarse = 0, DIF_REF = 0.5 ):
 
     #     return res
     
-
-    Integ = dblquad(integrate_func, 0, 2*np.pi,0, np.pi/2 ,epsrel=1e-2,epsabs=1e-3)
+    theta_max = np.arcsin(R1/r)
+    Integ = dblquad(integrate_func, 0, 2*np.pi,0, theta_max ,epsrel=1e-2,epsabs=1e-3)
     #print(Integ)
     Dtheta = np.pi/SIZE[0]
     Dphi = 2*np.pi/SIZE[1]
@@ -557,4 +564,45 @@ def Fresnel(theta_i, n1, n2):
     Reff = (Rs + Rp) / 2
 
     return Reff
+
+def rotate_vector(vector, axis, angle):
+    """
+    旋转向量。
+    
+    Parameters:
+    vector (array-like): 待旋转的向量，例如 [x, y, z]
+    axis (str): 'x', 'y', 或 'z' 指定绕哪个轴旋转
+    angle (float): 旋转角度（以弧度为单位）
+    
+    Returns:
+    np.ndarray: 旋转后的向量
+    """
+    # 定义旋转矩阵
+    if axis == 'x':
+        R = np.array([[1, 0, 0],
+                      [0, np.cos(angle), -np.sin(angle)],
+                      [0, np.sin(angle), np.cos(angle)]])
+    elif axis == 'y':
+        R = np.array([[np.cos(angle), 0, np.sin(angle)],
+                      [0, 1, 0],
+                      [-np.sin(angle), 0, np.cos(angle)]])
+    elif axis == 'z':
+        R = np.array([[np.cos(angle), -np.sin(angle), 0],
+                      [np.sin(angle), np.cos(angle), 0],
+                      [0, 0, 1]])
+    else:
+        raise ValueError("轴必须是 'x', 'y' 或 'z'")
+
+    # 旋转向量
+    rotated_vector = R @ np.array(vector)
+    return rotated_vector
+
+# # 示例使用
+# if __name__ == "__main__":
+#     vector = [1, 0, 0]  # 待旋转的向量
+#     axis = 'z'  # 旋转轴
+#     angle = np.pi / 2  # 旋转90度
+#     rotated_vector = rotate_vector(vector, axis, angle)
+#     print("原向量:", vector)
+#     print("旋转后的向量:", rotated_vector)
 
