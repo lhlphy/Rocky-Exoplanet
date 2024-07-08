@@ -660,7 +660,7 @@ def Temperature_cal(ksi, Theta):
 
     return T
 
-def Tmap(Theta, id = 0):
+def Tmap(Theta, id = 0, star_flux=0):
     ## calculate the temperature map of the planet
     ## the map is a 2D array of thetaP and phiP
     Tmap_1D = np.zeros(SIZE[0])  #Use ksi as parameter to calculate the temperature map, according to the rotation symmetry, we can get the temperature map of the planet
@@ -669,7 +669,7 @@ def Tmap(Theta, id = 0):
     for i in range(SIZE[0]):
         Tmap_1D[i] = Temperature_cal(ksi_list[i], Theta)
     ## interpolate the 1D array to 2D array using the spline interpolation
-    spl = interpolate.interp1d(ksi_list , Tmap_1D, kind='spline') #spline interpolation
+    spl = interpolate.interp1d(ksi_list , Tmap_1D, kind='linear') #spline interpolation
 
     Tmap = np.zeros((SIZE[0], SIZE[1]))
     phiP_list = np.linspace(0, 2* np.pi, SIZE[1])
@@ -686,8 +686,10 @@ def Tmap(Theta, id = 0):
     plt.imshow(Tmap, cmap='gray')
     plt.xlabel('$\phi$')
     plt.ylabel('$\theta$')
-    plt.savefig(f'temp/{id}/Results/Tmap.png')
+    plt.colorbar()
+    plt.savefig(f'temp/{id}/Results/Tmap{int(Theta*180/np.pi)}.png')
     plt.close()
+    np.save(f'temp/{id}/Results/Tmap{int(Theta*180/np.pi)}.npy', Tmap)
 
     return Tmap
         
