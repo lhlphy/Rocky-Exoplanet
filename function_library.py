@@ -609,3 +609,86 @@ def rotate_vector(vector, axis, angle):
 #     print("原向量:", vector)
 #     print("旋转后的向量:", rotated_vector)
 
+def B(lam,T):
+    h = 6.626e-34  # Planck's constant
+    c = 3.0e8  # Speed of light
+    k = 1.38e-23  # Boltzmann constant
+    B = 2* h * c**2 / lam**5 / (np.exp(h * c / lam / k / T) - 1)
+    return B
+
+def Temperature_cal(ksi, Theta):
+    ## calculate the temperature distribution of the planet
+    ## ksi is the angle between the normal vector and the vector from the star to the planet
+    r = orbit_calculator(a, e, Theta)
+
+    ksi_m1 = np.pi/2 - np.arcsin((R1+R2)/r)
+    ksi_m2 = np.pi/2 + np.arcsin((R1-R2)/r)
+    if ksi_m1 > ksi_m2:
+        #报错信息： ksi_m1 > ksi_m2
+        print("ksi_m1 > ksi_m2")
+        raise ValueError("ksi_m1 > ksi_m2")
+
+    if ksi < ksi_m1:
+        rP = np.sqrt(a**2 + R2**2 - 2*a*R2*np.cos(ksi))
+        zeta = np.arcsin(R2/rP*np.sin(ksi))
+        Phi = zeta + ksi
+        T = Temperature * np.sqrt(R1/r) *((1-Albedo)*np.cos(Phi))**(1/4)
+
+    elif ksi_m1 <= ksi <= ksi_m2: # the planet is in the shadow of the star
+
+        def integrate_func(thetas, phis): # the integral function
+            normalP = np.array([-R2* np.cos(ksi), 0, R2* np.sin(ksi)])
+            normalS = np.array([np.sin(thetas)*np.cos(phis), np.sin(thetas)*np.sin(phis), np.cos(thetas)])* R1
+            P = np.array([r, 0 ,0])
+            Pos = P + normalP - normalS
+
+            TH = angle_between(Pos, normalS)
+            PSI = angle_between(Pos, -normalP)
+
+            if TH < np.pi/2 and PSI < np.pi/2:
+                I = (R1/np.linalg.norm(Pos))**2 * np.sin(thetas) *np.cos(TH) * np.cos(PSI)
+            else:
+                I = 0
+
+            return I
+        
+        Int = dblquad(integrate_func, 0, 2* np.pi, 0, np.pi)
+        T = Temperature * (Int[0] /np.pi* (1- Albedo))**(1/4)
+
+    else:
+        T = 0
+
+    return T
+
+def Tmap(Theta, id = 0):
+    ## calculate the temperature map of the planet
+    ## the map is a 2D array of thetaP and phiP
+    Tmap_1D = np.zeros(SIZE[0])  #Use ksi as parameter to calculate the temperature map, according to the rotation symmetry, we can get the temperature map of the planet
+    ksi_list = np.linspace(0, np.pi, SIZE[0])
+
+    for i in range(SIZE[0]):
+        Tmap_1D[i] = Temperature_cal(ksi_list[i], Theta)
+    ## interpolate the 1D array to 2D array using the spline interpolation
+    spl = interpolate.interp1d(ksi_list , Tmap_1D, kind='spline') #spline interpolation
+
+    Tmap = np.zeros((SIZE[0], SIZE[1]))
+    phiP_list = np.linspace(0, 2* np.pi, SIZE[1])
+    thetaP_list = np.linspace(0, np.pi, SIZE[0])
+
+    for i in range(SIZE[0]):
+        for j in range(SIZE[1]):
+            thetaP = thetaP_list[i]
+            phiP = phiP_list[j]
+            ksi = np.arccos(np.sin(thetaP) * np.cos(phiP)) 
+            Tmap[i, j] = spl(ksi)
+
+    # plot Tmap, xlabel: "$\theta$", ylabel: "$\phi$", using the gray map to show the temperature distribution
+    plt.imshow(Tmap, cmap='gray')
+    plt.xlabel('$\phi$')
+    plt.ylabel('$\theta$')
+    plt.savefig(f'temp/{id}/Results/Tmap.png')
+    plt.close()
+
+    return Tmap
+        
+
