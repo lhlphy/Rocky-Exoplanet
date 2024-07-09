@@ -695,7 +695,7 @@ def Tmap(Theta, id = 0, star_flux=0):
     return Tmap
 
 
-def radiation_cal(Tmap, Theta, camera, Albedo, Temperature, Wavelength = 0):
+def Radiation_cal(Tmap, Theta, camera, Albedo, Temperature, Wavelength = 0):
     ## calculate the radiation distribution of the planet
     ## the map is a 2D array of thetaP and phiP
     Rad = 0
