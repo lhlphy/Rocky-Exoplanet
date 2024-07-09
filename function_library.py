@@ -3,6 +3,7 @@ from parameter_list import *
 from scipy.integrate import dblquad
 from scipy import interpolate
 import matplotlib.pyplot as plt
+import os
 
 
 def orbit_calculator(a, e, Theta):
@@ -304,7 +305,7 @@ def Wave_reflect(R1, r, normal, Pos, camera ):
     Dphi = 2*np.pi/SIZE[1]
     theta = angle_between(normal, np.array([0,0,1]))
     DA = R2**2 *np.sin(theta) *Dtheta *Dphi 
-    return Integ[0] *DA *np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelengh) 
+    return Integ[0] *DA *np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelength) 
 
 
 
@@ -389,10 +390,10 @@ def Wave_reflect(R1, r, normal, Pos, camera ):
 #     Dphi = 2*np.pi/SIZE[1]
 #     theta = angle_between(normal, np.array([0,0,1]))
 #     DA = R2**2 *np.sin(theta) *Dtheta *Dphi 
-#     return Integ[0] *DA *np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelengh)   
+#     return Integ[0] *DA *np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelength)   
 
 
-def specular_reflection(specular_coefficent ,RV, camera, normal, r, Temperature= 6000, Wavelengh = 1e-6):
+def specular_reflection(specular_coefficent ,RV, camera, normal, r, Temperature= 6000, Wavelength = 1e-6):
     """
     Calculate the intensity of specular reflection.
     
@@ -420,7 +421,7 @@ def specular_reflection(specular_coefficent ,RV, camera, normal, r, Temperature=
     if specular_coefficent > 1:
         specular_coefficent = Fresnel(angle_between(normal,camera), N1, N2)        # Change here for different model of the reflection
     
-    return specular_coefficent * DA * np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelengh)
+    return specular_coefficent * DA * np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelength)
    #Bug repaired in 7/1: * np.cos(theta_c)
 
 
@@ -614,7 +615,8 @@ def B(lam,T):
     h = 6.626e-34  # Planck's constant
     c = 3.0e8  # Speed of light
     k = 1.38e-23  # Boltzmann constant
-    B = 2* h * c**2 / lam**5 / (np.exp(h * c / lam / k / T) - 1)
+    A = (np.exp(h * c / lam / k / T) - 1)
+    B = 2* h * c**2 / lam**5 / A
     return B
 
 def Temperature_cal(ksi, Theta, Albedo = 0.3):
@@ -676,21 +678,20 @@ def Tmap(Theta, id = 0, star_flux=0):
     phiP_list = np.linspace(0, 2* np.pi, SIZE[1])
     thetaP_list = np.linspace(0, np.pi, SIZE[0])
 
-    for i in range(SIZE[0]):
-        for j in range(SIZE[1]):
-            thetaP = thetaP_list[i]
-            phiP = phiP_list[j]
+    for i, thetaP in enumerate(thetaP_list):
+        for j, phiP in enumerate(phiP_list):
             ksi = np.arccos(np.sin(thetaP) * np.cos(phiP)) 
             Tmap[i, j] = spl(ksi)
 
     # plot Tmap, xlabel: "$\theta$", ylabel: "$\phi$", using the gray map to show the temperature distribution
+    os.makedirs(f'temp/R{id}/plots', exist_ok=True)
     plt.imshow(Tmap, cmap='gray')
     plt.xlabel('$\phi$')
     plt.ylabel('$\theta$')
     plt.colorbar()
-    plt.savefig(f'temp/{id}/Results/Tmap{int(Theta*180/np.pi)}.png')
+    plt.savefig(f'temp/R{id}/plots/Tmap{int(Theta*180/np.pi)}.png')
     plt.close()
-    np.save(f'temp/{id}/Results/Tmap{int(Theta*180/np.pi)}.npy', Tmap)
+    np.save(f'temp/R{id}/plots/Tmap{int(Theta*180/np.pi)}.npy', Tmap)
 
     return Tmap
 
@@ -701,6 +702,8 @@ def Radiation_cal(Tmap, Theta, camera, Albedo, Temperature, Wavelength = 0):
     Rad = 0
     Dtheta = np.pi/SIZE[0]
     Dphi = 2*np.pi/SIZE[1]
+    thetaP_list = np.linspace(0, np.pi, SIZE[0])
+    phiP_list = np.linspace(0, 2* np.pi, SIZE[1])
 
     for i, thetaP in enumerate(thetaP_list):
         for j, phiP in enumerate(phiP_list):
@@ -712,6 +715,9 @@ def Radiation_cal(Tmap, Theta, camera, Albedo, Temperature, Wavelength = 0):
                 continue
             else:
                 T = Tmap[i, j]
+                if T < 1e-2:  # the temperature is too low, the radiation is negligible
+                    continue
+
                 dA = R2**2 * np.sin(thetaP) * Dtheta * Dphi
                 if Wavelength == 0:
                     sigma = 5.670373 * 1e-8
@@ -725,10 +731,3 @@ def Radiation_cal(Tmap, Theta, camera, Albedo, Temperature, Wavelength = 0):
 
                     
                 
-                
-
-
-
-    
-        
-

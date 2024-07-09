@@ -4,6 +4,8 @@ from parameter_list import *
 from function_library import *
 import multiprocessing
 import os
+from matplotlib import rcParams
+from matplotlib.pylab import mpl
 #import time
 
 # Use 'TkAgg' as the backend for Matplotlib
@@ -22,7 +24,7 @@ import os
 # plt.plot(angle, I)
 
 
-def BRDF(i, j, Intensity, diffuse_ratio, Theta, SPE_REF, DIF_REF, Coarse, Temperature=6000, Wavelengh=1e-6, Model='Lambert'):
+def BRDF(i, j, Intensity, diffuse_ratio, Theta, SPE_REF, DIF_REF, Coarse, Temperature=6000, Wavelength=1e-6, Model='Lambert'):
     
     phiP = phiP_list[i]
     thetaP = thetaP_list[j]
@@ -46,10 +48,10 @@ def BRDF(i, j, Intensity, diffuse_ratio, Theta, SPE_REF, DIF_REF, Coarse, Temper
         # Model Choice 
         if Model == 'Lambert':   #Coarse = 0
             Diffuse = Oren_Nayar_BRDF(R1, r, nv, Pos, camera, 0, DIF_REF )
-            SR  = specular_reflection(SPE_REF, RV, camera, nv, r, Temperature, Wavelengh)
+            SR  = specular_reflection(SPE_REF, RV, camera, nv, r, Temperature, Wavelength)
         elif Model == 'Oren_Nayar':
             Diffuse = Oren_Nayar_BRDF(R1, r, nv, Pos, camera, Coarse, DIF_REF )
-            SR  = specular_reflection(SPE_REF, RV, camera, nv, r, Temperature, Wavelengh)
+            SR  = specular_reflection(SPE_REF, RV, camera, nv, r, Temperature, Wavelength)
         elif Model == 'Gaussian_wave':  # In this model Diffuse and RF are considered together
             Diffuse = Wave_reflect(R1, r, nv, Pos, camera )
             SR = 0
@@ -68,7 +70,7 @@ def BRDF(i, j, Intensity, diffuse_ratio, Theta, SPE_REF, DIF_REF, Coarse, Temper
     #print(Intensity[SIZE[1]*i+j])
 
 
-def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = Coarse_g, Temperature=6000, Wavelengh=1e-6, id=0, Model = 'Lambert'):
+def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = Coarse_g, Temperature=6000, Wavelength=1e-6, id=0, Model = 'Lambert'):
     processes = []
     Intensity = multiprocessing.Array('d', SIZE[0]*SIZE[1])   
     diffuse_ratio = multiprocessing.Array('d', SIZE[0]*SIZE[1])
@@ -76,14 +78,14 @@ def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = C
     # Loop through all points on the planet's surface
     for i, phiP in enumerate(phiP_list):
         for j, thetaP in enumerate(thetaP_list):
-            process = multiprocessing.Process(target = BRDF, args=(i, j, Intensity, diffuse_ratio, Theta, SPE_REF, DIF_REF, Coarse, Temperature, Wavelengh, Model))
+            process = multiprocessing.Process(target = BRDF, args=(i, j, Intensity, diffuse_ratio, Theta, SPE_REF, DIF_REF, Coarse, Temperature, Wavelength, Model))
             processes.append(process)
             process.start()
 
     for process in processes:
         process.join()
 
-    Intensity = Intensity* blackbody_radiation(Temperature, Wavelengh)
+    Intensity = Intensity* blackbody_radiation(Temperature, Wavelength)
     Intensity = np.array(Intensity[:]).reshape(SIZE[0], SIZE[1])
 
     # print(Intensity)
@@ -141,4 +143,99 @@ def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = C
 # print(np.linalg.norm(np.cross(Pos, camera))/np.linalg.norm(camera))
 # #The distance between the line and the origin is given by: |Pos| sin(theta)
 # print(np.linalg.norm(Pos)*np.sin(angle_between(Pos, camera)))
+
+def thermal_spectrum(wavelength_bound, Temperature=5800, Albedo=0.3, id=0):
+    # Calculate the blackbody radiation spectrum
+    # Planck's constant
+    h = 6.62607015e-34
+    # Speed of light
+    c = 299792458
+    # Boltzmann constant
+    k = 1.380649e-23
+    # Wavelengths
+    Theta_list = np.linspace(0, np.pi, 6)  # 0-pi 与 pi-2pi 重复
+    Wavelength = np.linspace(wavelength_bound[0], wavelength_bound[1], 500)
+    TMAP0 = Tmap(0, id)
+    # processes = []
+    # spectrum_P = multiprocessing.Array('d', len(Wavelength))   
+    # spectrum_S = multiprocessing.Array('d', len(Wavelength))
+
+    for i, Theta in enumerate(Theta_list):
+        if e == 0:
+            TMAP = TMAP0
+        else:
+            TMAP = Tmap(Theta, id)
+
+        spectrum_P = np.zeros(len(Wavelength))
+        spectrum_S = np.zeros(len(Wavelength))
+        for j, wavelength in enumerate(Wavelength):
+            # Calculate the blackbody radiation spectrum
+            if Theta < 1e-6:
+                spectrum_P[j] = 0
+            else:
+                spectrum_P[j] = Radiation_cal(TMAP, Theta, camera, Albedo, Temperature, wavelength)
+            spectrum_S[j] = Cal_star_flux(Theta, wavelength, Temperature)
+        # Plot the spectrum
+
+        ratio = spectrum_P/spectrum_S
+        #默认字体
+        config = {
+            "font.family":'Times New Roman',
+            "font.size": 16,
+            "mathtext.fontset":'stix',
+            "font.serif": ['Times New Roman'],
+        }
+        rcParams.update(config)
+        mpl.rcParams['font.sans-serif'] = ['SimHei']   #显示中文
+        mpl.rcParams['axes.unicode_minus']=False       #显示负号
+
+        a = 0.45
+        fig, ax = plt.subplots(figsize=(26*a,13*a))
+        plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.3, hspace=0.3)
+        plt.rcParams['ytick.direction'] = 'in'# 刻度线显示在内部
+        plt.rcParams['xtick.direction'] = 'in'# 刻度线显示在内部
+
+        axpos = [0.1, 0.15, 0.7, 0.7]
+        bwith = 2
+        ax.spines['bottom'].set_linewidth(bwith)
+        ax.spines['left'].set_linewidth(bwith)
+        ax.spines['top'].set_linewidth(bwith)
+        ax.spines['right'].set_linewidth(bwith)
+        ax.set_position(axpos)
+        #ax.axhline(y=np.average(Tc[3:]), color='gray', ls='-', )
+        ax.plot(Wavelength, spectrum_P, 'k-o')
+        ax.set_ylim(ymin=0, ymax= np.max(spectrum_P)*1.1)
+        ax.set_xlabel('$\mathrm{Wavelength \; (nm)}$', fontsize=18)
+        ax.set_ylabel('$\mathrm{Spectrum\; of\; Planet \; (W \cdot sr^{-1}\cdot nm^{-1})}$', fontsize=18)
+        ax.tick_params(length=6, width=2)
+        ax.spines['right'].set_visible(False)
+
+        lambda_color = 'blue'
+        labmda_ax = ax.twinx()
+        labmda_ax.set_position(axpos)
+        labmda_ax.plot(Wavelength, spectrum_S, 's--', color=lambda_color)
+        labmda_ax.set_ylim(ymin=0, ymax= np.max(spectrum_S)*1.1)
+        labmda_ax.set_xlabel('$\mathrm{Wavelength \; (nm)}$', fontsize=18)
+        labmda_ax.tick_params(length=6, width=2, color=lambda_color, labelcolor=lambda_color)
+        labmda_ax.set_ylabel('$\mathrm{Spectrum\; of\; Star \; (W \cdot sr^{-1}\cdot nm^{-1})}$', fontsize=18, color=lambda_color)
+        labmda_ax.spines['right'].set(color=lambda_color, linewidth=2.0, linestyle=':')
+
+        omglog_color = 'red'
+        omglog_ax = ax.twinx()
+        omglog_ax.spines['right'].set_position(('data', np.max(Wavelength)*1.15))
+        omglog_ax.set_ylim(0, np.max(ratio)*1.15)
+        omglog_ax.set_position(axpos)
+        omglog_ax.plot(Wavelength, ratio, 'o-.', color=omglog_color)
+        omglog_ax.set_ylabel('$\mathrm{Relative\; spectrum\; of\; planet}$', fontsize=18, color=omglog_color)
+        omglog_ax.tick_params(length=6, width=2, color=omglog_color, labelcolor=omglog_color)
+        omglog_ax.spines['right'].set(color=omglog_color, linewidth=2.0, linestyle='-.')
+
+        plt.title(f'$\mathrm{{Temperature = {Temperature}K, Albedo = {Albedo}, \Theta = {Theta}}}$', fontsize=18)
+        # save the plot to temp/ folder
+        os.makedirs(f'temp/R{id}/Results', exist_ok=True)
+        name = f'temp/R{id}/Results/spectrum_'+str(int(Theta*180/np.pi))+'.png'
+        plt.savefig(name)
+        plt.close()
+
+
 

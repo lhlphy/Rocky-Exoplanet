@@ -20,8 +20,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
 
-    os.makedirs(f'temp/{args.id}/variables', exist_ok=True)
-    os.makedirs(f'temp/{args.id}/Results', exist_ok=True)
+    os.makedirs(f'temp/R{args.id}/variables', exist_ok=True)
+    os.makedirs(f'temp/R{args.id}/Results', exist_ok=True)
 
     t5 = time.time()
     # 创建一个空字典来存储变量  
@@ -47,8 +47,8 @@ if __name__ == "__main__":
 
     # save "variables" to temp/ folder
     #np.save(f'temp/{args.id}/variables/variables.npy', variables)
-    np.save(f'temp/{args.id}/variables/Theta_list.npy', Theta_list)
-    np.save(f'temp/{args.id}/variables/star_flux.npy', star_flux)
+    np.save(f'temp/R{args.id}/variables/Theta_list.npy', Theta_list)
+    np.save(f'temp/R{args.id}/variables/star_flux.npy', star_flux)
 
     # plot the results
     # result_ploter(TOT_Intensity, "TOT_Intensity", Theta_list, Coarse, args.id)
