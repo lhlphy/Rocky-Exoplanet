@@ -27,7 +27,7 @@ if __name__ == "__main__":
     os.makedirs(f'temp/R{args.id}/Results', exist_ok=True)
 
     t5 = time.time()
-    wave_bound = np.array([5000 , 5000])*1e-9
+    wave_bound = np.array([200 , 5000])*1e-9
     mf.thermal_spectrum(wave_bound, Temperature=5800, Albedo=args.Albedo, id=args.id, Ntheta = args.Ntheta, NWavelength= args.Nwave)
 
     t6 = time.time()
