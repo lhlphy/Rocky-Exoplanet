@@ -37,7 +37,7 @@ if __name__ == "__main__":
         star_flux = mf.Cal_star_flux(Theta)
         
         var_name = "Tmap_"  + str(int(Theta*180/np.pi))
-        variables[var_name] = mf.Tmap(Theta, args.id, star_flux)
+        variables[var_name] = mf.Tmap(Theta, args.id, star_flux, Albedo=args.Albedo)
 
         t2 = time.time()
         print("Theta = ", Theta, "Time = ", t2 - t1, "s, Processing Done!")

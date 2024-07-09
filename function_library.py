@@ -538,13 +538,13 @@ def Cal_star_area(Theta):
         return Area - Cal_intersection_area(d, R1, R2) 
 
 
-def Cal_star_flux(Theta):
+def Cal_star_flux(Theta, Wavelength = 6e-7, Temperature = 5800):
     # Calculate the flux of the star that radiates light to the Earth
     #检查Theta的数据类型是数还是数组？
     Si = np.size(Theta)
     if Si == 1:
         Area = Cal_star_area(Theta)
-        return Area * blackbody_radiation(Temperature, Wavelengh)
+        return Area * B(Wavelength, Temperature)
     
     Flux = np.zeros(Si)
     
@@ -552,7 +552,8 @@ def Cal_star_flux(Theta):
         Area = Cal_star_area(Th)
         Flux[i] = Area 
 
-    return Flux * blackbody_radiation(Temperature, Wavelengh)
+    return Flux * B(Wavelength, Temperature)
+
 
 def Fresnel(theta_i, n1, n2):
     # Calculate the Fresnel coefficient
@@ -616,7 +617,7 @@ def B(lam,T):
     B = 2* h * c**2 / lam**5 / (np.exp(h * c / lam / k / T) - 1)
     return B
 
-def Temperature_cal(ksi, Theta):
+def Temperature_cal(ksi, Theta, Albedo = 0.3):
     ## calculate the temperature distribution of the planet
     ## ksi is the angle between the normal vector and the vector from the star to the planet
     r = orbit_calculator(a, e, Theta)
@@ -692,5 +693,42 @@ def Tmap(Theta, id = 0, star_flux=0):
     np.save(f'temp/{id}/Results/Tmap{int(Theta*180/np.pi)}.npy', Tmap)
 
     return Tmap
+
+
+def radiation_cal(Tmap, Theta, camera, Albedo, Temperature, Wavelength = 0):
+    ## calculate the radiation distribution of the planet
+    ## the map is a 2D array of thetaP and phiP
+    Rad = 0
+    Dtheta = np.pi/SIZE[0]
+    Dphi = 2*np.pi/SIZE[1]
+
+    for i, thetaP in enumerate(thetaP_list):
+        for j, phiP in enumerate(phiP_list):
+            normalP = np.array([-np.sin(thetaP)*np.cos(phiP), -np.sin(thetaP)*np.sin(phiP), np.cos(thetaP)])
+            normalP = rotate_vector(normalP, 'z', Theta)  #calculate the normal vector of the planet in global coordinate system
+
+            angle = angle_between(normalP, camera)
+            if angle >= np.pi/2:
+                continue
+            else:
+                T = Tmap[i, j]
+                dA = R2**2 * np.sin(thetaP) * Dtheta * Dphi
+                if Wavelength == 0:
+                    sigma = 5.670373 * 1e-8
+                    Rad += (1-Albedo) * sigma * Temperature**4/np.pi * np.cos(angle) * dA
+                else:
+                    Rad += (1-Albedo) * B(Wavelength, T) * np.cos(angle) * dA
+
+    return Rad
+
+
+
+                    
+                
+                
+
+
+
+    
         
 
