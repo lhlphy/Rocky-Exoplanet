@@ -145,7 +145,7 @@ def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = C
 # #The distance between the line and the origin is given by: |Pos| sin(theta)
 # print(np.linalg.norm(Pos)*np.sin(angle_between(Pos, camera)))
 
-def thermal_spectrum(wavelength_bound, Temperature=5800, Albedo=0.3, id=0, Ntheta = 5, NWavelength = 1):
+def thermal_spectrum(wavelength_bound, Temperature=5800, Albedo=0 , id=0, Ntheta = 5, NWavelength = 1):
     # Calculate the blackbody radiation spectrum
     # Planck's constant
     h = 6.62607015e-34
@@ -171,7 +171,7 @@ def thermal_spectrum(wavelength_bound, Temperature=5800, Albedo=0.3, id=0, Nthet
         if e == 0:
             TMAP = TMAP0
         else:
-            TMAP = Tmap(Theta, id)
+            TMAP = Tmap(Theta, id, Albedo)
 
         spectrum_P = np.zeros(len(Wavelength)) 
         spectrum_S = np.zeros(len(Wavelength)) 
@@ -188,74 +188,9 @@ def thermal_spectrum(wavelength_bound, Temperature=5800, Albedo=0.3, id=0, Nthet
         SP[i,:] = spectrum_P 
         SS[i,:] = spectrum_S 
         RAT[i,:] = ratio
-        
-        #默认字体
-        config = {
-            "font.family":'Times New Roman',
-            "font.size": 16,
-            "mathtext.fontset":'stix',
-            "font.serif": ['Times New Roman'],
-        }
-        rcParams.update(config)
-        mpl.rcParams['font.sans-serif'] = ['SimHei']   #显示中文
-        mpl.rcParams['axes.unicode_minus']=False       #显示负号
 
-        a = 0.45
-        fig, ax = plt.subplots(figsize=(26*a,13*a))
-        plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.3, hspace=0.3)
-        plt.rcParams['ytick.direction'] = 'in'# 刻度线显示在内部
-        plt.rcParams['xtick.direction'] = 'in'# 刻度线显示在内部
+        ratio_plotter(Wavelength, spectrum_S, spectrum_P, ratio, id, Theta)
 
-        axpos = [0.1, 0.15, 0.7, 0.7]
-        bwith = 2
-        ax.spines['bottom'].set_linewidth(bwith)
-        ax.spines['left'].set_linewidth(bwith)
-        ax.spines['top'].set_linewidth(bwith)
-        ax.spines['right'].set_linewidth(bwith)
-        ax.set_position(axpos)
-        #ax.axhline(y=np.average(Tc[3:]), color='gray', ls='-', )
-        ax.plot(Wavelength* 1e6, spectrum_S, 'k-')
-        ax.set_ylim(ymin=0, ymax= np.max(spectrum_S)*1.1)
-        ax.set_xlabel('$\mathrm{Wavelength \; (\mu m)}$', fontsize=18)
-        ax.set_ylabel('$\mathrm{Spectrum\; of\; Star \; (W \cdot sr^{-1}\cdot nm^{-1})}$', fontsize=18)
-        ax.tick_params(length=6, width=2)
-        ax.spines['right'].set_visible(False)
-
-        lambda_color = 'blue'
-        labmda_ax = ax.twinx()
-        labmda_ax.set_position(axpos)
-        labmda_ax.plot(Wavelength* 1e6, spectrum_P, '--', color=lambda_color)
-        labmda_ax.set_ylim(ymin=0, ymax= np.max(spectrum_P)*1.1)
-        labmda_ax.set_xlabel('$\mathrm{Wavelength \; (\mu m)}$', fontsize=18)
-        labmda_ax.tick_params(length=6, width=2, color=lambda_color, labelcolor=lambda_color)
-        labmda_ax.set_ylabel('$\mathrm{Spectrum\; of\; Planet \; (W \cdot sr^{-1}\cdot nm^{-1})}$', fontsize=18, color=lambda_color)
-        labmda_ax.spines['right'].set(color=lambda_color, linewidth=2.0, linestyle=':')
-
-        omglog_color = 'red'
-        omglog_ax = ax.twinx()
-        # 使用科学计数法的刻度
-        omglog_ax.ticklabel_format(style='scientific', axis='y', scilimits=(0,0))
-        # 获取 y 轴 OffsetText 对象
-        offset_text = omglog_ax.yaxis.get_offset_text()
-        # 调整位置示例，偏移 (dx, dy) 单位是像素 (points)
-        offset_text.set_position((1.12, 0))
-        # 调整字体大小
-        offset_text.set_size(18)  # 或者使用 offset_text.set_fontsize(12)
-        omglog_ax.spines['right'].set_position(('data', np.max(Wavelength)*1.15e6))
-        omglog_ax.set_ylim(0, np.max(ratio)*1.1)
-        omglog_ax.set_position(axpos)
-        omglog_ax.plot(Wavelength* 1e6, ratio, '-.', color=omglog_color)
-        omglog_ax.set_ylabel('$\mathrm{Relative\; spectrum\; of\; planet}$', fontsize=18, color=omglog_color)
-        omglog_ax.tick_params(length=6, width=2, color=omglog_color, labelcolor=omglog_color)
-        omglog_ax.spines['right'].set(color=omglog_color, linewidth=2.0, linestyle='-.')
-
-
-        plt.title(f'$\mathrm{{Albedo = {Albedo}, \Theta = {Theta}}}$', fontsize=18)
-        # save the plot to temp/ folder
-        os.makedirs(f'temp/R{id}/Results', exist_ok=True)
-        name = f'temp/R{id}/Results/spectrum_'+str(int(Theta*180/np.pi))+'.png'
-        plt.savefig(name)
-        plt.close()
 
     #save RAT to temp/ folder
     np.save(f'temp/R{id}/Results/RAT.npy', RAT)
@@ -282,4 +217,116 @@ def thermal_spectrum(wavelength_bound, Temperature=5800, Albedo=0.3, id=0, Nthet
 
 
     ##写一个自动画ratio图的程序
+
+def ratio_plotter(Wavelength, spectrum_S, spectrum_P, ratio, id, Theta):
+            
+    #默认字体
+    config = {
+        "font.family":'Times New Roman',
+        "font.size": 16,
+        "mathtext.fontset":'stix',
+        "font.serif": ['Times New Roman'],
+    }
+    rcParams.update(config)
+    mpl.rcParams['font.sans-serif'] = ['SimHei']   #显示中文
+    mpl.rcParams['axes.unicode_minus']=False       #显示负号
+
+    a = 0.45
+    fig, ax = plt.subplots(figsize=(26*a,13*a))
+    plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.3, hspace=0.3)
+    plt.rcParams['ytick.direction'] = 'in'# 刻度线显示在内部
+    plt.rcParams['xtick.direction'] = 'in'# 刻度线显示在内部
+
+    axpos = [0.1, 0.15, 0.7, 0.7]
+    bwith = 2
+    ax.spines['bottom'].set_linewidth(bwith)
+    ax.spines['left'].set_linewidth(bwith)
+    ax.spines['top'].set_linewidth(bwith)
+    ax.spines['right'].set_linewidth(bwith)
+    ax.set_position(axpos)
+    #ax.axhline(y=np.average(Tc[3:]), color='gray', ls='-', )
+    ax.plot(Wavelength* 1e6, spectrum_S, 'k-')
+    ax.set_ylim(ymin=0, ymax= np.max(spectrum_S)*1.1)
+    ax.set_xlabel('$\mathrm{Wavelength \; (\mu m)}$', fontsize=18)
+    ax.set_ylabel('$\mathrm{Spectrum\; of\; Star \; (W \cdot sr^{-1}\cdot nm^{-1})}$', fontsize=18)
+    ax.tick_params(length=6, width=2)
+    ax.spines['right'].set_visible(False)
+
+    lambda_color = 'blue'
+    labmda_ax = ax.twinx()
+    labmda_ax.set_position(axpos)
+    labmda_ax.plot(Wavelength* 1e6, spectrum_P, '--', color=lambda_color)
+    labmda_ax.set_ylim(ymin=0, ymax= np.max(spectrum_P)*1.1)
+    labmda_ax.set_xlabel('$\mathrm{Wavelength \; (\mu m)}$', fontsize=18)
+    labmda_ax.tick_params(length=6, width=2, color=lambda_color, labelcolor=lambda_color)
+    labmda_ax.set_ylabel('$\mathrm{Spectrum\; of\; Planet \; (W \cdot sr^{-1}\cdot nm^{-1})}$', fontsize=18, color=lambda_color)
+    labmda_ax.spines['right'].set(color=lambda_color, linewidth=2.0, linestyle=':')
+
+    omglog_color = 'red'
+    omglog_ax = ax.twinx()
+    # 使用科学计数法的刻度
+    omglog_ax.ticklabel_format(style='scientific', axis='y', scilimits=(0,0))
+    # 获取 y 轴 OffsetText 对象
+    offset_text = omglog_ax.yaxis.get_offset_text()
+    # 调整位置示例，偏移 (dx, dy) 单位是像素 (points)
+    offset_text.set_position((1.12, 0))
+    # 调整字体大小
+    offset_text.set_size(18)  # 或者使用 offset_text.set_fontsize(12)
+    omglog_ax.spines['right'].set_position(('data', np.max(Wavelength)*1.15e6))
+    omglog_ax.set_ylim(0, np.max(ratio)*1.1)
+    omglog_ax.set_position(axpos)
+    omglog_ax.plot(Wavelength* 1e6, ratio, '-.', color=omglog_color)
+    omglog_ax.set_ylabel('$\mathrm{Relative\; spectrum\; of\; planet}$', fontsize=18, color=omglog_color)
+    omglog_ax.tick_params(length=6, width=2, color=omglog_color, labelcolor=omglog_color)
+    omglog_ax.spines['right'].set(color=omglog_color, linewidth=2.0, linestyle='-.')
+
+
+    plt.title(f'$\mathrm{{Albedo = {Albedo}, \Theta = {Theta}}}$', fontsize=18)
+    # save the plot to temp/ folder
+    os.makedirs(f'temp/R{id}/Results', exist_ok=True)
+    name = f'temp/R{id}/Results/spectrum_'+str(int(Theta*180/np.pi))+'.png'
+    plt.savefig(name)
+    plt.close()
+
+def vertify_radiation(wavelength_bound, Temperature=5800, Albedo=0 , id=0, Ntheta = 5, NWavelength = 1):
+    # Calculate the blackbody radiation spectrum
+    if Ntheta == 1:
+        Theta_list = np.array([np.pi])
+    else:
+        Theta_list = np.linspace(0, np.pi, Ntheta)  # 0-pi 与 pi-2pi 重复
+    Wavelength = np.linspace(wavelength_bound[0], wavelength_bound[1], NWavelength)
+
+    RAT = np.zeros([len(Theta_list), len(Wavelength)])
+
+    for i, Theta in enumerate(Theta_list):
+        for j, wavelength in enumerate(Wavelength):
+            # Calculate the blackbody radiation spectrum
+            if Theta < 1e-6:
+                RAT[i, j] = 0
+            else:
+                RAT[i, j] = para_rad(Theta, wavelength, Temperature, Albedo)
+        # Plot the spectrum
+
+    #save RAT to temp/ folder
+    np.save(f'temp/R{id}/Results/RAT.npy', RAT)
+    ratio = np.zeros(len(Theta_list)*2 - 1)
+
+    print(RAT)
+    if Ntheta > 2:   # Ntheta = 1, 2 too less to plot; the main intention is to plot the contrast ratio
+        ratio[0:len(Theta_list)] = RAT[:,0].flatten()
+        ratio[len(Theta_list)-1:] = RAT[::-1].flatten()
+        Theta_list2 = np.linspace(0, 2*np.pi, 2*len(Theta_list)-1)
+        x = np.linspace(0, 2*np.pi, 400)
+        f = interp1d(Theta_list2, ratio, kind='cubic')
+        y = f(x)
+
+        plt.figure(figsize=(8, 8))
+        plt.plot(x , y * 1e6 , 'k-')
+        plt.xlabel('Orbital Phase Angle (rad)')
+        plt.ylabel('Contrast Ratio (ppm)')
+        plt.title('LHS 3844 b')
+        plt.savefig(f'temp/R{id}/Results/contrast_ratio.png')
+        plt.close()
+        np.save(f'temp/R{id}/Results/ratio.npy', ratio)
+
 

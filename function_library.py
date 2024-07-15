@@ -619,7 +619,7 @@ def B(lam,T):
     B = 2* h * c**2 / lam**5 / A
     return B
 
-def Temperature_cal(ksi, Theta, Albedo = 0.3):
+def Temperature_cal(ksi, Theta, Albedo = 0):
     ## calculate the temperature distribution of the planet
     ## ksi is the angle between the normal vector and the vector from the star to the planet
     r = orbit_calculator(a, e, Theta)
@@ -663,14 +663,14 @@ def Temperature_cal(ksi, Theta, Albedo = 0.3):
 
     return T
 
-def Tmap(Theta, id = 0, star_flux=0):
+def Tmap(Theta, id = 0, Albedo=0 ):
     ## calculate the temperature map of the planet
     ## the map is a 2D array of thetaP and phiP
     Tmap_1D = np.zeros(SIZE[0])  #Use ksi as parameter to calculate the temperature map, according to the rotation symmetry, we can get the temperature map of the planet
     ksi_list = np.linspace(0, np.pi, SIZE[0])
 
     for i in range(SIZE[0]):
-        Tmap_1D[i] = Temperature_cal(ksi_list[i], Theta)
+        Tmap_1D[i] = Temperature_cal(ksi_list[i], Theta, Albedo)
     ## interpolate the 1D array to 2D array using the spline interpolation
     spl = interpolate.interp1d(ksi_list , Tmap_1D, kind='linear') #spline interpolation
 
@@ -729,5 +729,40 @@ def Radiation_cal(Tmap, Theta, camera, Albedo, Temperature, Wavelength = 0):
 
 
 
-                    
-                
+def para_rad(Theta, lam = 0, Temperature = 5800, Albedo = 0):
+    r = orbit_calculator(a, e, Theta)
+    h = 6.626e-34  # Planck's constant
+    c_const = 3.0e8  # Speed of light
+    k = 1.38e-23  # Boltzmann constant
+    Co = h * c_const/ k
+
+    def Tp(cos_Psi):
+        #calculate the temperature of planet surface
+        if cos_Psi > 0:
+            return  Temperature* np.sqrt(R1 / r) * cos_Psi**(1/4)
+        else:
+            return 0
+        
+    def Bf(lam,T):
+        # planck function for radiation spectrum calculation
+        A = (np.exp(Co / lam / T) - 1)
+        B = 1 / lam**5 / A
+        return B
+    
+    def Fp_func(theta, phi):
+        # Radiation integral function
+        cos_Psi = np.cos(theta) * np.cos(phi)
+        if lam == 0: #全谱辐射强度， 相当于对波长进行积分
+            return Tp(cos_Psi)**4 * np.cos(phi)
+        else:   #特定波长附近的辐射功率密度
+            return Bf(lam, Tp(cos_Psi)) * np.cos(phi)
+        
+    Fs = Sigma * Temperature**4 * R1**2
+    if lam == 0:
+        Fp = Sigma * R2**2/ np.pi * dblquad(Fp_func,-np.pi/2, np.pi/2, np.pi/2-Theta, 3/2*np.pi- Theta)
+    else:
+        Fp = 2* h *c_const**2 * R2**2 *dblquad(Fp_func, -np.pi/2, np.pi/2, np.pi/2-Theta, 3/2*np.pi- Theta)
+
+    return Fp/Fs
+
+

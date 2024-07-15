@@ -37,6 +37,7 @@ Coarse_g = 0  # Coarseness of the surface
 N1 = 1  # Refractive index of the Vacuum
 N2 = 1.333  # Refractive index of the water
 Albedo = 0  # Albedo of the Earth
+Sigma = 5.67e-8  # W/m^2/K^4, Stefan-Boltzmann constant
 
 
 
