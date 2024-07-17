@@ -184,14 +184,14 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature, Albedo=0 , id=0
         Theta_list = np.array([np.pi])
     else:
         Theta_list = np.linspace(0, np.pi, Ntheta)  # 0-pi 与 pi-2pi 重复
-    Wavelength = np.linspace(wavelength_bound[0], wavelength_bound[1], NWavelength)
+    Wave_list = np.linspace(wavelength_bound[0], wavelength_bound[1], NWavelength)
     TMAP0 = Tmap(0, id)
     # processes = []
     # spectrum_P = multiprocessing.Array('d', len(Wavelength))   
     # spectrum_S = multiprocessing.Array('d', len(Wavelength))
-    SP = np.zeros([len(Theta_list), len(Wavelength)])
-    SS = np.zeros([len(Theta_list), len(Wavelength)])
-    RAT = np.zeros([len(Theta_list), len(Wavelength)])
+    SP = np.zeros([len(Theta_list), len(Wave_list)])
+    SS = np.zeros([len(Theta_list), len(Wave_list)])
+    RAT = np.zeros([len(Theta_list), len(Wave_list)])
 
     for i, Theta in enumerate(Theta_list):
         if e == 0:
@@ -199,9 +199,9 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature, Albedo=0 , id=0
         else:
             TMAP = Tmap(Theta, id, Albedo)
 
-        spectrum_P = np.zeros(len(Wavelength)) 
-        spectrum_S = np.zeros(len(Wavelength)) 
-        for j, wavelength in enumerate(Wavelength):
+        spectrum_P = np.zeros(len(Wave_list)) 
+        spectrum_S = np.zeros(len(Wave_list)) 
+        for j, wavelength in enumerate(Wave_list):
             # Calculate the blackbody radiation spectrum
             if Theta < 1e-6:
                 spectrum_P[j] = 0
@@ -215,30 +215,34 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature, Albedo=0 , id=0
         SS[i,:] = spectrum_S 
         RAT[i,:] = ratio
 
-        ratio_plotter(Wavelength, spectrum_S, spectrum_P, ratio, id, Theta)
+        if NWavelength > 1:
+            ratio_plotter(Wave_list, spectrum_S, spectrum_P, ratio, id, Theta)
 
 
-    #save RAT to temp/ folder
-    np.save(f'temp/R{id}/Results/RAT.npy', RAT)
-    ratio = np.zeros(len(Theta_list)*2 - 1)
+    # save RAT to temp/ folder
+    Ratio = sym_complete(RAT, 0)  # 补全对称部分
+    Ratio = Ratio.T
+    Th_list = sym_complete(Theta_list, 0)
 
-    print(RAT)
-    if Ntheta > 2:   # Ntheta = 1, 2 too less to plot; the main intention is to plot the contrast ratio
-        ratio[0:len(Theta_list)] = RAT[:,0].flatten()
-        ratio[len(Theta_list)-1:] = RAT[::-1].flatten()
-        Theta_list2 = np.linspace(0, 2*np.pi, 2*len(Theta_list)-1)
-        x = np.linspace(0, 2*np.pi, 400)
-        f = interp1d(Theta_list2, ratio, kind='cubic')
-        y = f(x)
+    np.save(f'temp/R{id}/Results/Ratio.npy', Ratio)
+    np.save(f'temp/R{id}/Results/Theta.npy', Th_list)
 
-        plt.figure(figsize=(8, 8))
-        plt.plot(x , y * 1e6 , 'k-')
-        plt.xlabel('Orbital Phase Angle (rad)')
-        plt.ylabel('Contrast Ratio (ppm)')
-        plt.title('LHS 3844 b')
-        plt.savefig(f'temp/R{id}/Results/contrast_ratio.png')
-        plt.close()
-        np.save(f'temp/R{id}/Results/ratio.npy', ratio)
+    ## 写一个自动画Ratio- Th_list图的程序
+
+    # print(RAT)
+    # if Ntheta > 2 :   # Ntheta = 1, 2 too less to plot; the main intention is to plot the contrast ratio
+    #     x = np.linspace(0, 2*np.pi, 400)
+    #     f = interp1d(Theta_list2, ratio, kind='cubic')
+    #     y = f(x)
+
+    #     plt.figure(figsize=(8, 8))
+    #     plt.plot(x , y * 1e6 , 'k-')
+    #     plt.xlabel('Orbital Phase Angle (rad)')
+    #     plt.ylabel('Contrast Ratio (ppm)')
+    #     plt.title('LHS 3844 b')
+    #     plt.savefig(f'temp/R{id}/Results/contrast_ratio.png')
+    #     plt.close()
+    #     np.save(f'temp/R{id}/Results/ratio.npy', ratio)
 
 
 

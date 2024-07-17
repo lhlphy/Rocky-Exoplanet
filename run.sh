@@ -1,8 +1,14 @@
-#python demo5.py --id 12 --Albedo 0 --Ntheta 10 --Nwave 1
-# python demo5.py --id 10 --Albedo 0.3 --Ntheta 12 --Nwave 1
-# python demo5.py --id 11 --Albedo 0.5 --Ntheta 12 --Nwave 1
-# python demo5.py --id 3 --Albedo 0.3
-# python demo5.py --id 3 --Albedo 0.5
+#!/bin/bash
+#SBATCH --job-name=PythonTest
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=1
+#SBATCH --partition=debug
+
+module load apps/anaconda3/5.2.0
+conda activate test
 
 python  demo3.py --id 0
+
+
 

@@ -168,6 +168,30 @@ def check_intersection_with_star(Pos,Camera):
     """
     return np.linalg.norm(np.cross(Pos, Camera))/np.linalg.norm(Camera) < R1
 
+def sym_complete(Var,axis=0):
+    """
+    Complete the symmetric part of the 2D array.
+    
+    Parameters:
+    Var (array): Input 2D array.
+    axis (int): Axis of symmetry.
+    
+    Returns:
+    array: Symmetric 2D array.
+    """
+    print(Var.ndim)
+    if Var.ndim == 1:
+        return np.hstack((Var, Var[::-1]))
+    
+    if axis == 0:
+        return np.vstack((Var, Var[::-1]))
+    elif axis == 1:
+        return np.hstack((Var, Var[:, ::-1]))
+    else:
+        raise ValueError("The axis of symmetry must be 0 or 1")
+    
+
+
 def blackbody_radiation(T, lam, B=1):
     """
     Calculate the blackbody radiation intensity at a given temperature and wavelength.
