@@ -393,7 +393,7 @@ def Wave_reflect(R1, r, normal, Pos, camera ):
 #     return Integ[0] *DA *np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelength)   
 
 
-def specular_reflection(specular_coefficent ,RV, camera, normal, r, Temperature= 6000, Wavelength = 1e-6):
+def specular_reflection(specular_coefficent ,RV, camera, normal, r, Temperature= Temperature, Wavelength = 1e-6):
     """
     Calculate the intensity of specular reflection.
     
@@ -539,7 +539,7 @@ def Cal_star_area(Theta):
         return Area - Cal_intersection_area(d, R1, R2) 
 
 
-def Cal_star_flux(Theta, Wavelength = 6e-7, Temperature = 5800):
+def Cal_star_flux(Theta, Wavelength = 6e-7, Temperature = Temperature):
     # Calculate the flux of the star that radiates light to the Earth
     #检查Theta的数据类型是数还是数组？
     Si = np.size(Theta)
@@ -619,7 +619,7 @@ def B(lam,T):
     B = 2* h * c**2 / lam**5 / A
     return B
 
-def Temperature_cal(ksi, Theta, Albedo = 0):
+def Temperature_cal(ksi, Theta, Albedo = 0, Temperature = Temperature):
     ## calculate the temperature distribution of the planet
     ## ksi is the angle between the normal vector and the vector from the star to the planet
     r = orbit_calculator(a, e, Theta)
@@ -632,7 +632,7 @@ def Temperature_cal(ksi, Theta, Albedo = 0):
         raise ValueError("ksi_m1 > ksi_m2")
 
     if ksi < ksi_m1:
-        rP = np.sqrt(a**2 + R2**2 - 2*a*R2*np.cos(ksi))
+        rP = np.sqrt(r**2 + R2**2 - 2*r*R2*np.cos(ksi))
         zeta = np.arcsin(R2/rP*np.sin(ksi))
         Phi = zeta + ksi
         T = Temperature * np.sqrt(R1/r) *((1-Albedo)*np.cos(Phi))**(1/4)
@@ -729,7 +729,7 @@ def Radiation_cal(Tmap, Theta, camera, Albedo, Temperature, Wavelength = 0):
 
 
 
-def para_rad(Theta, lam = 0, Temperature = 5800, Albedo = 0):
+def para_rad(Theta, lam = 0, Temperature = Temperature, Albedo = 0):
     r = orbit_calculator(a, e, Theta)
     h = 6.626e-34  # Planck's constant
     c_const = 3.0e8  # Speed of light
@@ -745,6 +745,9 @@ def para_rad(Theta, lam = 0, Temperature = 5800, Albedo = 0):
         
     def Bf(lam,T):
         # planck function for radiation spectrum calculation
+        if T < 0.01 :  # T = 0 cause the division by zero
+            return 0
+        
         A = (np.exp(Co / lam / T) - 1)
         B = 1 / lam**5 / A
         return B
@@ -752,16 +755,24 @@ def para_rad(Theta, lam = 0, Temperature = 5800, Albedo = 0):
     def Fp_func(theta, phi):
         # Radiation integral function
         cos_Psi = np.cos(theta) * np.cos(phi)
-        if lam == 0: #全谱辐射强度， 相当于对波长进行积分
-            return Tp(cos_Psi)**4 * np.cos(phi)
-        else:   #特定波长附近的辐射功率密度
-            return Bf(lam, Tp(cos_Psi)) * np.cos(phi)
+        if cos_Psi < 0:
+            return 0
         
-    Fs = Sigma * Temperature**4 * R1**2
+        cos_Psi_obs = np.cos(phi) * np.cos(theta + Theta - np.pi)
+        
+        if lam == 0: #全谱辐射强度， 相当于对波长进行积分
+            return Tp(cos_Psi)**4 * np.cos(phi) *cos_Psi_obs
+        else:   #特定波长附近的辐射功率密度
+            return Bf(lam, Tp(cos_Psi)) * np.cos(phi) *cos_Psi_obs
+        
+    
+    Int = dblquad(Fp_func,-np.pi/2, np.pi/2, np.pi/2-Theta, 3/2*np.pi- Theta)
     if lam == 0:
-        Fp = Sigma * R2**2/ np.pi * dblquad(Fp_func,-np.pi/2, np.pi/2, np.pi/2-Theta, 3/2*np.pi- Theta)
+        Fp = Sigma * R2**2/ np.pi * Int[0]
+        Fs = Sigma * Temperature**4 * R1**2
     else:
-        Fp = 2* h *c_const**2 * R2**2 *dblquad(Fp_func, -np.pi/2, np.pi/2, np.pi/2-Theta, 3/2*np.pi- Theta)
+        Fp = 2* h *c_const**2 * R2**2 * Int[0]
+        Fs = 2* h *c_const**2 * Bf(lam, Temperature) * np.pi * R1**2
 
     return Fp/Fs
 

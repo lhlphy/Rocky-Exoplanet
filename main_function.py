@@ -25,7 +25,7 @@ from scipy.interpolate import interp1d
 # plt.plot(angle, I)
 
 
-def BRDF(i, j, Intensity, diffuse_ratio, Theta, SPE_REF, DIF_REF, Coarse, Temperature=6000, Wavelength=1e-6, Model='Lambert'):
+def BRDF(i, j, Intensity, diffuse_ratio, Theta, SPE_REF, DIF_REF, Coarse, Temperature= Temperature, Wavelength=1e-6, Model='Lambert'):
     
     phiP = phiP_list[i]
     thetaP = thetaP_list[j]
@@ -71,7 +71,7 @@ def BRDF(i, j, Intensity, diffuse_ratio, Theta, SPE_REF, DIF_REF, Coarse, Temper
     #print(Intensity[SIZE[1]*i+j])
 
 
-def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = Coarse_g, Temperature=6000, Wavelength=1e-6, id=0, Model = 'Lambert'):
+def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = Coarse_g, Temperature= Temperature, Wavelength=1e-6, id=0, Model = 'Lambert'):
     processes = []
     Intensity = multiprocessing.Array('d', SIZE[0]*SIZE[1])   
     diffuse_ratio = multiprocessing.Array('d', SIZE[0]*SIZE[1])
@@ -145,7 +145,7 @@ def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = C
 # #The distance between the line and the origin is given by: |Pos| sin(theta)
 # print(np.linalg.norm(Pos)*np.sin(angle_between(Pos, camera)))
 
-def thermal_spectrum(wavelength_bound, Temperature=5800, Albedo=0 , id=0, Ntheta = 5, NWavelength = 1):
+def thermal_spectrum(wavelength_bound, Temperature= Temperature, Albedo=0 , id=0, Ntheta = 5, NWavelength = 1):
     # Calculate the blackbody radiation spectrum
     # Planck's constant
     h = 6.62607015e-34
@@ -288,8 +288,10 @@ def ratio_plotter(Wavelength, spectrum_S, spectrum_P, ratio, id, Theta):
     plt.savefig(name)
     plt.close()
 
-def vertify_radiation(wavelength_bound, Temperature=5800, Albedo=0 , id=0, Ntheta = 5, NWavelength = 1):
+def vertify_radiation(wavelength_bound, Temperature= Temperature, Albedo=0 , id=0, Ntheta = 5, NWavelength = 1):
     # Calculate the blackbody radiation spectrum
+    os.makedirs(f'temp/V{id}/plots', exist_ok=True)
+    os.makedirs(f'temp/V{id}/Results', exist_ok=True)
     if Ntheta == 1:
         Theta_list = np.array([np.pi])
     else:
@@ -308,7 +310,7 @@ def vertify_radiation(wavelength_bound, Temperature=5800, Albedo=0 , id=0, Nthet
         # Plot the spectrum
 
     #save RAT to temp/ folder
-    np.save(f'temp/R{id}/Results/RAT.npy', RAT)
+    np.save(f'temp/V{id}/Results/RAT.npy', RAT)
     ratio = np.zeros(len(Theta_list)*2 - 1)
 
     print(RAT)
@@ -325,8 +327,34 @@ def vertify_radiation(wavelength_bound, Temperature=5800, Albedo=0 , id=0, Nthet
         plt.xlabel('Orbital Phase Angle (rad)')
         plt.ylabel('Contrast Ratio (ppm)')
         plt.title('LHS 3844 b')
-        plt.savefig(f'temp/R{id}/Results/contrast_ratio.png')
+        plt.savefig(f'temp/V{id}/Results/contrast_ratio.png')
         plt.close()
-        np.save(f'temp/R{id}/Results/ratio.npy', ratio)
+        np.save(f'temp/V{id}/Results/ratio.npy', ratio)
+
+    Tmap = np.zeros((SIZE[0], SIZE[1]))
+    phiP_list = np.linspace(0, 2* np.pi, SIZE[1])
+    thetaP_list = np.linspace(0, np.pi, SIZE[0])
+    r = orbit_calculator(a, e, Theta)
+
+    def Tp(cos_Psi):
+        #calculate the temperature of planet surface
+        if cos_Psi > 0:
+            return  Temperature* np.sqrt(R1 / r) * cos_Psi**(1/4)
+        else:
+            return 0
+
+    for i, thetaP in enumerate(thetaP_list):
+        for j, phiP in enumerate(phiP_list):
+            cos_Psi = np.sin(thetaP) * np.cos(phiP)
+            Tmap[i, j] = Tp(cos_Psi)
+
+    # plot Tmap, xlabel: "$\theta$", ylabel: "$\phi$", using the gray map to show the temperature distribution
+    plt.imshow(Tmap, cmap='gray')
+    plt.xlabel('$\phi$')
+    plt.ylabel('$\theta$')
+    plt.colorbar()
+    plt.savefig(f'temp/V{id}/Results/Tmap{int(Theta*180/np.pi)}.png')
+    plt.close()
+    np.save(f'temp/V{id}/Results/Tmap{int(Theta*180/np.pi)}.npy', Tmap)
 
 
