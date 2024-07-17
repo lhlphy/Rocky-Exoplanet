@@ -29,7 +29,7 @@ if __name__ == "__main__":
     # 创建一个空字典来存储变量  
     variables = {}  
     
-    cal_size = [18]
+    cal_size = [6]    # 将轨道角Theta 分为x份
     TOT_Intensity = np.zeros(cal_size)
     TOT_Diffuse = np.zeros(cal_size)
     TOT_Specular = np.zeros(cal_size)

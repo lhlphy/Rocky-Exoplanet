@@ -249,7 +249,7 @@ def Wave_reflect(R1, r, normal, Pos, camera ):
     Pos (array): Position vector.
     
     Returns:
-    float: Intensity I after reflection.
+    float: Intensity I after reflection divided by B(T,lam).
     """
     #change the coordinate system from global to local
 
@@ -309,91 +309,92 @@ def Wave_reflect(R1, r, normal, Pos, camera ):
 
 
 
-# def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Coarse = 0, DIF_REF = 0.5 ):
-#     """
-#     Calculate the intensity of reflected sunlight considering reflectivity and diffusion.
+def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Coarse = 0, DIF_REF = 0.5 ):
+    """
+    Calculate the intensity of  diffusion.
     
-#     Parameters:
-#     R1 (float): Radius of the Sun.
-#     r (float): Distance from the Sun to the Earth.
-#     angle (float): Angle of incidence.
-#     normal (array): Normal vector at the point of reflection.
-#     RV (array): Reflected vector.
-#     Pos (array): Position vector.
+    Parameters:
+    R1 (float): Radius of the Sun.
+    r (float): Distance from the Sun to the Earth.
+    angle (float): Angle of incidence.
+    normal (array): Normal vector at the point of reflection.
+    RV (array): Reflected vector.
+    Pos (array): Position vector.
+    Coarse (float): standard deviation of the Gaussian distribution of the surface inclination (0-pi/2)
     
-#     Returns:
-#     float: Intensity I after reflection.
-#     """
-#     #change the coordinate system from global to local
-#     uz = normal
-#     uy = check_normalization(np.cross(np.array([0,0,1]), uz))
-#     ux = np.cross(uy, uz)
+    Returns:
+    float: the intensity of the diffusion divided by the B_s(T,lam)
+    """
+    #change the coordinate system from global to local
+    uz = normal
+    uy = check_normalization(np.cross(np.array([0,0,1]), uz))
+    ux = np.cross(uy, uz)
 
-#     cx = np.dot(camera, ux)
-#     cy = np.dot(camera, uy)
-#     cz = np.dot(camera, uz)
-#     camera_local = np.array([cx, cy, cz])
+    cx = np.dot(camera, ux)
+    cy = np.dot(camera, uy)
+    cz = np.dot(camera, uz)
+    camera_local = np.array([cx, cy, cz])
 
-#     Px = np.dot(Pos, ux)
-#     Py = np.dot(Pos, uy)
-#     Pz = np.dot(Pos, uz)
-#     Pos_local = np.array([Px, Py, Pz])
+    Px = np.dot(Pos, ux)
+    Py = np.dot(Pos, uy)
+    Pz = np.dot(Pos, uz)
+    Pos_local = np.array([Px, Py, Pz])
 
-#     theta_c = angle_between(camera, normal)
-#     t , phi_camera = vec2Euler(camera_local)
+    theta_c = angle_between(camera, normal)  #the angle between the camera and the normal vector
+    t , phi_camera = vec2Euler(camera_local)
 
 
-#     def fr(theta_i, theta_c, sigma, rho, phi_diff):
-#         #https://zhuanlan.zhihu.com/p/500809166
-#         A = 1 - 0.5 * sigma**2 / (sigma**2 + 0.33)
-#         B = 0.45 * sigma**2 / (sigma**2 + 0.09)
-#         alpha = max(theta_i, theta_c)
-#         beta = min(theta_i, theta_c)
+    def fr(theta_i, theta_c, sigma, rho, phi_diff):
+        #https://zhuanlan.zhihu.com/p/500809166
+        A = 1 - 0.5 * sigma**2 / (sigma**2 + 0.33)
+        B = 0.45 * sigma**2 / (sigma**2 + 0.09)
+        alpha = max(theta_i, theta_c)
+        beta = min(theta_i, theta_c)
 
-#         max_cosphi = max(0, np.cos(phi_diff))
-#         fr = rho / np.pi *(A + B * max_cosphi * np.sin(alpha) * np.tan(beta))
-#         return fr
+        max_cosphi = max(0, np.cos(phi_diff))
+        fr = rho / np.pi *(A + B * max_cosphi * np.sin(alpha) * np.tan(beta))
+        return fr
     
-#     def integrate_func(theta_i, phi):
-#         #theta_i = np.pi - angle_between(Pos, normal)
-#         phi_diff = phi - phi_camera
-#         mWi = Euler2vec(theta_i, phi)
-#         angle = angle_between(mWi, -Pos_local)
-#         angle_max = np.arcsin(R1/r)
+    def integrate_func(theta_i, phi):
+        #theta_i = np.pi - angle_between(Pos, normal)
+        phi_diff = phi - phi_camera
+        mWi = Euler2vec(theta_i, phi)
+        angle = angle_between(mWi, -Pos_local)
+        angle_max = np.arcsin(R1/r)
 
-#         if angle > angle_max:
-#             return 0
-#         else:
-#             return fr(theta_i, theta_c, Coarse, DIF_REF, phi_diff) * np.cos(theta_i) *np.sin(theta_i)
-#         #Bug Repaired in 7/2: np.sin(theta_i) -> np.cos(theta_i) *np.sin(theta_i)
-#         # the first cos is from the Equation, the second sin is from the expression of solid angle dOmega = sin(theta)*dTheta*dPhi
+        if angle > angle_max:
+            return 0
+        else:
+            return fr(theta_i, theta_c, Coarse, DIF_REF, phi_diff) * np.cos(theta_i) *np.sin(theta_i)
+        #Bug Repaired in 7/2: np.sin(theta_i) -> np.cos(theta_i) *np.sin(theta_i)
+        # the first cos is from the Equation, the second sin is from the expression of solid angle dOmega = sin(theta)*dTheta*dPhi
             
-#         #phi_diff = np.pi - angle_between(np.cross(Pos, normal), np.cross(camera, normal))
-#         # res = fr(theta_i, theta_c, sigma, rho, phi_diff) * blackbody_radiation(6000, 1e-6) * np.sin(theta_i)
-#         # return res
+        #phi_diff = np.pi - angle_between(np.cross(Pos, normal), np.cross(camera, normal))
+        # res = fr(theta_i, theta_c, sigma, rho, phi_diff) * blackbody_radiation(6000, 1e-6) * np.sin(theta_i)
+        # return res
 
-#     #hemi-sphere integral *  #put the blackbody radiation here(out of the integral)
-#     # def INT(func, phi_min, phi_max, theta_min, theta_max, epsabs=1e-4):
-#     #     theta_list = np.linspace(theta_min, theta_max, 30)
-#     #     phi_list = np.linspace(phi_min, phi_max, 30)
-#     #     res = 0
-#     #     for theta in theta_list:
-#     #         for phi in phi_list:
-#     #             res += func(theta, phi)
+    #hemi-sphere integral *  #put the blackbody radiation here(out of the integral)
+    # def INT(func, phi_min, phi_max, theta_min, theta_max, epsabs=1e-4):
+    #     theta_list = np.linspace(theta_min, theta_max, 30)
+    #     phi_list = np.linspace(phi_min, phi_max, 30)
+    #     res = 0
+    #     for theta in theta_list:
+    #         for phi in phi_list:
+    #             res += func(theta, phi)
 
-#     #     return res
+    #     return res
     
-#     theta_max = np.arcsin(R1/r)
-#     Integ = dblquad(integrate_func, 0, 2*np.pi,0, theta_max ,epsrel=1e-2,epsabs=1e-3)
-#     #print(Integ)
-#     Dtheta = np.pi/SIZE[0]
-#     Dphi = 2*np.pi/SIZE[1]
-#     theta = angle_between(normal, np.array([0,0,1]))
-#     DA = R2**2 *np.sin(theta) *Dtheta *Dphi 
-#     return Integ[0] *DA *np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelength)   
+    theta_max = np.arcsin(R1/r)
+    Integ = dblquad(integrate_func, 0, 2*np.pi,0, theta_max ,epsrel=1e-2,epsabs=1e-3)
+    #print(Integ)
+    Dtheta = np.pi/SIZE[0]
+    Dphi = 2*np.pi/SIZE[1]
+    theta = angle_between(normal, np.array([0,0,1]))
+    DA = R2**2 *np.sin(theta) *Dtheta *Dphi 
+    return Integ[0] *DA *np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelength)   
 
 
-def specular_reflection(specular_coefficent ,RV, camera, normal, r, Temperature= Temperature, Wavelength = 1e-6):
+def specular_reflection(specular_coefficent ,RV, camera, normal, r, Temperature= Temperature, Wavelength = Wavelengh):
     """
     Calculate the intensity of specular reflection.
     
@@ -403,7 +404,7 @@ def specular_reflection(specular_coefficent ,RV, camera, normal, r, Temperature=
     normal (array): Normal vector at the point of reflection.
     
     Returns:
-    float: Intensity I after reflection.
+    float: Intensity I after reflection divided by B(T,lam).
     """
     # Calculate the angle between the camera and the reflected vector
     angle = angle_between(camera, RV)
@@ -419,13 +420,20 @@ def specular_reflection(specular_coefficent ,RV, camera, normal, r, Temperature=
     Dphi = 2*np.pi/SIZE[1]
     DA = R2**2 *np.sin(theta)*Dtheta*Dphi
     if specular_coefficent > 1:
-        specular_coefficent = Fresnel(angle_between(normal,camera), N1, N2)        # Change here for different model of the reflection
+        specular_coefficent = Fresnel(theta_c , N1, N2)        # Change here for different model of the reflection
+
+    if specular_coefficent < 0:
+        specular_coefficent = REF_fit(theta_c)
     
     return specular_coefficent * DA * np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelength)
    #Bug repaired in 7/1: * np.cos(theta_c)
 
 
 def REF_fit(theta_r):
+    """
+    Using experimental data (R-theta_r) to fit the reflection coefficient.
+    theta_r: the angle between the camera and the reflected vector (unit: rad).
+    """
 # 将数据导入 numpy.array
     data = np.array([
         [0.5001124098736187, 0.032118887679963626],
@@ -496,8 +504,8 @@ def wave_dist(alpha):
     #  alpha is the angle between the wave and the normal vector of the ocean
     # CITE: https://arxiv.org/pdf/0801.1852
     #print("HHH")
-    v = 10   #wind speed
-    sigma2 = 0.003 + 0.00512* v
+    
+    sigma2 = 0.003 + 0.00512* Wind_speed   #Wind_speed in parameter_list
     return 1/np.sqrt(2*np.pi*sigma2)*np.exp(- np.tan(alpha)**2 /(2*sigma2))
 
 
@@ -539,7 +547,7 @@ def Cal_star_area(Theta):
         return Area - Cal_intersection_area(d, R1, R2) 
 
 
-def Cal_star_flux(Theta, Wavelength = 6e-7, Temperature = Temperature):
+def Cal_star_flux(Theta, Wavelength = Wavelengh, Temperature = Temperature):
     # Calculate the flux of the star that radiates light to the Earth
     #检查Theta的数据类型是数还是数组？
     Si = np.size(Theta)
@@ -769,10 +777,10 @@ def para_rad(Theta, lam = 0, Temperature = Temperature, Albedo = 0):
     Int = dblquad(Fp_func,-np.pi/2, np.pi/2, np.pi/2-Theta, 3/2*np.pi- Theta)
     if lam == 0:
         Fp = Sigma * R2**2/ np.pi * Int[0]
-        Fs = Sigma * Temperature**4 * R1**2
+        Fs = Sigma * Temperature**4 * np.pi* R1**2
     else:
         Fp = 2* h *c_const**2 * R2**2 * Int[0]
-        Fs = 2* h *c_const**2 * Bf(lam, Temperature) * np.pi * R1**2
+        Fs = Cal_star_flux(Theta, lam, Temperature)   #2* h *c_const**2 * Bf(lam, Temperature) * np.pi * R1**2
 
     return Fp/Fs
 
