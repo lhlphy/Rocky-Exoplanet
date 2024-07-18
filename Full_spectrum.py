@@ -7,8 +7,7 @@ import matplotlib.pyplot as plt
 import os
 import time
 
-
-def Full_spetrum(wavelength_bound, args = None, Temperature = Temperature, Albedo = Albedo, id = 0, Ntheta = 5, Nwave = 1):
+def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, Albedo = Albedo, id = 0, Ntheta = 5, Nwave = 1):
 
     if args != None:
         id = args.id
