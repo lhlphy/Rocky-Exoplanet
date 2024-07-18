@@ -503,7 +503,7 @@ def result_ploter(Var, name, Theta_list, Coarse, id):
     plt.ylabel(name)
     plt.legend()
 
-    plt.savefig(f'temp/{id}/Results/{name}.png')
+    plt.savefig(f'temp/R{id}/Results/{name}.png')
     plt.close()
 
 def multi_result_plotter(Var, name, Theta_list, Coarse, id):
@@ -520,7 +520,7 @@ def multi_result_plotter(Var, name, Theta_list, Coarse, id):
     plt.xlabel('Orbit angle')
     plt.ylabel("Flux_planet/Flux_star")
 
-    plt.savefig(f'temp/{id}/Results/Result.png')
+    plt.savefig(f'temp/R{id}/Results/Result.png')
     plt.close()
 
 

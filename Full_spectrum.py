@@ -45,7 +45,10 @@ def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, Albe
     G_specular = G_intensity.copy()
 
     for i, Theta in enumerate(Theta_list2):
-        G_intensity[i], G_diffuse[i], G_specular[i] = mf.global_intensity(Theta, 1, 1, 0, id, Model= 'Lambert', mode = 'geo')
+        I, D, S = mf.global_intensity(Theta, 1, 1, 0, id, Model= 'Lambert', mode = 'geo')
+        G_intensity[i] = I.sum()
+        G_diffuse[i] = D.sum()
+        G_specular[i] = S.sum()
 
     for j, wave in enumerate(Wave_list):
         coef = Albedo  *  B(wave, Temperature) 
@@ -58,8 +61,9 @@ def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, Albe
     I_diffuse = sym_complete(I_diffuse,1) / Star_flux
     I_specular = sym_complete(I_specular,1) / Star_flux
     Theta_list2 = sym_complete(Theta_list2)
+    Theta_list2[Ntheta: 2*Ntheta] = 2*np.pi - Theta_list2[Ntheta: 2*Ntheta]
 
-    if Theta_list != Theta_list2:  # Check the consistency of the Theta_list [size: Ntheta*2]
+    if (Theta_list != Theta_list2).any():  # Check the consistency of the Theta_list [size: Ntheta*2]
         raise ValueError("Theta_list is not consistent!")
     
     # Save the results
@@ -73,9 +77,7 @@ def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, Albe
 
     FS = I_intensity + thermal_ratio   # Full Spectrum  [size: Nwave * (2*Ntheta)]  xaixs: Wave_list, yaixs: Theta_list
 
-    
-
-
+    FS_plotter(FS, Wave_list, Theta_list, Nwave, Ntheta, id)
 
     t1 = time.time()
     print("Total Time = ", t1 - t0, "s, Processing ALL DONE!")
@@ -104,8 +106,9 @@ def FS_plotter(FS, Wave_list, Theta_list, Nwave, Ntheta, id = 0 , Obs_wavelength
     if Obs_wavelength != np.ndarray:
         Obs_wavelength = np.array([Obs_wavelength])
 
-    spl = interp1d(np.reshape(Wave_list,[Wave_list.size, 1]), FS, kind = 'cubic', axis = 0)
-    y = spl(np.reshape(Obs_wavelength, [Obs_wavelength.size, 1]))
+    spl = interp1d(Wave_list, FS.T, kind = 'cubic')
+    y = spl(Obs_wavelength)
+    y = y.T[0]
 
     fig , ax = plt.subplots()
     for i, Owave in enumerate(Obs_wavelength):

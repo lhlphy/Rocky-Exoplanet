@@ -172,8 +172,8 @@ def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = C
     # Show the plot
     #plt.show()
     #save the plot to temp/ folder
-    os.makedirs(f'temp/{id}/plots', exist_ok=True)
-    name = f'temp/{id}/plots/plot_'+str(int(Coarse*180/np.pi))+'_'+str(int(Theta*180/np.pi))+'.png'
+    os.makedirs(f'temp/R{id}/plots', exist_ok=True)
+    name = f'temp/R{id}/plots/plot_'+str(int(Coarse*180/np.pi))+'_'+str(int(Theta*180/np.pi))+'.png'
     plt.savefig(name)
     plt.close()
     
@@ -195,6 +195,7 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature, Albedo=0 , id=0
     Ratio: [size]: NWavelength * (2*Ntheta)
     Theta_list: [size]: (2*Ntheta)
     """ 
+    Albedo = 0   ### test
     # Planck's constant
     h = 6.62607015e-34
     # Speed of light
@@ -247,6 +248,7 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature, Albedo=0 , id=0
     Spectrum_S = sym_complete(SS, 0)
     Spectrum_S = Spectrum_S.T
     Th_list = sym_complete(Theta_list, 0)
+    Th_list[Ntheta: 2*Ntheta] = 2*np.pi - Th_list[Ntheta: 2*Ntheta]
 
     np.save(f'temp/R{id}/Results/Ratio.npy', Ratio)
     np.save(f'temp/R{id}/Results/Star_flux.npy',  Spectrum_S)
