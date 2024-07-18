@@ -83,7 +83,7 @@ def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, Albe
     print("Total Time = ", t1 - t0, "s, Processing ALL DONE!")
 
 
-def FS_plotter(FS, Wave_list, Theta_list, Nwave, Ntheta, id = 0 , Obs_wavelength = [5e-6]):
+def FS_plotter(FS, Wave_list, Theta_list, Nwave, Ntheta, id = 0 , Obs_wavelength = [5e-7]):
     """Plot the full spectrum
     FS: Full Spectrum (matrix: Nwave* (2*Ntheta))
     Obs_wavelength: wavelength be observed (array)
@@ -91,11 +91,26 @@ def FS_plotter(FS, Wave_list, Theta_list, Nwave, Ntheta, id = 0 , Obs_wavelength
     ## plot Full spectrum
     fig, ax = plt.subplots()
     #Xwave = np.linspace(Wave_list[0], Wave_list[-1], 1000)
+    ## plot Contrast ratio
     for i in range(Ntheta):
         #spl = interp1d(Wave_list, FS[:,i], kind='cubic')
         ax.plot(Wave_list* 1e6, FS[:,i] *1e6, label = f'Theta = {Theta_list[i]}')
     ax.set_xlabel('Wavelength ($\mu$m)')
     ax.set_ylabel('Contrast ratio (ppm)')
+    ax.set_title(f'Full Spectrum')
+    ax.legend()
+    plt.show()
+    plt.savefig(f'temp/R{id}/Results/Constrat_ratio.png')
+    plt.close()
+
+    # plot Full Spectrum
+    fig, ax = plt.subplots()
+    Star_flux  = np.load(f'temp/R{id}/Results/Star_flux.npy')
+    for i in range(Ntheta):
+        #spl = interp1d(Wave_list, FS[:,i], kind='cubic')
+        ax.plot(Wave_list* 1e6, FS[:,i]* Star_flux[:,i] , label = f'Theta = {Theta_list[i]}')
+    ax.set_xlabel('Wavelength ($\mu$m)')
+    ax.set_ylabel('$\mathrm{Spectrum\; of\; Planet \; (W \cdot sr^{-1}\cdot nm^{-1})}$')
     ax.set_title(f'Full Spectrum')
     ax.legend()
     plt.show()
