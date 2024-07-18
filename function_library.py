@@ -195,6 +195,7 @@ def sym_complete(Var,axis=0):
 def blackbody_radiation(T, lam, B=1):
     """
     Calculate the blackbody radiation intensity at a given temperature and wavelength.
+    !!!Totally same with function: B(lam,T)!!!
     
     Parameters:
     T (float): Temperature.
@@ -418,7 +419,7 @@ def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Coarse = 0, DIF_REF = 0.5 ):
     return Integ[0] *DA *np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelength)   
 
 
-def specular_reflection(specular_coefficent ,RV, camera, normal, r, Temperature= Temperature, Wavelength = Wavelengh):
+def specular_reflection(specular_coefficent ,RV, camera, normal, r, Temperature= Temperature):
     """
     Calculate the intensity of specular reflection.
     
@@ -644,6 +645,7 @@ def rotate_vector(vector, axis, angle):
 #     print("旋转后的向量:", rotated_vector)
 
 def B(lam,T):
+    # !!!Totally same with function: blackbody_radiation(T,lam)!!!
     h = 6.626e-34  # Planck's constant
     c = 3.0e8  # Speed of light
     k = 1.38e-23  # Boltzmann constant

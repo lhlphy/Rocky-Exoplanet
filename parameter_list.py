@@ -30,7 +30,7 @@ thetaP_list = np.linspace(0, 2 * np.pi, SIZE[1])
 
 ### Thermal and optical parameters
 Temperature = 3036  # K, temperature of the Star
-Wavelengh = 5e-6  # m, wavelength of the light
+Wavelengh = 5e-6  # m, wavelength of the light  ### Attention: wavelength and wavelengh
 SPE_REF_g = 555  # Specular reflection coefficient  1.if SPE_REF <0 , using the experiment data   2.if SPE_REF >1, using the Fresnel equation model
 DIF_REF_g = 0.1 # Diffuse reflection coefficient
 Coarse_g = 0  # Coarseness of the surface

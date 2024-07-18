@@ -25,7 +25,7 @@ from scipy.interpolate import interp1d
 # plt.plot(angle, I)
 
 
-def BRDF(i, j, Intensity, I_diffuse, Theta, SPE_REF, DIF_REF, Coarse, Temperature= Temperature, Wavelength=1e-6, Model='Lambert'):
+def BRDF(i, j, Intensity, I_diffuse, Theta, SPE_REF, DIF_REF, Coarse, Model='Lambert'):
     """
     calculate the reflection and diffusion intensity  (divided by B(T,lam)) of the planet surface at the point (i,j)
     i: the index of phiP
@@ -66,11 +66,11 @@ def BRDF(i, j, Intensity, I_diffuse, Theta, SPE_REF, DIF_REF, Coarse, Temperatur
         # Model Choice 
         if Model == 'Lambert':   #Coarse = 0
             Diffuse = Oren_Nayar_BRDF(R1, r, nv, Pos, camera, 0, DIF_REF )
-            SR  = specular_reflection(SPE_REF, RV, camera, nv, r, Temperature, Wavelength)
+            SR  = specular_reflection(SPE_REF, RV, camera, nv, r)
             # SR is the reflected light intensity divided by B(T,lam)
         elif Model == 'Oren_Nayar':
             Diffuse = Oren_Nayar_BRDF(R1, r, nv, Pos, camera, Coarse, DIF_REF )
-            SR  = specular_reflection(SPE_REF, RV, camera, nv, r, Temperature, Wavelength)
+            SR  = specular_reflection(SPE_REF, RV, camera, nv, r)
         elif Model == 'Gaussian_wave':  # In this model Diffuse and RF are considered together
             Diffuse = Wave_reflect(R1, r, nv, Pos, camera )
             SR = 0
@@ -87,15 +87,30 @@ def BRDF(i, j, Intensity, I_diffuse, Theta, SPE_REF, DIF_REF, Coarse, Temperatur
     #print(Intensity[SIZE[1]*i+j])
 
 
-def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = Coarse_g, Temperature= Temperature, Wavelength=1e-6, id=0, Model = 'Lambert'):
+def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = 'geo'):
     """
     Calculate the intensity map of the reflection and diffusion of the planet surface
+    mode: the mode of the calculation
+        switch: "geo" or "phy"
+        "geo": It's a gemotry problem, don't need to consider the thermal radiation and albedo
+            return:
+            Intensity: the intensity of the reflection and diffusion/B(T,lam)
+            I_diffuse: the intensity of the diffusion/B(T,lam)
+            Intensity - I_diffuse: the intensity of the reflection/B(T,lam)
 
-    return:
-    Intensity: the intensity of the reflection and diffusion
-    I_diffuse: the intensity of the diffusion
-    Intensity - I_diffuse: the intensity of the reflection
+        "phy": It's a physical problem, need to consider the thermal radiation and albedo
+            return:
+            Intensity: the intensity of the reflection and diffusion/B(T,lam)
+            I_diffuse: the intensity of the diffusion/B(T,lam)
+            Intensity - I_diffuse: the intensity of the reflection/B(T,lam)
+
+            Wavelength and Temperature are from the parameter_list.py
+        
     """
+    if mode == 'geo':  # only consider the geometry problem
+        SPE_REF = 1
+        DIF_REF = 1
+
     processes = []
     Intensity = multiprocessing.Array('d', SIZE[0]*SIZE[1])   # diffusion + reflection
     I_diffuse = multiprocessing.Array('d', SIZE[0]*SIZE[1]) # diffusion  intensity
@@ -104,16 +119,18 @@ def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = C
     #calculate the intensity of the reflect and diffusion using the BRDF function
     for i, phiP in enumerate(phiP_list):
         for j, thetaP in enumerate(thetaP_list):
-            process = multiprocessing.Process(target = BRDF, args=(i, j, Intensity, I_diffuse, Theta, SPE_REF, DIF_REF, Coarse, Temperature, Wavelength, Model))
+            process = multiprocessing.Process(target = BRDF, args=(i, j, Intensity, I_diffuse, Theta, SPE_REF, DIF_REF, Coarse, Model))
             processes.append(process)
             process.start()
 
     for process in processes:
         process.join()
 
-    Intensity = Intensity* blackbody_radiation(Temperature, Wavelength)
+    if mode == 'phy':
+        Intensity = Intensity* blackbody_radiation(Temperature, Wavelengh)
+        I_diffuse = I_diffuse* blackbody_radiation(Temperature, Wavelengh)
+
     Intensity = np.array(Intensity[:]).reshape(SIZE[0], SIZE[1])
-    I_diffuse = I_diffuse* blackbody_radiation(Temperature, Wavelength)
     I_diffuse = np.array(I_diffuse[:]).reshape(SIZE[0], SIZE[1])
 
     # print(Intensity)
@@ -172,7 +189,12 @@ def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = C
 # print(np.linalg.norm(Pos)*np.sin(angle_between(Pos, camera)))
 
 def thermal_spectrum(wavelength_bound, Temperature= Temperature, Albedo=0 , id=0, Ntheta = 5, NWavelength = 1):
-    # Calculate the blackbody radiation spectrum
+    """
+    Calculate the blackbody radiation spectrum
+
+    Ratio: [size]: NWavelength * (2*Ntheta)
+    Theta_list: [size]: (2*Ntheta)
+    """ 
     # Planck's constant
     h = 6.62607015e-34
     # Speed of light
@@ -222,9 +244,12 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature, Albedo=0 , id=0
     # save RAT to temp/ folder
     Ratio = sym_complete(RAT, 0)  # 补全对称部分
     Ratio = Ratio.T
+    Spectrum_S = sym_complete(SS, 0)
+    Spectrum_S = Spectrum_S.T
     Th_list = sym_complete(Theta_list, 0)
 
     np.save(f'temp/R{id}/Results/Ratio.npy', Ratio)
+    np.save(f'temp/R{id}/Results/Star_flux.npy',  Spectrum_S)
     np.save(f'temp/R{id}/Results/Theta.npy', Th_list)
 
     ## 写一个自动画Ratio- Th_list图的程序
