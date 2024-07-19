@@ -25,7 +25,7 @@ from scipy.interpolate import interp1d
 # plt.plot(angle, I)
 
 
-def BRDF(i, j, Intensity, I_diffuse, Theta, SPE_REF, DIF_REF, Coarse, Model='Lambert'):
+def BRDF(i, j, Intensity, I_diffuse, Theta, Coarse, Model='Lambert'):
     """
     calculate the reflection and diffusion intensity  (divided by B(T,lam)) of the planet surface at the point (i,j)
     i: the index of phiP
@@ -33,8 +33,6 @@ def BRDF(i, j, Intensity, I_diffuse, Theta, SPE_REF, DIF_REF, Coarse, Model='Lam
     Intensity: the shared memory of the Intensity
     I_diffuse: the shared memory of the I_diffuse
     Theta: orbital phase angle
-    SPE_REF: the specular reflection coefficient
-    DIF_REF: the diffuse reflection coefficient
     Coarse: the coarse of the surface, the standard derivation of incline angle of the surface (0-pi/2)
     Temperature: the temperature of the star
     Model: the model of the reflection and diffusion
@@ -65,12 +63,12 @@ def BRDF(i, j, Intensity, I_diffuse, Theta, SPE_REF, DIF_REF, Coarse, Model='Lam
         # Calculate the intensity of the reflected light
         # Model Choice 
         if Model == 'Lambert':   #Coarse = 0
-            Diffuse = Oren_Nayar_BRDF(R1, r, nv, Pos, camera, 0, DIF_REF )
-            SR  = specular_reflection(SPE_REF, RV, camera, nv, r)
+            Diffuse = Oren_Nayar_BRDF(R1, r, nv, Pos, camera, 0 )
+            SR  = specular_reflection(RV, camera, nv, r)
             # SR is the reflected light intensity divided by B(T,lam)
         elif Model == 'Oren_Nayar':
-            Diffuse = Oren_Nayar_BRDF(R1, r, nv, Pos, camera, Coarse, DIF_REF )
-            SR  = specular_reflection(SPE_REF, RV, camera, nv, r)
+            Diffuse = Oren_Nayar_BRDF(R1, r, nv, Pos, camera, Coarse)
+            SR  = specular_reflection(RV, camera, nv, r)
         elif Model == 'Gaussian_wave':  # In this model Diffuse and RF are considered together
             Diffuse = Wave_reflect(R1, r, nv, Pos, camera )
             SR = 0
@@ -87,7 +85,7 @@ def BRDF(i, j, Intensity, I_diffuse, Theta, SPE_REF, DIF_REF, Coarse, Model='Lam
     #print(Intensity[SIZE[1]*i+j])
 
 
-def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = 'geo'):
+def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = 'geo'):
     """
     Calculate the intensity map of the reflection and diffusion of the planet surface
     mode: the mode of the calculation
@@ -107,9 +105,9 @@ def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = C
             Wavelength and Temperature are from the parameter_list.py
         
     """
-    if mode == 'geo':  # only consider the geometry problem
-        SPE_REF = 1
-        DIF_REF = 1
+    # if mode == 'geo':  # only consider the geometry problem
+    #     SPE_REF = 1
+    #     DIF_REF = 1
 
     processes = []
     Intensity = multiprocessing.Array('d', SIZE[0]*SIZE[1])   # diffusion + reflection
@@ -119,7 +117,7 @@ def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = C
     #calculate the intensity of the reflect and diffusion using the BRDF function
     for i, phiP in enumerate(phiP_list):
         for j, thetaP in enumerate(thetaP_list):
-            process = multiprocessing.Process(target = BRDF, args=(i, j, Intensity, I_diffuse, Theta, SPE_REF, DIF_REF, Coarse, Model))
+            process = multiprocessing.Process(target = BRDF, args=(i, j, Intensity, I_diffuse, Theta, Coarse, Model))
             processes.append(process)
             process.start()
 
@@ -188,14 +186,13 @@ def global_intensity(Theta, SPE_REF = SPE_REF_g, DIF_REF = DIF_REF_g, Coarse = C
 # #The distance between the line and the origin is given by: |Pos| sin(theta)
 # print(np.linalg.norm(Pos)*np.sin(angle_between(Pos, camera)))
 
-def thermal_spectrum(wavelength_bound, Temperature= Temperature, Albedo=0 , id=0, Ntheta = 5, NWavelength = 1):
+def thermal_spectrum(wavelength_bound, Temperature= Temperature , id=0, Ntheta = 5, NWavelength = 1):
     """
     Calculate the blackbody radiation spectrum
 
     Ratio: [size]: NWavelength * (2*Ntheta)
     Theta_list: [size]: (2*Ntheta)
     """ 
-    Albedo = 0   ### test
     # Planck's constant
     h = 6.62607015e-34
     # Speed of light
@@ -220,7 +217,7 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature, Albedo=0 , id=0
         if e == 0:
             TMAP = TMAP0
         else:
-            TMAP = Tmap(Theta, id, Albedo)
+            TMAP = Tmap(Theta, id)
 
         spectrum_P = np.zeros(len(Wave_list)) 
         spectrum_S = np.zeros(len(Wave_list)) 
@@ -229,7 +226,7 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature, Albedo=0 , id=0
             if Theta < 1e-6:
                 spectrum_P[j] = 0
             else:
-                spectrum_P[j] = Radiation_cal(TMAP, Theta, camera, Albedo, Temperature, wavelength)
+                spectrum_P[j] = Radiation_cal(TMAP, Theta, camera, Temperature, wavelength)
             spectrum_S[j] = Cal_star_flux(Theta, wavelength, Temperature)
         # Plot the spectrum
 
@@ -338,14 +335,14 @@ def ratio_plotter(Wavelength, spectrum_S, spectrum_P, ratio, id, Theta):
     omglog_ax.spines['right'].set(color=omglog_color, linewidth=2.0, linestyle='-.')
 
 
-    plt.title(f'$\mathrm{{Albedo = {Albedo}, \Theta = {Theta}}}$', fontsize=18)
+    plt.title(f'$\mathrm{{\Theta = {Theta}}}$', fontsize=18)
     # save the plot to temp/ folder
     os.makedirs(f'temp/R{id}/Results', exist_ok=True)
     name = f'temp/R{id}/Results/spectrum_'+str(int(Theta*180/np.pi))+'.png'
     plt.savefig(name)
     plt.close()
 
-def vertify_radiation(wavelength_bound, Temperature= Temperature, Albedo=0 , id=0, Ntheta = 5, NWavelength = 1):
+def vertify_radiation(wavelength_bound, Temperature= Temperature, id=0, Ntheta = 5, NWavelength = 1):
     # Calculate the blackbody radiation spectrum
     os.makedirs(f'temp/V{id}/plots', exist_ok=True)
     os.makedirs(f'temp/V{id}/Results', exist_ok=True)
@@ -363,7 +360,7 @@ def vertify_radiation(wavelength_bound, Temperature= Temperature, Albedo=0 , id=
             if Theta < 1e-6:
                 RAT[i, j] = 0
             else:
-                RAT[i, j] = para_rad(Theta, wavelength, Temperature, Albedo)
+                RAT[i, j] = para_rad(Theta, wavelength, Temperature)
         # Plot the spectrum
 
     #save RAT to temp/ folder

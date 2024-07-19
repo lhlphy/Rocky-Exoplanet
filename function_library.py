@@ -1,7 +1,8 @@
 import numpy as np
 from parameter_list import *
-from scipy.integrate import dblquad
+from scipy.integrate import dblquad, quad
 from scipy import interpolate
+from scipy.optimize import root  
 import matplotlib.pyplot as plt
 import os
 
@@ -334,7 +335,7 @@ def Wave_reflect(R1, r, normal, Pos, camera ):
 
 
 
-def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Coarse = 0, DIF_REF = 0.5 ):
+def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Coarse = 0):
     """
     Calculate the intensity of  diffusion.
     
@@ -369,7 +370,7 @@ def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Coarse = 0, DIF_REF = 0.5 ):
     t , phi_camera = vec2Euler(camera_local)
 
 
-    def fr(theta_i, theta_c, sigma, rho, phi_diff):
+    def fr(theta_i, theta_c, sigma, phi_diff):
         #https://zhuanlan.zhihu.com/p/500809166
         A = 1 - 0.5 * sigma**2 / (sigma**2 + 0.33)
         B = 0.45 * sigma**2 / (sigma**2 + 0.09)
@@ -377,7 +378,7 @@ def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Coarse = 0, DIF_REF = 0.5 ):
         beta = min(theta_i, theta_c)
 
         max_cosphi = max(0, np.cos(phi_diff))
-        fr = rho / np.pi *(A + B * max_cosphi * np.sin(alpha) * np.tan(beta))
+        fr = 1 / np.pi *(A + B * max_cosphi * np.sin(alpha) * np.tan(beta))
         return fr
     
     def integrate_func(theta_i, phi):
@@ -390,12 +391,12 @@ def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Coarse = 0, DIF_REF = 0.5 ):
         if angle > angle_max:
             return 0
         else:
-            return fr(theta_i, theta_c, Coarse, DIF_REF, phi_diff) * np.cos(theta_i) *np.sin(theta_i)
+            return fr(theta_i, theta_c, Coarse, phi_diff) * np.cos(theta_i) *np.sin(theta_i)
         #Bug Repaired in 7/2: np.sin(theta_i) -> np.cos(theta_i) *np.sin(theta_i)
         # the first cos is from the Equation, the second sin is from the expression of solid angle dOmega = sin(theta)*dTheta*dPhi
             
         #phi_diff = np.pi - angle_between(np.cross(Pos, normal), np.cross(camera, normal))
-        # res = fr(theta_i, theta_c, sigma, rho, phi_diff) * blackbody_radiation(6000, 1e-6) * np.sin(theta_i)
+        # res = fr(theta_i, theta_c, sigma, phi_diff) * blackbody_radiation(6000, 1e-6) * np.sin(theta_i)
         # return res
 
     #hemi-sphere integral *  #put the blackbody radiation here(out of the integral)
@@ -419,7 +420,7 @@ def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Coarse = 0, DIF_REF = 0.5 ):
     return Integ[0] *DA *np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelength)   
 
 
-def specular_reflection(specular_coefficent ,RV, camera, normal, r, Temperature= Temperature):
+def specular_reflection(RV, camera, normal, r, Temperature= Temperature):
     """
     Calculate the intensity of specular reflection.
     
@@ -653,7 +654,7 @@ def B(lam,T):
     B = 2* h * c**2 / lam**5 / A
     return B
 
-def Temperature_cal(ksi, Theta, Albedo = 0, Temperature = Temperature):
+def Temperature_cal(ksi, Theta, Int_B):
     ## calculate the temperature distribution of the planet
     ## ksi is the angle between the normal vector and the vector from the star to the planet
     r = orbit_calculator(a, e, Theta)
@@ -664,12 +665,25 @@ def Temperature_cal(ksi, Theta, Albedo = 0, Temperature = Temperature):
         #报错信息： ksi_m1 > ksi_m2
         print("ksi_m1 > ksi_m2")
         raise ValueError("ksi_m1 > ksi_m2")
-
-    if ksi < ksi_m1:
+    
+    if ksi <= ksi_m2:
         rP = np.sqrt(r**2 + R2**2 - 2*r*R2*np.cos(ksi))
         zeta = np.arcsin(R2/rP*np.sin(ksi))
         Phi = zeta + ksi
-        T = Temperature * np.sqrt(R1/r) *((1-Albedo)*np.cos(Phi))**(1/4)
+        T0 = Temperature * np.sqrt(R1/r) *(np.cos(Phi))**(1/4)
+
+    else:
+        return 0
+
+    if ksi < ksi_m1:
+
+        LHS = Int_B *(R1/r)**2 *np.cos(Phi)
+        def equation(T):
+            func = lambda lam: B(lam, T) * (1-Albedo(lam))
+            return quad(func, 0, np.inf)[0] - LHS
+        
+        sol = root(equation, T0)
+        T = sol.x[0]
 
     elif ksi_m1 <= ksi <= ksi_m2: # the planet is in the shadow of the star
 
@@ -690,21 +704,79 @@ def Temperature_cal(ksi, Theta, Albedo = 0, Temperature = Temperature):
             return I
         
         Int = dblquad(integrate_func, 0, 2* np.pi, 0, np.pi)
-        T = Temperature * (Int[0] /np.pi* (1- Albedo))**(1/4)
+        LHS = Int[0] * Int_B/ np.pi
+
+        def equation(T): # the integral function
+            
+            func = lambda lam: B(lam, T) * (1-Albedo(lam))
+            return quad(func, 0, np.inf)[0] - LHS
+
+        sol = root(equation, T0)
+        T = sol.x[0]
 
     else:
         T = 0
 
     return T
 
-def Tmap(Theta, id = 0, Albedo=0 ):
+
+# def Temperature_cal(ksi, Theta, Albedo = 0, Temperature = Temperature):
+#     ## calculate the temperature distribution of the planet
+#     ## ksi is the angle between the normal vector and the vector from the star to the planet
+#     r = orbit_calculator(a, e, Theta)
+
+#     ksi_m1 = np.pi/2 - np.arcsin((R1+R2)/r)
+#     ksi_m2 = np.pi/2 + np.arcsin((R1-R2)/r)
+#     if ksi_m1 > ksi_m2:
+#         #报错信息： ksi_m1 > ksi_m2
+#         print("ksi_m1 > ksi_m2")
+#         raise ValueError("ksi_m1 > ksi_m2")
+
+#     if ksi < ksi_m1:
+#         rP = np.sqrt(r**2 + R2**2 - 2*r*R2*np.cos(ksi))
+#         zeta = np.arcsin(R2/rP*np.sin(ksi))
+#         Phi = zeta + ksi
+#         T = Temperature * np.sqrt(R1/r) *((1-Albedo)*np.cos(Phi))**(1/4)
+
+#     elif ksi_m1 <= ksi <= ksi_m2: # the planet is in the shadow of the star
+
+#         def integrate_func(thetas, phis): # the integral function
+#             normalP = np.array([-R2* np.cos(ksi), 0, R2* np.sin(ksi)])
+#             normalS = np.array([np.sin(thetas)*np.cos(phis), np.sin(thetas)*np.sin(phis), np.cos(thetas)])* R1
+#             P = np.array([r, 0 ,0])
+#             Pos = P + normalP - normalS
+
+#             TH = angle_between(Pos, normalS)
+#             PSI = angle_between(Pos, -normalP)
+
+#             if TH < np.pi/2 and PSI < np.pi/2:
+#                 I = (R1/np.linalg.norm(Pos))**2 * np.sin(thetas) *np.cos(TH) * np.cos(PSI)
+#             else:
+#                 I = 0
+
+#             return I
+        
+#         Int = dblquad(integrate_func, 0, 2* np.pi, 0, np.pi)
+#         T = Temperature * (Int[0] /np.pi* (1- Albedo))**(1/4)
+
+#     else:
+#         T = 0
+
+#     return T
+
+def Tmap(Theta, id = 0 ):
     ## calculate the temperature map of the planet
     ## the map is a 2D array of thetaP and phiP
+    def int_func(lam):
+        return B(lam, Temperature) * (1- Albedo(lam))
+
+    Int_B = quad(int_func, 0 , np.inf)[0]
+
     Tmap_1D = np.zeros(SIZE[0])  #Use ksi as parameter to calculate the temperature map, according to the rotation symmetry, we can get the temperature map of the planet
     ksi_list = np.linspace(0, np.pi, SIZE[0])
 
     for i in range(SIZE[0]):
-        Tmap_1D[i] = Temperature_cal(ksi_list[i], Theta, Albedo)
+        Tmap_1D[i] = Temperature_cal(ksi_list[i], Theta, Int_B)
     ## interpolate the 1D array to 2D array using the spline interpolation
     spl = interpolate.interp1d(ksi_list , Tmap_1D, kind='linear') #spline interpolation
 
@@ -730,7 +802,7 @@ def Tmap(Theta, id = 0, Albedo=0 ):
     return Tmap
 
 
-def Radiation_cal(Tmap, Theta, camera, Albedo, Temperature, Wavelength = 0):
+def Radiation_cal(Tmap, Theta, camera, Temperature, Wavelength = 0):
     ## calculate the radiation distribution of the planet
     ## the map is a 2D array of thetaP and phiP
     Rad = 0
@@ -755,15 +827,15 @@ def Radiation_cal(Tmap, Theta, camera, Albedo, Temperature, Wavelength = 0):
                 dA = R2**2 * np.sin(thetaP) * Dtheta * Dphi
                 if Wavelength == 0:
                     sigma = 5.670373 * 1e-8
-                    Rad += (1-Albedo) * sigma * Temperature**4/np.pi * np.cos(angle) * dA
+                    Rad += sigma * Temperature**4/np.pi * np.cos(angle) * dA
                 else:
-                    Rad += (1-Albedo) * B(Wavelength, T) * np.cos(angle) * dA
+                    Rad += (1-Albedo(Wavelength)) * B(Wavelength, T) * np.cos(angle) * dA
 
     return Rad
 
 
 
-def para_rad(Theta, lam = 0, Temperature = Temperature, Albedo = 0):
+def para_rad(Theta, lam = 0, Temperature = Temperature):
     r = orbit_calculator(a, e, Theta)
     h = 6.626e-34  # Planck's constant
     c_const = 3.0e8  # Speed of light

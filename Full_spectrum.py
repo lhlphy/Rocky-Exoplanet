@@ -7,11 +7,10 @@ import matplotlib.pyplot as plt
 import os
 import time
 
-def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, Albedo = Albedo, id = 0, Ntheta = 5, Nwave = 1):
+def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, id = 0, Ntheta = 5, Nwave = 1):
 
     if args != None:
         id = args.id
-        Albedo = args.Albedo
         Ntheta = args.Ntheta
         Nwave = args.Nwave
     
@@ -21,7 +20,7 @@ def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, Albe
 
     t0 = time.time()
     """ Calculate the thermal spectrum """ 
-    mf.thermal_spectrum(wavelength_bound, Temperature, Albedo= Albedo, id= id, Ntheta = Ntheta, NWavelength= Nwave)
+    mf.thermal_spectrum(wavelength_bound, Temperature, id= id, Ntheta = Ntheta, NWavelength= Nwave)
     # Load the results
     thermal_ratio = np.load(f'temp/R{id}/Results/Ratio.npy')
     Theta_list  = np.load(f'temp/R{id}/Results/Theta.npy')
@@ -50,11 +49,11 @@ def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, Albe
         G_diffuse[i] = D.sum()
         G_specular[i] = S.sum()
 
-    for j, wave in enumerate(Wave_list):
-        coef = Albedo  *  B(wave, Temperature) 
-        I_intensity[j,:] = coef * G_intensity[:]
-        I_diffuse[j,:] = coef * G_diffuse[:]
-        I_specular[j,:] = coef * G_specular[:]
+    for j, wave in enumerate(Wave_list):   
+        coef =  B(wave, Temperature) # the coefficient should be divided for diffused and specular light
+        I_diffuse[j,:] = coef * G_diffuse[:] * A_diffuse(wave)
+        I_specular[j,:] = coef * G_specular[:] * A_Specular(wave)
+        I_intensity[j,:] = I_diffuse[j,:] + I_specular[j,:]
 
     # symmetry
     I_intensity = sym_complete(I_intensity,1) / Star_flux

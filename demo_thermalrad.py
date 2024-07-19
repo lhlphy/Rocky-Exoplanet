@@ -17,7 +17,6 @@ warnings.filterwarnings('ignore', category=IntegrationWarning)
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--id', default="1" , type=str)
-    parser.add_argument('--Albedo', default = Albedo , type=float)
     parser.add_argument('--Ntheta', default= 5 , type=int)
     parser.add_argument('--Nwave', default = 1 , type=int)
     args = parser.parse_args()
@@ -28,7 +27,7 @@ if __name__ == "__main__":
 
     t5 = time.time()
     wave_bound = np.array([5000 , 5000])*1e-9
-    mf.thermal_spectrum(wave_bound, Temperature, Albedo=args.Albedo, id=args.id, Ntheta = args.Ntheta, NWavelength= args.Nwave)
+    mf.thermal_spectrum(wave_bound, Temperature, id=args.id, Ntheta = args.Ntheta, NWavelength= args.Nwave)
 
     t6 = time.time()
     print("Total Time = ", t6 - t5, "s, Processing ALL DONE!")

@@ -52,7 +52,7 @@ if __name__ == "__main__":
         var_name = "Intensity_" + str(int(Coarse*180/np.pi)) + "_" + str(int(Theta*180/np.pi))
         var_name2 = "Diffuse_ratio_" + str(int(Coarse*180/np.pi)) + "_" + str(int(Theta*180/np.pi))
 
-        variables[var_name], variables[var_name2], SP = mf.global_intensity(Theta, Coarse = Coarse, SPE_REF=args.specular,DIF_REF=args.diffuse, id = args.id, Model = 'Gaussian_wave', mode = 'phy')
+        variables[var_name], variables[var_name2], SP = mf.global_intensity(Theta, Coarse = Coarse, id = args.id, Model = 'Gaussian_wave', mode = 'phy')
         TOT_Intensity[j] = variables[var_name].sum() 
         TOT_Diffuse[j] = (variables[var_name2] * variables[var_name]).sum()
         TOT_Specular[j] = TOT_Intensity[j] - TOT_Diffuse[j]
