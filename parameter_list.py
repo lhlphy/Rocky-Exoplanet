@@ -44,21 +44,24 @@ Sigma = 5.67e-8  # W/m^2/K^4, Stefan-Boltzmann constant
 Wind_speed = 10   # wind speed in m/s (only available for the Gaussian wave model)
 
 def Albedo(lam):
-    data_lam = np.linspace(0.1, 10) *1e-6
-    data_A = 0.5 * np.ones(data_lam.size)
-    spl = interp1d(data_lam, data_A, kind='cubic')
-    return spl(lam)
+    # data_lam = np.linspace(0.1, 10) *1e-6
+    # data_A = 0.5 * np.ones(data_lam.size)
+    # spl = interp1d(data_lam, data_A, kind='cubic')
+    # return spl(lam)
+    return 0
 
 def A_Specular(lam):
-    data_lam = np.linspace(0.1, 10) *1e-6
-    data_A = 0.5 * np.ones(data_lam.size)
-    spl = interp1d(data_lam, data_A, kind='cubic')
-    return spl(lam)
+    # data_lam = np.linspace(0.1, 10) *1e-6
+    # data_A = 0.5 * np.ones(data_lam.size)
+    # spl = interp1d(data_lam, data_A, kind='cubic')
+    # return spl(lam)
+    return 1
 
 def A_diffuse(lam):
-    data_lam = np.linspace(0.1, 10) *1e-6
-    data_A = 0.5 * np.ones(data_lam.size)
-    spl = interp1d(data_lam, data_A, kind='cubic')
-    return spl(lam)
+    # data_lam = np.linspace(0.1, 10) *1e-6
+    # data_A = 0.5 * np.ones(data_lam.size)
+    # spl = interp1d(data_lam, data_A, kind='cubic')
+    # return spl(lam)
+    return 1
 
 
