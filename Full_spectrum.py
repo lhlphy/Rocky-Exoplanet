@@ -25,6 +25,9 @@ def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, id =
     thermal_ratio = np.load(f'temp/R{id}/Results/Ratio.npy')
     Theta_list  = np.load(f'temp/R{id}/Results/Theta.npy')
     Star_flux  = np.load(f'temp/R{id}/Results/Star_flux.npy')
+    t1 = time.time()
+    print("First Part Time = ", t1 - t0, "s")
+
 
     """ Calculate the reflected and diffused light   """
     if Ntheta == 1:  # Create Theta_list
@@ -78,8 +81,8 @@ def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, id =
 
     FS_plotter(FS, Wave_list, Theta_list, Nwave, Ntheta, id)
 
-    t1 = time.time()
-    print("Total Time = ", t1 - t0, "s, Processing ALL DONE!")
+    t2 = time.time()
+    print("Total Time = ", t2 - t0, "s, Processing ALL DONE!")
 
 
 def FS_plotter(FS, Wave_list, Theta_list, Nwave, Ntheta, id = 0 , Obs_wavelength = [5e-7]):

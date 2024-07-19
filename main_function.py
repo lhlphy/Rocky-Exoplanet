@@ -7,6 +7,7 @@ import os
 from matplotlib import rcParams
 from matplotlib.pylab import mpl
 from scipy.interpolate import interp1d
+import time
 #import time
 
 # Use 'TkAgg' as the backend for Matplotlib
@@ -193,6 +194,7 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature , id=0, Ntheta =
     Ratio: [size]: NWavelength * (2*Ntheta)
     Theta_list: [size]: (2*Ntheta)
     """ 
+    t10 = time.time()
     # Planck's constant
     h = 6.62607015e-34
     # Speed of light
@@ -206,6 +208,7 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature , id=0, Ntheta =
         Theta_list = np.linspace(0, np.pi, Ntheta)  # 0-pi 与 pi-2pi 重复
     Wave_list = np.linspace(wavelength_bound[0], wavelength_bound[1], NWavelength)
     TMAP0 = Tmap(0, id)
+    t11 = time.time()
     # processes = []
     # spectrum_P = multiprocessing.Array('d', len(Wavelength))   
     # spectrum_S = multiprocessing.Array('d', len(Wavelength))
@@ -238,7 +241,7 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature , id=0, Ntheta =
         if NWavelength > 1:
             ratio_plotter(Wave_list, spectrum_S, spectrum_P, ratio, id, Theta)
 
-
+    t12 = time.time()
     # save RAT to temp/ folder
     Ratio = sym_complete(RAT, 0)  # 补全对称部分
     Ratio = Ratio.T
@@ -250,6 +253,10 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature , id=0, Ntheta =
     np.save(f'temp/R{id}/Results/Ratio.npy', Ratio)
     np.save(f'temp/R{id}/Results/Star_flux.npy',  Spectrum_S)
     np.save(f'temp/R{id}/Results/Theta.npy', Th_list)
+
+    print(t11-t10, ' s')
+    print(t12-t11, ' s')
+
 
     ## 写一个自动画Ratio- Th_list图的程序
 
@@ -275,14 +282,14 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature , id=0, Ntheta =
 def ratio_plotter(Wavelength, spectrum_S, spectrum_P, ratio, id, Theta):
             
     #默认字体
-    config = {
-        "font.family":'Times New Roman',
-        "font.size": 16,
-        "mathtext.fontset":'stix',
-        "font.serif": ['Times New Roman'],
-    }
-    rcParams.update(config)
-    mpl.rcParams['font.sans-serif'] = ['SimHei']   #显示中文
+    # config = {
+    #     "font.family":'Times New Roman',
+    #     "font.size": 16,
+    #     "mathtext.fontset":'stix',
+    #     "font.serif": ['Times New Roman'],
+    # }
+    # rcParams.update(config)
+    #mpl.rcParams['font.sans-serif'] = ['SimHei']   #显示中文
     mpl.rcParams['axes.unicode_minus']=False       #显示负号
 
     a = 0.45

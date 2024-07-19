@@ -5,6 +5,7 @@ from scipy import interpolate
 from scipy.optimize import root  
 import matplotlib.pyplot as plt
 import os
+import multiprocessing
 
 
 def orbit_calculator(a, e, Theta):
@@ -654,7 +655,7 @@ def B(lam,T):
     B = 2* h * c**2 / lam**5 / A
     return B
 
-def Temperature_cal(ksi, Theta, Int_B):
+def Temperature_cal(ksi, Theta, Int_B, Tmap_1D = [], i = -1):
     ## calculate the temperature distribution of the planet
     ## ksi is the angle between the normal vector and the vector from the star to the planet
     r = orbit_calculator(a, e, Theta)
@@ -718,6 +719,9 @@ def Temperature_cal(ksi, Theta, Int_B):
         T = 0
 
     print(T)
+    if i != -1:
+        Tmap_1D[i] = T
+        
     return T
 
 # def Temperature_cal(ksi, Theta, Albedo = 0, Temperature = Temperature):
@@ -772,11 +776,21 @@ def Tmap(Theta, id = 0 ):
 
     Int_B = quad(int_func, 0 , np.inf)[0]
 
-    Tmap_1D = np.zeros(SIZE[0])  #Use ksi as parameter to calculate the temperature map, according to the rotation symmetry, we can get the temperature map of the planet
     ksi_list = np.linspace(0, np.pi, SIZE[0])
+    
+    processes = []     # processing pool
+    Tmap_1D = multiprocessing.Array('d', SIZE[0])  # share array
 
+    # Loop through all points on the planet's surface
+    #calculate the intensity of the reflect and diffusion using the BRDF function
     for i in range(SIZE[0]):
-        Tmap_1D[i] = Temperature_cal(ksi_list[i], Theta, Int_B)
+        process = multiprocessing.Process(target= Temperature_cal, args = (ksi_list[i], Theta, Int_B, Tmap_1D, i))
+        processes.append(process)
+        process.start()
+
+    for process in processes:
+        process.join()
+
     ## interpolate the 1D array to 2D array using the spline interpolation
     spl = interpolate.interp1d(ksi_list , Tmap_1D, kind='linear') #spline interpolation
 
