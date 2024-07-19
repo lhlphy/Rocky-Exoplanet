@@ -44,7 +44,7 @@ def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, id =
     G_specular = G_intensity.copy()
 
     for i, Theta in enumerate(Theta_list2):
-        I, D, S = mf.global_intensity(Theta, 1, 1, 0, id, Model= 'Lambert', mode = 'geo')
+        I, D, S = mf.global_intensity(Theta, Coarse_g, id, Model= 'Lambert', mode = 'geo')
         G_intensity[i] = I.sum()
         G_diffuse[i] = D.sum()
         G_specular[i] = S.sum()

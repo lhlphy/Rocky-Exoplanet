@@ -24,7 +24,7 @@ camera = camera / np.linalg.norm(camera)
 
 
 ### Accuracy control parameters
-SIZE = [90, 180]  # Size of the meshgrid
+SIZE = [9, 18]  # Size of the meshgrid
 # Create meshgrid for the planet
 phiP_list = np.linspace(-np.pi / 2, np.pi / 2, SIZE[0])
 thetaP_list = np.linspace(0, 2 * np.pi, SIZE[1])

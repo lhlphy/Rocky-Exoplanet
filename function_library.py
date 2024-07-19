@@ -667,15 +667,15 @@ def Temperature_cal(ksi, Theta, Int_B):
         raise ValueError("ksi_m1 > ksi_m2")
     
     if ksi <= ksi_m2:
-        rP = np.sqrt(r**2 + R2**2 - 2*r*R2*np.cos(ksi))
-        zeta = np.arcsin(R2/rP*np.sin(ksi))
-        Phi = zeta + ksi
-        T0 = Temperature * np.sqrt(R1/r) *(np.cos(Phi))**(1/4)
+        T0 = Temperature * np.sqrt(R1/r)
 
     else:
         return 0
 
     if ksi < ksi_m1:
+        rP = np.sqrt(r**2 + R2**2 - 2*r*R2*np.cos(ksi))
+        zeta = np.arcsin(R2/rP*np.sin(ksi))
+        Phi = zeta + ksi
 
         LHS = Int_B *(R1/r)**2 *np.cos(Phi)
         def equation(T):
@@ -717,8 +717,8 @@ def Temperature_cal(ksi, Theta, Int_B):
     else:
         T = 0
 
+    print(T)
     return T
-
 
 # def Temperature_cal(ksi, Theta, Albedo = 0, Temperature = Temperature):
 #     ## calculate the temperature distribution of the planet
