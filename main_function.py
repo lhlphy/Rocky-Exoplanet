@@ -26,7 +26,67 @@ import time
 # plt.plot(angle, I)
 
 
-def BRDF(i, j, Intensity, I_diffuse, Theta, Coarse, Model='Lambert', semaphore = None):
+# def BRDF(i, j, Intensity, I_diffuse, Theta, Coarse, Model='Lambert'):
+#     """
+#     calculate the reflection and diffusion intensity  (divided by B(T,lam)) of the planet surface at the point (i,j)
+#     i: the index of phiP
+#     j: the index of thetaP
+#     Intensity: the shared memory of the Intensity
+#     I_diffuse: the shared memory of the I_diffuse
+#     Theta: orbital phase angle
+#     Coarse: the coarse of the surface, the standard derivation of incline angle of the surface (0-pi/2)
+#     Temperature: the temperature of the star
+#     Model: the model of the reflection and diffusion
+#         switch:
+#         1. Lambert: the Lambertian model Coarse = 0
+#         2. Oren_Nayar: the Oren-Nayar model
+#         3. Gaussian_wave: the Gaussian wave model (depends on the surfave wind speed)
+
+#     """
+#     phiP = phiP_list[i]
+#     thetaP = thetaP_list[j]
+#     # Calculate the normal vector and position
+#     nv, Pos, r = normal_vec(phiP, thetaP, Theta, a, e, R2)
+
+#     # if check_intersection_with_star(Pos, camera):  # Check if the line intersects with the star--Check block
+#     #     with Intensity.get_lock():
+#     #         Intensity[SIZE[1]*i+j] = 0
+
+#     #     return
+    
+#     # Calculate the reflected vector
+#     RV = reflect(Pos, nv)
+    
+#     # Check if the reflection direction is towards the camera
+#     if check_direction(RV, nv, camera, Pos):
+#         # Calculate the angle between the camera and the reflected vector
+#         # angle = angle_between(camera, RV)
+#         # Calculate the intensity of the reflected light
+#         # Model Choice 
+#         if Model == 'Lambert':   #Coarse = 0
+#             Diffuse = Oren_Nayar_BRDF(R1, r, nv, Pos, camera, 0 )
+#             SR  = specular_reflection(RV, camera, nv, r)
+#             # SR is the reflected light intensity divided by B(T,lam)
+#         elif Model == 'Oren_Nayar':
+#             Diffuse = Oren_Nayar_BRDF(R1, r, nv, Pos, camera, Coarse)
+#             SR  = specular_reflection(RV, camera, nv, r)
+#         elif Model == 'Gaussian_wave':  # In this model Diffuse and RF are considered together
+#             Diffuse = Wave_reflect(R1, r, nv, Pos, camera )
+#             SR = 0
+
+    
+#         with Intensity.get_lock():
+#             Intensity[SIZE[1]*i+j] = (Diffuse + SR) #* blackbody_radiation(6000, 1e-6)
+#             # Intensity : total intensity divided by B(T,lam)   
+
+#         with I_diffuse.get_lock():
+#             I_diffuse[SIZE[1]*i+j] = Diffuse
+#     # else:
+#     #     Intensity[i, j] = 0
+#     #print(Intensity[SIZE[1]*i+j])
+
+
+def BRDF(i, j, Theta, Coarse, Model='Lambert'):
     """
     calculate the reflection and diffusion intensity  (divided by B(T,lam)) of the planet surface at the point (i,j)
     i: the index of phiP
@@ -43,7 +103,6 @@ def BRDF(i, j, Intensity, I_diffuse, Theta, Coarse, Model='Lambert', semaphore =
         3. Gaussian_wave: the Gaussian wave model (depends on the surfave wind speed)
 
     """
-    semaphore.acquire()
     phiP = phiP_list[i]
     thetaP = thetaP_list[j]
     # Calculate the normal vector and position
@@ -75,17 +134,16 @@ def BRDF(i, j, Intensity, I_diffuse, Theta, Coarse, Model='Lambert', semaphore =
             Diffuse = Wave_reflect(R1, r, nv, Pos, camera )
             SR = 0
 
+        return Diffuse, SR
+    else:
+        return 0, 0
     
-        with Intensity.get_lock():
-            Intensity[SIZE[1]*i+j] = (Diffuse + SR) #* blackbody_radiation(6000, 1e-6)
-            # Intensity : total intensity divided by B(T,lam)   
-
-        with I_diffuse.get_lock():
+def process_pack(i, Intensity, I_diffuse, Theta, Coarse, Model):
+    with Intensity.get_lock(), I_diffuse.get_lock():
+        for j, thetaP in enumerate(thetaP_list):
+            Diffuse, SR = BRDF(i, j, Theta, Coarse, Model)
+            Intensity[SIZE[1]*i+j] = (Diffuse + SR)
             I_diffuse[SIZE[1]*i+j] = Diffuse
-    # else:
-    #     Intensity[i, j] = 0
-    #print(Intensity[SIZE[1]*i+j])
-    semaphore.release()
 
 @decorator_timer('global_intensity')
 def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = 'geo'):
@@ -111,8 +169,6 @@ def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = '
     # if mode == 'geo':  # only consider the geometry problem
     #     SPE_REF = 1
     #     DIF_REF = 1
-    max_processes = 900000
-    semaphore = multiprocessing.Semaphore(max_processes)
     processes = []
     Intensity = multiprocessing.Array('d', SIZE[0]*SIZE[1])   # diffusion + reflection
     I_diffuse = multiprocessing.Array('d', SIZE[0]*SIZE[1]) # diffusion  intensity
@@ -120,10 +176,9 @@ def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = '
     # Loop through all points on the planet's surface
     #calculate the intensity of the reflect and diffusion using the BRDF function
     for i, phiP in enumerate(phiP_list):
-        for j, thetaP in enumerate(thetaP_list):
-            process = multiprocessing.Process(target = BRDF, args=(i, j, Intensity, I_diffuse, Theta, Coarse, Model, semaphore))
-            processes.append(process)
-            process.start()
+        process = multiprocessing.Process(target= process_pack, args = (i, Intensity, I_diffuse, Theta, Coarse, Model))
+        processes.append(process)
+        process.start()
 
     for process in processes:
         process.join()
