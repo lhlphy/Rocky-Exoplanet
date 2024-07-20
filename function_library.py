@@ -447,13 +447,13 @@ def specular_reflection(RV, camera, normal, r, Temperature= Temperature):
     Dtheta = np.pi/SIZE[0]
     Dphi = 2*np.pi/SIZE[1]
     DA = R2**2 *np.sin(theta)*Dtheta*Dphi
-    if specular_coefficent > 1:
-        specular_coefficent = Fresnel(theta_c , N1, N2)        # Change here for different model of the reflection
+    # if specular_coefficent > 1:
+    #     specular_coefficent = Fresnel(theta_c , N1, N2)        # Change here for different model of the reflection
 
-    if specular_coefficent < 0:
-        specular_coefficent = REF_fit(theta_c)
+    # if specular_coefficent < 0:
+    #     specular_coefficent = REF_fit(theta_c)
     
-    return specular_coefficent * DA * np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelength)
+    return  DA * np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelength)
    #Bug repaired in 7/1: * np.cos(theta_c)
 
 
