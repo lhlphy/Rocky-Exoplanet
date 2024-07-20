@@ -15,7 +15,6 @@ a = 0.006 * AU  # km, semi-major axis of the Earth's orbit / 10
 # m2 = 1          # Normalized mass of the Earth
 #Theta = np.pi/3 # The orbit angle (Old version)
 
-
 ### Observation parameters
 # Define the direction of the camera (observation vector)
 camera = np.array([1, 0, 0])

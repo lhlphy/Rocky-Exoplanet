@@ -26,7 +26,7 @@ import time
 # plt.plot(angle, I)
 
 
-def BRDF(i, j, Intensity, I_diffuse, Theta, Coarse, Model='Lambert'):
+def BRDF(i, j, Intensity, I_diffuse, Theta, Coarse, Model='Lambert', semaphore = None):
     """
     calculate the reflection and diffusion intensity  (divided by B(T,lam)) of the planet surface at the point (i,j)
     i: the index of phiP
@@ -43,6 +43,7 @@ def BRDF(i, j, Intensity, I_diffuse, Theta, Coarse, Model='Lambert'):
         3. Gaussian_wave: the Gaussian wave model (depends on the surfave wind speed)
 
     """
+    semaphore.acquire()
     phiP = phiP_list[i]
     thetaP = thetaP_list[j]
     # Calculate the normal vector and position
@@ -84,8 +85,9 @@ def BRDF(i, j, Intensity, I_diffuse, Theta, Coarse, Model='Lambert'):
     # else:
     #     Intensity[i, j] = 0
     #print(Intensity[SIZE[1]*i+j])
+    semaphore.release()
 
-
+@decorator_timer('global_intensity')
 def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = 'geo'):
     """
     Calculate the intensity map of the reflection and diffusion of the planet surface
@@ -109,7 +111,8 @@ def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = '
     # if mode == 'geo':  # only consider the geometry problem
     #     SPE_REF = 1
     #     DIF_REF = 1
-
+    max_processes = 900000
+    semaphore = multiprocessing.Semaphore(max_processes)
     processes = []
     Intensity = multiprocessing.Array('d', SIZE[0]*SIZE[1])   # diffusion + reflection
     I_diffuse = multiprocessing.Array('d', SIZE[0]*SIZE[1]) # diffusion  intensity
@@ -118,7 +121,7 @@ def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = '
     #calculate the intensity of the reflect and diffusion using the BRDF function
     for i, phiP in enumerate(phiP_list):
         for j, thetaP in enumerate(thetaP_list):
-            process = multiprocessing.Process(target = BRDF, args=(i, j, Intensity, I_diffuse, Theta, Coarse, Model))
+            process = multiprocessing.Process(target = BRDF, args=(i, j, Intensity, I_diffuse, Theta, Coarse, Model, semaphore))
             processes.append(process)
             process.start()
 
@@ -186,7 +189,8 @@ def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = '
 # print(np.linalg.norm(np.cross(Pos, camera))/np.linalg.norm(camera))
 # #The distance between the line and the origin is given by: |Pos| sin(theta)
 # print(np.linalg.norm(Pos)*np.sin(angle_between(Pos, camera)))
-
+    
+@decorator_timer('thermal_spectrum')
 def thermal_spectrum(wavelength_bound, Temperature= Temperature , id=0, Ntheta = 5, NWavelength = 1):
     """
     Calculate the blackbody radiation spectrum
@@ -349,6 +353,7 @@ def ratio_plotter(Wavelength, spectrum_S, spectrum_P, ratio, id, Theta):
     plt.savefig(name)
     plt.close()
 
+@decorator_timer('vertify_radiation')
 def vertify_radiation(wavelength_bound, Temperature= Temperature, id=0, Ntheta = 5, NWavelength = 1):
     # Calculate the blackbody radiation spectrum
     os.makedirs(f'temp/V{id}/plots', exist_ok=True)

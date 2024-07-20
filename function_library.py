@@ -6,6 +6,7 @@ from scipy.optimize import root
 import matplotlib.pyplot as plt
 import os
 import multiprocessing
+import time
 
 
 def orbit_calculator(a, e, Theta):
@@ -655,9 +656,10 @@ def B(lam,T):
     B = 2* h * c**2 / lam**5 / A
     return B
 
-def Temperature_cal(ksi, Theta, Int_B, Tmap_1D = [], i = -1):
+def Temperature_cal(ksi, Theta, Int_B, Tmap_1D = [], i = -1, semaphore = None):
     ## calculate the temperature distribution of the planet
     ## ksi is the angle between the normal vector and the vector from the star to the planet
+    semaphore.acquire()
     r = orbit_calculator(a, e, Theta)
 
     ksi_m1 = np.pi/2 - np.arcsin((R1+R2)/r)
@@ -722,6 +724,7 @@ def Temperature_cal(ksi, Theta, Int_B, Tmap_1D = [], i = -1):
     if i != -1:
         Tmap_1D[i] = T
         
+    semaphore.release()    
     return T
 
 # def Temperature_cal(ksi, Theta, Albedo = 0, Temperature = Temperature):
@@ -778,13 +781,15 @@ def Tmap(Theta, id = 0 ):
 
     ksi_list = np.linspace(0, np.pi, SIZE[0])
     
+    max_processes = 900000
+    semaphore = multiprocessing.Semaphore(max_processes)
     processes = []     # processing pool
     Tmap_1D = multiprocessing.Array('d', SIZE[0])  # share array
 
     # Loop through all points on the planet's surface
     #calculate the intensity of the reflect and diffusion using the BRDF function
     for i in range(SIZE[0]):
-        process = multiprocessing.Process(target= Temperature_cal, args = (ksi_list[i], Theta, Int_B, Tmap_1D, i))
+        process = multiprocessing.Process(target= Temperature_cal, args = (ksi_list[i], Theta, Int_B, Tmap_1D, i, semaphore))
         processes.append(process)
         process.start()
 
@@ -896,4 +901,13 @@ def para_rad(Theta, lam = 0, Temperature = Temperature):
 
     return Fp/Fs
 
-
+def decorator_timer(name):
+    def run_time(func):
+        def warp(*args, **kwargs):
+            t1 = time.time()
+            temp = func(*args, **kwargs)
+            t2 = time.time()
+            print(name , 'process time:', t2-t1,' s')
+            return temp
+        return warp
+    return run_time

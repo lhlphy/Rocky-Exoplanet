@@ -1,12 +1,12 @@
 import numpy as np
 from parameter_list import *
 import main_function as mf
-from function_library import B, sym_complete
+from function_library import B, sym_complete, decorator_timer
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import os
-import time
 
+@decorator_timer('Full_spectrum')
 def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, id = 0, Ntheta = 5, Nwave = 1):
 
     if args != None:
@@ -18,15 +18,12 @@ def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, id =
     os.makedirs(f'temp/R{id}/variables', exist_ok=True)
     os.makedirs(f'temp/R{id}/Results', exist_ok=True)
 
-    t0 = time.time()
     """ Calculate the thermal spectrum """ 
     mf.thermal_spectrum(wavelength_bound, Temperature, id= id, Ntheta = Ntheta, NWavelength= Nwave)
     # Load the results
     thermal_ratio = np.load(f'temp/R{id}/Results/Ratio.npy')
     Theta_list  = np.load(f'temp/R{id}/Results/Theta.npy')
     Star_flux  = np.load(f'temp/R{id}/Results/Star_flux.npy')
-    t1 = time.time()
-    print("First Part Time = ", t1 - t0, "s")
 
 
     """ Calculate the reflected and diffused light   """
@@ -80,9 +77,6 @@ def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, id =
     FS = I_intensity + thermal_ratio   # Full Spectrum  [size: Nwave * (2*Ntheta)]  xaixs: Wave_list, yaixs: Theta_list
 
     FS_plotter(FS, Wave_list, Theta_list, Nwave, Ntheta, id)
-
-    t2 = time.time()
-    print("Total Time = ", t2 - t0, "s, Processing ALL DONE!")
 
 
 def FS_plotter(FS, Wave_list, Theta_list, Nwave, Ntheta, id = 0 , Obs_wavelength = [5e-7]):
