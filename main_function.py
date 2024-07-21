@@ -253,7 +253,7 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature , id=0, Ntheta =
     Ratio: [size]: NWavelength * (2*Ntheta)
     Theta_list: [size]: (2*Ntheta)
     """ 
-    t10 = time.time()
+    # t10 = time.time()
     # Planck's constant
     h = 6.62607015e-34
     # Speed of light
@@ -267,7 +267,7 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature , id=0, Ntheta =
         Theta_list = np.linspace(0, np.pi, Ntheta)  # 0-pi 与 pi-2pi 重复
     Wave_list = np.linspace(wavelength_bound[0], wavelength_bound[1], NWavelength)
     TMAP0 = Tmap(0, id)
-    t11 = time.time()
+    # t11 = time.time()
     # processes = []
     # spectrum_P = multiprocessing.Array('d', len(Wavelength))   
     # spectrum_S = multiprocessing.Array('d', len(Wavelength))
@@ -300,7 +300,7 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature , id=0, Ntheta =
         if NWavelength > 1:
             ratio_plotter(Wave_list, spectrum_S, spectrum_P, ratio, id, Theta)
 
-    t12 = time.time()
+    # t12 = time.time()
     # save RAT to temp/ folder
     Ratio = sym_complete(RAT, 0)  # 补全对称部分
     Ratio = Ratio.T
@@ -313,8 +313,8 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature , id=0, Ntheta =
     np.save(f'temp/R{id}/Results/Star_flux.npy',  Spectrum_S)
     np.save(f'temp/R{id}/Results/Theta.npy', Th_list)
 
-    print(t11-t10, ' s')
-    print(t12-t11, ' s')
+    # print(t11-t10, ' s')
+    # print(t12-t11, ' s')
 
 
     ## 写一个自动画Ratio- Th_list图的程序
@@ -434,7 +434,7 @@ def vertify_radiation(wavelength_bound, Temperature= Temperature, id=0, Ntheta =
     np.save(f'temp/V{id}/Results/RAT.npy', RAT)
     ratio = np.zeros(len(Theta_list)*2 - 1)
 
-    print(RAT)
+    #print(RAT)
     if Ntheta > 2:   # Ntheta = 1, 2 too less to plot; the main intention is to plot the contrast ratio
         ratio[0:len(Theta_list)] = RAT[:,0].flatten()
         ratio[len(Theta_list)-1:] = RAT[::-1].flatten()

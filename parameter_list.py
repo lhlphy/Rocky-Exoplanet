@@ -5,10 +5,10 @@ from scipy.integrate import quad
 
 ### orbital parameters
 AU = 149_597_870.7  # km, 1 Astronomical Unit 149597870.7
-R1 = 695_500 * 0.19 # km, radius of the Star
-R2 = 69_911 * 0.116      # km, radius of the Planet
+R1 = 695_500 * 1.56 # km, radius of the Star
+R2 = 69_911 * 1.47      # km, radius of the Planet
 e = 0  # Eccentricity of the Earth's orbit
-a = 0.006 * AU  # km, semi-major axis of the Earth's orbit / 10 
+a = 0.034 * AU  # km, semi-major axis of the Earth's orbit / 10 
 # m1 = 1.989e30   # kg, mass of the Sun
 # m2 = 5.972e24   # kg, mass of the Earth
 # m1 = m1 / m2    # Normalized mass of the Sun
@@ -23,14 +23,14 @@ camera = camera / np.linalg.norm(camera)
 
 
 ### Accuracy control parameters
-SIZE = [120, 360]  # Size of the meshgrid
+SIZE = [18, 36]  # Size of the meshgrid
 # Create meshgrid for the planet
 phiP_list = np.linspace(-np.pi / 2, np.pi / 2, SIZE[0])
 thetaP_list = np.linspace(0, 2 * np.pi, SIZE[1])
 
 
 ### Thermal and optical parameters
-Temperature = 3036  # K, temperature of the Star
+Temperature = 7000  # K, temperature of the Star
 Wavelengh = 5e-6  # m, wavelength of the light  ### Attention: wavelength and wavelengh
 # SPE_REF_g = 555  # Specular reflection coefficient  1.if SPE_REF <0 , using the experiment data   2.if SPE_REF >1, using the Fresnel equation model
 # DIF_REF_g = 0.1 # Diffuse reflection coefficient
@@ -41,6 +41,7 @@ N2 = 1.333  # Refractive index of the water
 Sigma = 5.67e-8  # W/m^2/K^4, Stefan-Boltzmann constant
 
 Wind_speed = 10   # wind speed in m/s (only available for the Gaussian wave model)
+Obs_array = np.array([6e-7, 8e-7, 1e-6, 1.2*1e-6, 1.4*1e-6, 2*1e-6])
 
 def Albedo(lam):
     # data_lam = np.linspace(0.1, 10) *1e-6

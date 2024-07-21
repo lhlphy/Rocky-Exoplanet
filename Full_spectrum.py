@@ -79,7 +79,7 @@ def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, id =
     FS_plotter(FS, Wave_list, Theta_list, Nwave, Ntheta, id)
 
 
-def FS_plotter(FS, Wave_list, Theta_list, Nwave, Ntheta, id = 0 , Obs_wavelength = [5e-7]):
+def FS_plotter(FS, Wave_list, Theta_list, Nwave, Ntheta, id = 0 , Obs_wavelength = Obs_array):
     """Plot the full spectrum
     FS: Full Spectrum (matrix: Nwave* (2*Ntheta))
     Obs_wavelength: wavelength be observed (array)
@@ -114,16 +114,16 @@ def FS_plotter(FS, Wave_list, Theta_list, Nwave, Ntheta, id = 0 , Obs_wavelength
     plt.close()
 
     ## plot phase curve
-    if Obs_wavelength != np.ndarray:
+    if type(Obs_wavelength) != np.ndarray:
         Obs_wavelength = np.array([Obs_wavelength])
 
     spl = interp1d(Wave_list, FS.T, kind = 'cubic')
     y = spl(Obs_wavelength)
-    y = y.T[0]
+    y = y.T
 
     fig , ax = plt.subplots()
     for i, Owave in enumerate(Obs_wavelength):
-        ax.plot(Theta_list, y[i,:] *1e6, label = f'Wavelength = {Owave* 1e6} $\mu$m')
+        ax.plot(Theta_list, y[i,:] *1e6, label = f'Wavelength = {round(Owave* 1e6,1)} $\mu$m')
     ax.set_xlabel('Orbital phase')
     ax.set_ylabel('Contrast ratio (ppm)')
     ax.set_title(f'Phase curve')

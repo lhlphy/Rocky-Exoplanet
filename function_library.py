@@ -182,7 +182,7 @@ def sym_complete(Var,axis=0):
     Returns:
     array: Symmetric 2D array.
     """
-    print(Var.ndim)
+    # print(Var.ndim)
     if Var.ndim == 1:
         return np.hstack((Var, Var[::-1]))
     
@@ -719,7 +719,7 @@ def Temperature_cal(ksi, Theta, Int_B, Tmap_1D = [], i = -1):
     else:
         T = 0
 
-    print(T)
+    # print(T)
     if i != -1:
         Tmap_1D[i] = T
            
