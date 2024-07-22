@@ -347,8 +347,7 @@ def Wave_reflect(R1, r, normal, Pos, camera ):
     return Integ[0] *DA *np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelength) 
 
 
-
-def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Coarse = 0):
+def Oren_Nayar_BRDF(i, j, id, normal, Pos, camera):
     """
     Calculate the intensity of  diffusion.
     
@@ -364,73 +363,102 @@ def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Coarse = 0):
     Returns:
     float: the intensity of the diffusion divided by the B_s(T,lam)
     """
-    #change the coordinate system from global to local
-    uz = normal
-    uy = check_normalization(np.cross(np.array([0,0,1]), uz))
-    ux = np.cross(uy, uz)
-
-    cx = np.dot(camera, ux)
-    cy = np.dot(camera, uy)
-    cz = np.dot(camera, uz)
-    camera_local = np.array([cx, cy, cz])
-
-    Px = np.dot(Pos, ux)
-    Py = np.dot(Pos, uy)
-    Pz = np.dot(Pos, uz)
-    Pos_local = np.array([Px, Py, Pz])
 
     theta_c = angle_between(camera, normal)  #the angle between the camera and the normal vector
-    t , phi_camera = vec2Euler(camera_local)
-
-
-    def fr(theta_i, theta_c, sigma, phi_diff):
-        #https://zhuanlan.zhihu.com/p/500809166
-        A = 1 - 0.5 * sigma**2 / (sigma**2 + 0.33)
-        B = 0.45 * sigma**2 / (sigma**2 + 0.09)
-        alpha = max(theta_i, theta_c)
-        beta = min(theta_i, theta_c)
-
-        max_cosphi = max(0, np.cos(phi_diff))
-        fr = 1 / np.pi *(A + B * max_cosphi * np.sin(alpha) * np.tan(beta))
-        return fr
+    if theta_c > np.pi/2:
+        return 0
     
-    def integrate_func(theta_i, phi):
-        #theta_i = np.pi - angle_between(Pos, normal)
-        phi_diff = phi - phi_camera
-        mWi = Euler2vec(theta_i, phi)
-        angle = angle_between(mWi, -Pos_local)
-        angle_max = np.arcsin(R1/r)
-
-        if angle > angle_max:
-            return 0
-        else:
-            return fr(theta_i, theta_c, Coarse, phi_diff) * np.cos(theta_i) *np.sin(theta_i)
-        #Bug Repaired in 7/2: np.sin(theta_i) -> np.cos(theta_i) *np.sin(theta_i)
-        # the first cos is from the Equation, the second sin is from the expression of solid angle dOmega = sin(theta)*dTheta*dPhi
-            
-        #phi_diff = np.pi - angle_between(np.cross(Pos, normal), np.cross(camera, normal))
-        # res = fr(theta_i, theta_c, sigma, phi_diff) * blackbody_radiation(6000, 1e-6) * np.sin(theta_i)
-        # return res
-
-    #hemi-sphere integral *  #put the blackbody radiation here(out of the integral)
-    # def INT(func, phi_min, phi_max, theta_min, theta_max, epsabs=1e-4):
-    #     theta_list = np.linspace(theta_min, theta_max, 30)
-    #     phi_list = np.linspace(phi_min, phi_max, 30)
-    #     res = 0
-    #     for theta in theta_list:
-    #         for phi in phi_list:
-    #             res += func(theta, phi)
-
-    #     return res
-    
-    theta_max = np.arcsin(R1/r)
-    Integ = dblquad(integrate_func, 0, 2*np.pi,0, theta_max ,epsrel=1e-2,epsabs=1e-3)
     #print(Integ)
     Dtheta = np.pi/SIZE[0]
     Dphi = 2*np.pi/SIZE[1]
     theta = angle_between(normal, np.array([0,0,1]))
     DA = R2**2 *np.sin(theta) *Dtheta *Dphi 
-    return Integ[0] *DA *np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelength)   
+    Area = np.load(f'temp/R{id}/variables/Area.npy')
+    return  Area[i, j] * DA * np.cos(theta_c)/ np.pi #* blackbody_radiation(Temperature, Wavelength)  
+
+# def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Coarse = 0):
+#     """
+#     Calculate the intensity of  diffusion.
+    
+#     Parameters:
+#     R1 (float): Radius of the Sun.
+#     r (float): Distance from the Sun to the Earth.
+#     angle (float): Angle of incidence.
+#     normal (array): Normal vector at the point of reflection.
+#     RV (array): Reflected vector.
+#     Pos (array): Position vector.
+#     Coarse (float): standard deviation of the Gaussian distribution of the surface inclination (0-pi/2)
+    
+#     Returns:
+#     float: the intensity of the diffusion divided by the B_s(T,lam)
+#     """
+#     #change the coordinate system from global to local
+#     uz = normal
+#     uy = check_normalization(np.cross(np.array([0,0,1]), uz))
+#     ux = np.cross(uy, uz)
+
+#     cx = np.dot(camera, ux)
+#     cy = np.dot(camera, uy)
+#     cz = np.dot(camera, uz)
+#     camera_local = np.array([cx, cy, cz])
+
+#     Px = np.dot(Pos, ux)
+#     Py = np.dot(Pos, uy)
+#     Pz = np.dot(Pos, uz)
+#     Pos_local = np.array([Px, Py, Pz])
+
+#     theta_c = angle_between(camera, normal)  #the angle between the camera and the normal vector
+#     t , phi_camera = vec2Euler(camera_local)
+
+
+#     def fr(theta_i, theta_c, sigma, phi_diff):
+#         #https://zhuanlan.zhihu.com/p/500809166
+#         A = 1 - 0.5 * sigma**2 / (sigma**2 + 0.33)
+#         B = 0.45 * sigma**2 / (sigma**2 + 0.09)
+#         alpha = max(theta_i, theta_c)
+#         beta = min(theta_i, theta_c)
+
+#         max_cosphi = max(0, np.cos(phi_diff))
+#         fr = 1 / np.pi *(A + B * max_cosphi * np.sin(alpha) * np.tan(beta))
+#         return fr
+    
+#     def integrate_func(theta_i, phi):
+#         #theta_i = np.pi - angle_between(Pos, normal)
+#         phi_diff = phi - phi_camera
+#         mWi = Euler2vec(theta_i, phi)
+#         angle = angle_between(mWi, -Pos_local)
+#         angle_max = np.arcsin(R1/r)
+
+#         if angle > angle_max:
+#             return 0
+#         else:
+#             return fr(theta_i, theta_c, Coarse, phi_diff) * np.cos(theta_i) *np.sin(theta_i)
+#         #Bug Repaired in 7/2: np.sin(theta_i) -> np.cos(theta_i) *np.sin(theta_i)
+#         # the first cos is from the Equation, the second sin is from the expression of solid angle dOmega = sin(theta)*dTheta*dPhi
+            
+#         #phi_diff = np.pi - angle_between(np.cross(Pos, normal), np.cross(camera, normal))
+#         # res = fr(theta_i, theta_c, sigma, phi_diff) * blackbody_radiation(6000, 1e-6) * np.sin(theta_i)
+#         # return res
+
+#     #hemi-sphere integral *  #put the blackbody radiation here(out of the integral)
+#     # def INT(func, phi_min, phi_max, theta_min, theta_max, epsabs=1e-4):
+#     #     theta_list = np.linspace(theta_min, theta_max, 30)
+#     #     phi_list = np.linspace(phi_min, phi_max, 30)
+#     #     res = 0
+#     #     for theta in theta_list:
+#     #         for phi in phi_list:
+#     #             res += func(theta, phi)
+
+#     #     return res
+    
+#     theta_max = np.arcsin(R1/r)
+#     Integ = dblquad(integrate_func, 0, 2*np.pi,0, theta_max ,epsrel=1e-2,epsabs=1e-3)
+#     #print(Integ)
+#     Dtheta = np.pi/SIZE[0]
+#     Dphi = 2*np.pi/SIZE[1]
+#     theta = angle_between(normal, np.array([0,0,1]))
+#     DA = R2**2 *np.sin(theta) *Dtheta *Dphi 
+#     return Integ[0] *DA *np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelength)   
 
 
 def specular_reflection(RV, camera, normal, r, Temperature= Temperature):
@@ -458,11 +486,6 @@ def specular_reflection(RV, camera, normal, r, Temperature= Temperature):
     Dtheta = np.pi/SIZE[0]
     Dphi = 2*np.pi/SIZE[1]
     DA = R2**2 *np.sin(theta)*Dtheta*Dphi
-    # if specular_coefficent > 1:
-    #     specular_coefficent = Fresnel(theta_c , N1, N2)        # Change here for different model of the reflection
-
-    # if specular_coefficent < 0:
-    #     specular_coefficent = REF_fit(theta_c)
     
     return  DA * np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelength)
    #Bug repaired in 7/1: * np.cos(theta_c)
@@ -585,7 +608,7 @@ def Cal_star_area(Theta):
         d = np.linalg.norm(np.cross(Planet, camera))
         return Area - Cal_intersection_area(d, R1, R2) 
 
-@decorator_timer('Cal_star_flux')
+
 def Cal_star_flux(Theta, Wavelength = Wavelengh, Temperature = Temperature):
     # Calculate the flux of the star that radiates light to the Earth
     #检查Theta的数据类型是数还是数组？
@@ -667,7 +690,7 @@ def B(lam,T):
     B = 2* h * c**2 / lam**5 / A
     return B
 
-def Temperature_cal(ksi, Theta, Int_B, Tmap_1D = [], i = -1):
+def Temperature_cal(ksi, Theta, Int_B, Tmap_1D = [], i = -1, Ar_1D = []):
     ## calculate the temperature distribution of the planet
     ## ksi is the angle between the normal vector and the vector from the star to the planet
     r = orbit_calculator(a, e, Theta)
@@ -697,6 +720,7 @@ def Temperature_cal(ksi, Theta, Int_B, Tmap_1D = [], i = -1):
         
         sol = root(equation, T0)
         T = sol.x[0]
+        Ar_1D[i] = np.pi * (R1/rP)**2 * np.cos(ksi)
 
     elif ksi_m1 <= ksi <= ksi_m2: # the planet is in the shadow of the star
 
@@ -717,6 +741,7 @@ def Temperature_cal(ksi, Theta, Int_B, Tmap_1D = [], i = -1):
             return I
         
         Int = dblquad(integrate_func, 0, 2* np.pi, 0, np.pi)
+        Ar_1D[i] = Int[0]
         LHS = Int[0] * Int_B/ np.pi
 
         def equation(T): # the integral function
@@ -732,6 +757,7 @@ def Temperature_cal(ksi, Theta, Int_B, Tmap_1D = [], i = -1):
 
     # print(T)
     if i != -1:
+        # with Tmap_1D.get_lock():
         Tmap_1D[i] = T
            
     return T
@@ -780,7 +806,7 @@ def Temperature_cal(ksi, Theta, Int_B, Tmap_1D = [], i = -1):
 
 #     return T
 
-def Tmap(Theta, id = 0 ):
+def Tmap(Theta, id = 0):
     ## calculate the temperature map of the planet
     ## the map is a 2D array of thetaP and phiP
     def int_func(lam):
@@ -792,11 +818,12 @@ def Tmap(Theta, id = 0 ):
     
     processes = []     # processing pool
     Tmap_1D = multiprocessing.Array('d', SIZE[0])  # share array
+    Ar_1D = multiprocessing.Array('d',SIZE[0])
 
     # Loop through all points on the planet's surface
     #calculate the intensity of the reflect and diffusion using the BRDF function
     for i in range(SIZE[0]):
-        process = multiprocessing.Process(target= Temperature_cal, args = (ksi_list[i], Theta, Int_B, Tmap_1D, i))
+        process = multiprocessing.Process(target= Temperature_cal, args = (ksi_list[i], Theta, Int_B, Tmap_1D, i, Ar_1D))
         processes.append(process)
         process.start()
 
@@ -804,9 +831,11 @@ def Tmap(Theta, id = 0 ):
         process.join()
 
     ## interpolate the 1D array to 2D array using the spline interpolation
-    spl = interpolate.interp1d(ksi_list , Tmap_1D, kind='linear') #spline interpolation
+    spl = interpolate.interp1d(ksi_list , Tmap_1D, kind='cubic') #spline interpolation
+    splAr = interpolate.interp1d(ksi_list , Ar_1D, kind='cubic') #spline interpolation
 
     Tmap = np.zeros((SIZE[0], SIZE[1]))
+    Ar = np.zeros((SIZE[0], SIZE[1]))
     phiP_list = np.linspace(0, 2* np.pi, SIZE[1])
     thetaP_list = np.linspace(0, np.pi, SIZE[0])
 
@@ -814,20 +843,36 @@ def Tmap(Theta, id = 0 ):
         for j, phiP in enumerate(phiP_list):
             ksi = np.arccos(np.sin(thetaP) * np.cos(phiP)) 
             Tmap[i, j] = spl(ksi)
+            Ar[i, j] = splAr(ksi)
 
     # plot Tmap, xlabel: "$\theta$", ylabel: "$\phi$", using the gray map to show the temperature distribution
+    Tmap_plotter(Tmap, Theta, id)
+    np.save(f'temp/R{id}/variables/Area.npy', Ar)
+
+    return Tmap
+
+def Tmap_plotter(Tmap, Theta, id = 0):
+    a = np.size(Tmap,1)
+    b = np.size(Tmap,0)
+    TM = np.zeros([b, a//2 *2])
+    TM[:, 0:a//2] = Tmap[:, -(a//2):]
+    TM[:, - (a//2):] = Tmap[:, 0:a//2]
+
     os.makedirs(f'temp/R{id}/plots', exist_ok=True)
-    plt.imshow(Tmap, cmap='gray')
-    plt.xlabel('$\phi$')
-    plt.ylabel('$\theta$')
+    plt.subplots(figsize = (8,5))
+    plt.imshow(TM, cmap='hot', interpolation= 'bilinear', extent=[-180, 180, -90, 90])
+    plt.xlabel('Longitude', fontsize = 12)
+    plt.ylabel('Latitude', fontsize  = 12)
     plt.colorbar()
+    # 标记中心点并添加文字
+    plt.plot(0, 0, 'b*', markersize=10)  # 红色五角星
+    plt.text(0, 0, 'Substellar point', color='blue', fontsize=10, ha='center', va='bottom')
+    plt.show()
     plt.savefig(f'temp/R{id}/plots/Tmap{int(Theta*180/np.pi)}.png')
     plt.close()
     np.save(f'temp/R{id}/plots/Tmap{int(Theta*180/np.pi)}.npy', Tmap)
 
-    return Tmap
 
-@decorator_timer('Radiation_cal')
 def Radiation_cal(Tmap, Theta, camera, Temperature, Wavelength = 0):
     ## calculate the radiation distribution of the planet
     ## the map is a 2D array of thetaP and phiP
@@ -898,7 +943,7 @@ def para_rad(Theta, lam = 0, Temperature = Temperature):
             return Bf(lam, Tp(cos_Psi)) * np.cos(phi) *cos_Psi_obs
         
     
-    Int = dblquad(Fp_func,-np.pi/2, np.pi/2, np.pi/2-Theta, 3/2*np.pi- Theta)
+    Int = dblquad(Fp_func,-np.pi/2, np.pi/2, np.pi/2-Theta, np.pi/2)
     if lam == 0:
         Fp = Sigma * R2**2/ np.pi * Int[0]
         Fs = Sigma * Temperature**4 * np.pi* R1**2
@@ -906,6 +951,12 @@ def para_rad(Theta, lam = 0, Temperature = Temperature):
         Fp = 2* h *c_const**2 * R2**2 * Int[0]
         Fs = Cal_star_flux(Theta, lam, Temperature)   #2* h *c_const**2 * Bf(lam, Temperature) * np.pi * R1**2
 
-    return Fp/Fs
+    def Fp2_func(theta,phi):
+        return - np.cos(theta)**2 * np.cos(phi) **2 *np.cos(theta + Theta)
+    
+    Int2 = dblquad(Fp2_func,-np.pi/2, np.pi/2, np.pi/2-Theta, np.pi/2)
+    Fp2 = Int2[0] * R2**2 / np.pi * B(lam, Temperature)
+
+    return Fp/Fs, Fp2/Fs
 
 

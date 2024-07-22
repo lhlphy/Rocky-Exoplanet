@@ -86,7 +86,7 @@ import time
 #     #print(Intensity[SIZE[1]*i+j])
 
 
-def BRDF(i, j, Theta, Coarse, Model='Lambert'):
+def BRDF(i, j, Theta, Coarse, Model='Lambert', id= 0):
     """
     calculate the reflection and diffusion intensity  (divided by B(T,lam)) of the planet surface at the point (i,j)
     i: the index of phiP
@@ -124,7 +124,7 @@ def BRDF(i, j, Theta, Coarse, Model='Lambert'):
         # Calculate the intensity of the reflected light
         # Model Choice 
         if Model == 'Lambert':   #Coarse = 0
-            Diffuse = Oren_Nayar_BRDF(R1, r, nv, Pos, camera, 0 )
+            Diffuse = Oren_Nayar_BRDF(i,j, id,nv, Pos, camera)
             SR  = specular_reflection(RV, camera, nv, r)
             # SR is the reflected light intensity divided by B(T,lam)
         elif Model == 'Oren_Nayar':
@@ -138,12 +138,12 @@ def BRDF(i, j, Theta, Coarse, Model='Lambert'):
     else:
         return 0, 0
     
-def process_pack(i, Intensity, I_diffuse, Theta, Coarse, Model):
-    with Intensity.get_lock(), I_diffuse.get_lock():
-        for j, thetaP in enumerate(thetaP_list):
-            Diffuse, SR = BRDF(i, j, Theta, Coarse, Model)
-            Intensity[SIZE[1]*i+j] = (Diffuse + SR)
-            I_diffuse[SIZE[1]*i+j] = Diffuse
+def process_pack(i, Intensity, I_diffuse, Theta, Coarse, Model, id):
+    #with Intensity.get_lock(), I_diffuse.get_lock():
+    for j, thetaP in enumerate(thetaP_list):
+        Diffuse, SR = BRDF(i, j, Theta, Coarse, Model, id)
+        Intensity[SIZE[1]*i+j] = (Diffuse + SR)
+        I_diffuse[SIZE[1]*i+j] = Diffuse
 
 @decorator_timer('global_intensity')
 def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = 'geo'):
@@ -176,7 +176,7 @@ def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = '
     # Loop through all points on the planet's surface
     #calculate the intensity of the reflect and diffusion using the BRDF function
     for i, phiP in enumerate(phiP_list):
-        process = multiprocessing.Process(target= process_pack, args = (i, Intensity, I_diffuse, Theta, Coarse, Model))
+        process = multiprocessing.Process(target= process_pack, args = (i, Intensity, I_diffuse, Theta, Coarse, Model, id))
         processes.append(process)
         process.start()
 
@@ -246,10 +246,13 @@ def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = '
 # print(np.linalg.norm(Pos)*np.sin(angle_between(Pos, camera)))
 
 def multiprocess_func2(spectrum_P, spectrum_S, Theta, j, TMAP, wavelength):
+    # with spectrum_P.get_lock():
     if Theta < 1e-6:
         spectrum_P[j] = 0
     else:
         spectrum_P[j] = Radiation_cal(TMAP, Theta, camera, Temperature, wavelength)
+
+    # with spectrum_S.get_lock():     
     spectrum_S[j] = Cal_star_flux(Theta, wavelength, Temperature)   
 
 
@@ -322,7 +325,7 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature , id=0, Ntheta =
     Th_list = sym_complete(Theta_list, 0)
     Th_list[Ntheta: 2*Ntheta] = 2*np.pi - Th_list[Ntheta: 2*Ntheta]
 
-    np.save(f'temp/R{id}/variables/Ratio.npy', Ratio)
+    np.save(f'temp/R{id}/variables/Thermal.npy', Ratio)
     np.save(f'temp/R{id}/variables/Star_flux.npy',  Spectrum_S)
     np.save(f'temp/R{id}/variables/Theta.npy', Th_list)
 
@@ -426,13 +429,15 @@ def vertify_radiation(wavelength_bound, Temperature= Temperature, id=0, Ntheta =
     # Calculate the blackbody radiation spectrum
     os.makedirs(f'temp/V{id}/plots', exist_ok=True)
     os.makedirs(f'temp/V{id}/Results', exist_ok=True)
+    os.makedirs(f'temp/V{id}/variables', exist_ok=True)
     if Ntheta == 1:
         Theta_list = np.array([np.pi])
     else:
-        Theta_list = np.linspace(0, np.pi, Ntheta)  # 0-pi 与 pi-2pi 重复
+        Theta_list = np.linspace(0, 2* np.pi, Ntheta)  # 0-pi 与 pi-2pi 重复
     Wavelength = np.linspace(wavelength_bound[0], wavelength_bound[1], NWavelength)
 
     RAT = np.zeros([len(Theta_list), len(Wavelength)])
+    DIF = np.zeros([len(Theta_list), len(Wavelength)])
 
     for i, Theta in enumerate(Theta_list):
         for j, wavelength in enumerate(Wavelength):
@@ -440,30 +445,31 @@ def vertify_radiation(wavelength_bound, Temperature= Temperature, id=0, Ntheta =
             if Theta < 1e-6:
                 RAT[i, j] = 0
             else:
-                RAT[i, j] = para_rad(Theta, wavelength, Temperature)
+                RAT[i, j], DIF[i,j] = para_rad(Theta, wavelength, Temperature)
         # Plot the spectrum
 
     #save RAT to temp/ folder
     np.save(f'temp/V{id}/variables/RAT.npy', RAT)
-    ratio = np.zeros(len(Theta_list)*2 - 1)
+    np.save(f'temp/V{id}/variables/DIF.npy', DIF)
 
     #print(RAT)
     if Ntheta > 2:   # Ntheta = 1, 2 too less to plot; the main intention is to plot the contrast ratio
-        ratio[0:len(Theta_list)] = RAT[:,0].flatten()
-        ratio[len(Theta_list)-1:] = RAT[::-1].flatten()
-        Theta_list2 = np.linspace(0, 2*np.pi, 2*len(Theta_list)-1)
         x = np.linspace(0, 2*np.pi, 400)
-        f = interp1d(Theta_list2, ratio, kind='cubic')
+        print(Theta_list.shape)
+        print(RAT.shape)
+        f = interp1d(Theta_list, RAT.T, kind='cubic')
         y = f(x)
+        f2 = interp1d(Theta_list, DIF.T, kind='cubic')
+        y2 = f2(x)
 
         plt.figure(figsize=(8, 8))
-        plt.plot(x , y * 1e6 , 'k-')
+        plt.plot(x , y * 1e6 , 'k-', label = 'Thermal radiation')
+        plt.plot(x , y2 * 1e6 , 'r-', label = 'Diffuse')
         plt.xlabel('Orbital Phase Angle (rad)')
         plt.ylabel('Contrast Ratio (ppm)')
         plt.title('LHS 3844 b')
         plt.savefig(f'temp/V{id}/Results/contrast_ratio.png')
         plt.close()
-        np.save(f'temp/V{id}/variables/ratio.npy', ratio)
 
     Tmap = np.zeros((SIZE[0], SIZE[1]))
     phiP_list = np.linspace(0, 2* np.pi, SIZE[1])
