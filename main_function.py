@@ -244,7 +244,15 @@ def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = '
 # print(np.linalg.norm(np.cross(Pos, camera))/np.linalg.norm(camera))
 # #The distance between the line and the origin is given by: |Pos| sin(theta)
 # print(np.linalg.norm(Pos)*np.sin(angle_between(Pos, camera)))
-    
+
+def multiprocess_func2(spectrum_P, spectrum_S, Theta, j, TMAP, wavelength):
+    if Theta < 1e-6:
+        spectrum_P[j] = 0
+    else:
+        spectrum_P[j] = Radiation_cal(TMAP, Theta, camera, Temperature, wavelength)
+    spectrum_S[j] = Cal_star_flux(Theta, wavelength, Temperature)   
+
+
 @decorator_timer('thermal_spectrum')
 def thermal_spectrum(wavelength_bound, Temperature= Temperature , id=0, Ntheta = 5, NWavelength = 1):
     """
@@ -253,7 +261,7 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature , id=0, Ntheta =
     Ratio: [size]: NWavelength * (2*Ntheta)
     Theta_list: [size]: (2*Ntheta)
     """ 
-    # t10 = time.time()
+    t10 = time.time()
     # Planck's constant
     h = 6.62607015e-34
     # Speed of light
@@ -267,7 +275,7 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature , id=0, Ntheta =
         Theta_list = np.linspace(0, np.pi, Ntheta)  # 0-pi 与 pi-2pi 重复
     Wave_list = np.linspace(wavelength_bound[0], wavelength_bound[1], NWavelength)
     TMAP0 = Tmap(0, id)
-    # t11 = time.time()
+    t11 = time.time()
     # processes = []
     # spectrum_P = multiprocessing.Array('d', len(Wavelength))   
     # spectrum_S = multiprocessing.Array('d', len(Wavelength))
@@ -281,17 +289,22 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature , id=0, Ntheta =
         else:
             TMAP = Tmap(Theta, id)
 
-        spectrum_P = np.zeros(len(Wave_list)) 
-        spectrum_S = np.zeros(len(Wave_list)) 
+        processes = []     # processing pool
+        spectrum_P = multiprocessing.Array('d', len(Wave_list))
+        spectrum_S = multiprocessing.Array('d', len(Wave_list))
+
         for j, wavelength in enumerate(Wave_list):
             # Calculate the blackbody radiation spectrum
-            if Theta < 1e-6:
-                spectrum_P[j] = 0
-            else:
-                spectrum_P[j] = Radiation_cal(TMAP, Theta, camera, Temperature, wavelength)
-            spectrum_S[j] = Cal_star_flux(Theta, wavelength, Temperature)
+            process = multiprocessing.Process(target= multiprocess_func2, args = (spectrum_P, spectrum_S, Theta, j, TMAP, wavelength))
+            processes.append(process)
+            process.start()
         # Plot the spectrum
+            
+        for process in processes:
+            process.join()
 
+        spectrum_P = np.array(spectrum_P)
+        spectrum_S = np.array(spectrum_S)
         ratio = spectrum_P/spectrum_S
         SP[i,:] = spectrum_P 
         SS[i,:] = spectrum_S 
@@ -300,7 +313,7 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature , id=0, Ntheta =
         if NWavelength > 1:
             ratio_plotter(Wave_list, spectrum_S, spectrum_P, ratio, id, Theta)
 
-    # t12 = time.time()
+    t12 = time.time()
     # save RAT to temp/ folder
     Ratio = sym_complete(RAT, 0)  # 补全对称部分
     Ratio = Ratio.T
@@ -309,12 +322,12 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature , id=0, Ntheta =
     Th_list = sym_complete(Theta_list, 0)
     Th_list[Ntheta: 2*Ntheta] = 2*np.pi - Th_list[Ntheta: 2*Ntheta]
 
-    np.save(f'temp/R{id}/Results/Ratio.npy', Ratio)
-    np.save(f'temp/R{id}/Results/Star_flux.npy',  Spectrum_S)
-    np.save(f'temp/R{id}/Results/Theta.npy', Th_list)
+    np.save(f'temp/R{id}/variables/Ratio.npy', Ratio)
+    np.save(f'temp/R{id}/variables/Star_flux.npy',  Spectrum_S)
+    np.save(f'temp/R{id}/variables/Theta.npy', Th_list)
 
-    # print(t11-t10, ' s')
-    # print(t12-t11, ' s')
+    print('theraml_spectrum part 1: ',t11-t10, ' s')
+    print('theraml_spectrum part 2: ',t12-t11, ' s')
 
 
     ## 写一个自动画Ratio- Th_list图的程序
@@ -393,10 +406,10 @@ def ratio_plotter(Wavelength, spectrum_S, spectrum_P, ratio, id, Theta):
     # 调整字体大小
     offset_text.set_size(18)  # 或者使用 offset_text.set_fontsize(12)
     omglog_ax.spines['right'].set_position(('data', np.max(Wavelength)*1.15e6))
-    omglog_ax.set_ylim(0, np.max(ratio)*1.1)
+    omglog_ax.set_ylim(0, np.max(ratio)*1.1e6)
     omglog_ax.set_position(axpos)
-    omglog_ax.plot(Wavelength* 1e6, ratio, '-.', color=omglog_color)
-    omglog_ax.set_ylabel('$\mathrm{Relative\; spectrum\; of\; planet}$', fontsize=18, color=omglog_color)
+    omglog_ax.plot(Wavelength* 1e6, ratio* 1e6, '-.', color=omglog_color)
+    omglog_ax.set_ylabel('Contrast ratio (ppm)', fontsize=18, color=omglog_color)
     omglog_ax.tick_params(length=6, width=2, color=omglog_color, labelcolor=omglog_color)
     omglog_ax.spines['right'].set(color=omglog_color, linewidth=2.0, linestyle='-.')
 
@@ -431,7 +444,7 @@ def vertify_radiation(wavelength_bound, Temperature= Temperature, id=0, Ntheta =
         # Plot the spectrum
 
     #save RAT to temp/ folder
-    np.save(f'temp/V{id}/Results/RAT.npy', RAT)
+    np.save(f'temp/V{id}/variables/RAT.npy', RAT)
     ratio = np.zeros(len(Theta_list)*2 - 1)
 
     #print(RAT)
@@ -450,7 +463,7 @@ def vertify_radiation(wavelength_bound, Temperature= Temperature, id=0, Ntheta =
         plt.title('LHS 3844 b')
         plt.savefig(f'temp/V{id}/Results/contrast_ratio.png')
         plt.close()
-        np.save(f'temp/V{id}/Results/ratio.npy', ratio)
+        np.save(f'temp/V{id}/variables/ratio.npy', ratio)
 
     Tmap = np.zeros((SIZE[0], SIZE[1]))
     phiP_list = np.linspace(0, 2* np.pi, SIZE[1])
@@ -476,6 +489,6 @@ def vertify_radiation(wavelength_bound, Temperature= Temperature, id=0, Ntheta =
     plt.colorbar()
     plt.savefig(f'temp/V{id}/Results/Tmap{int(Theta*180/np.pi)}.png')
     plt.close()
-    np.save(f'temp/V{id}/Results/Tmap{int(Theta*180/np.pi)}.npy', Tmap)
+    np.save(f'temp/V{id}/variables/Tmap{int(Theta*180/np.pi)}.npy', Tmap)
 
 

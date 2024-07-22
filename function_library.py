@@ -9,6 +9,17 @@ import multiprocessing
 import time
 
 
+def decorator_timer(name):
+    def run_time(func):
+        def warp(*args, **kwargs):
+            t1 = time.time()
+            temp = func(*args, **kwargs)
+            t2 = time.time()
+            print(name , 'process time:', t2-t1,' s')
+            return temp
+        return warp
+    return run_time
+
 def orbit_calculator(a, e, Theta):
     """
     Calculate the distance r from the Sun to the Earth at a given orbital angle Theta.
@@ -574,7 +585,7 @@ def Cal_star_area(Theta):
         d = np.linalg.norm(np.cross(Planet, camera))
         return Area - Cal_intersection_area(d, R1, R2) 
 
-
+@decorator_timer('Cal_star_flux')
 def Cal_star_flux(Theta, Wavelength = Wavelengh, Temperature = Temperature):
     # Calculate the flux of the star that radiates light to the Earth
     #检查Theta的数据类型是数还是数组？
@@ -816,7 +827,7 @@ def Tmap(Theta, id = 0 ):
 
     return Tmap
 
-
+@decorator_timer('Radiation_cal')
 def Radiation_cal(Tmap, Theta, camera, Temperature, Wavelength = 0):
     ## calculate the radiation distribution of the planet
     ## the map is a 2D array of thetaP and phiP
@@ -897,14 +908,4 @@ def para_rad(Theta, lam = 0, Temperature = Temperature):
 
     return Fp/Fs
 
-def decorator_timer(name):
-    def run_time(func):
-        def warp(*args, **kwargs):
-            t1 = time.time()
-            temp = func(*args, **kwargs)
-            t2 = time.time()
-            print(name , 'process time:', t2-t1,' s')
-            return temp
-        return warp
-    return run_time
 

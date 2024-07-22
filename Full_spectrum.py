@@ -21,9 +21,9 @@ def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, id =
     """ Calculate the thermal spectrum """ 
     mf.thermal_spectrum(wavelength_bound, Temperature, id= id, Ntheta = Ntheta, NWavelength= Nwave)
     # Load the results
-    thermal_ratio = np.load(f'temp/R{id}/Results/Ratio.npy')
-    Theta_list  = np.load(f'temp/R{id}/Results/Theta.npy')
-    Star_flux  = np.load(f'temp/R{id}/Results/Star_flux.npy')
+    thermal_ratio = np.load(f'temp/R{id}/variables/Ratio.npy')
+    Theta_list  = np.load(f'temp/R{id}/variables/Theta.npy')
+    Star_flux  = np.load(f'temp/R{id}/variables/Star_flux.npy')
 
 
     """ Calculate the reflected and diffused light   """
@@ -69,6 +69,7 @@ def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, id =
     np.save(f'temp/R{id}/variables/I_intensity.npy', I_intensity)
     np.save(f'temp/R{id}/variables/I_diffuse.npy', I_diffuse)
     np.save(f'temp/R{id}/variables/I_specular.npy', I_specular)
+    np.save(f'temp/R{id}/variables/wave_list.npy', Wave_list)
     #np.save(f'temp/R{id}/variables/Theta_list.npy', Theta_list2)
 
 
@@ -101,7 +102,7 @@ def FS_plotter(FS, Wave_list, Theta_list, Nwave, Ntheta, id = 0 , Obs_wavelength
 
     # plot Full Spectrum
     fig, ax = plt.subplots()
-    Star_flux  = np.load(f'temp/R{id}/Results/Star_flux.npy')
+    Star_flux  = np.load(f'temp/R{id}/variables/Star_flux.npy')
     for i in range(Ntheta):
         #spl = interp1d(Wave_list, FS[:,i], kind='cubic')
         ax.plot(Wave_list* 1e6, FS[:,i]* Star_flux[:,i] , label = f'Theta = {Theta_list[i]}')

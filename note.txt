@@ -1,0 +1,4 @@
+main_function.py --> thermal_spectrum() --> part 2 multiprocessing 有待优化，目前是在Theta_list循环后面进行并行化，
+可以修改为Theta_list前进行并行，减少Ntheta-1 倍的并行池创建用时
+但spectrum_S, spectrum_P需要修改为二维数组（压缩为一维共享数组）
+
