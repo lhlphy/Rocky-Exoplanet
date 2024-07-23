@@ -347,7 +347,7 @@ def Wave_reflect(R1, r, normal, Pos, camera ):
     return Integ[0] *DA *np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelength) 
 
 
-def Oren_Nayar_BRDF(i, j, id, normal, Pos, camera):
+def Oren_Nayar_BRDF(i, j, id, normal, Pos, camera, Theta):
     """
     Calculate the intensity of  diffusion.
     
@@ -373,8 +373,15 @@ def Oren_Nayar_BRDF(i, j, id, normal, Pos, camera):
     Dphi = 2*np.pi/SIZE[1]
     theta = angle_between(normal, np.array([0,0,1]))
     DA = R2**2 *np.sin(theta) *Dtheta *Dphi 
-    Area = np.load(f'temp/R{id}/variables/Area.npy')
-    return  Area[i, j] * DA * np.cos(theta_c)/ np.pi #* blackbody_radiation(Temperature, Wavelength)  
+    Area = np.load(f'temp/R{id}/variables/Area_1D.npy')
+    phi = phiP_list[i]
+    theta = thetaP_list[j]
+
+    Phi_list = np.linspace(0, np.pi, np.size(Area))
+    spl = interp1d(Phi_list, Area, kind= 'cubic')
+
+    Phi = np.arccos( - np.cos(phi) * np.cos(theta - Theta))
+    return  spl(Phi) * DA * np.cos(theta_c)/ np.pi #* blackbody_radiation(Temperature, Wavelength)  
 
 # def Oren_Nayar_BRDF(R1, r, normal, Pos, camera, Coarse = 0):
 #     """
@@ -831,23 +838,20 @@ def Tmap(Theta, id = 0):
         process.join()
 
     ## interpolate the 1D array to 2D array using the spline interpolation
+    np.save(f'temp/R{id}/variables/Area_1D.npy', np.array(Ar_1D))
     spl = interpolate.interp1d(ksi_list , Tmap_1D, kind='cubic') #spline interpolation
-    splAr = interpolate.interp1d(ksi_list , Ar_1D, kind='cubic') #spline interpolation
 
     Tmap = np.zeros((SIZE[0], SIZE[1]))
-    Ar = np.zeros((SIZE[0], SIZE[1]))
-    phiP_list = np.linspace(0, 2* np.pi, SIZE[1])
-    thetaP_list = np.linspace(0, np.pi, SIZE[0])
+    phiP_list = np.linspace(-np.pi / 2, np.pi / 2, SIZE[0])
+    thetaP_list = np.linspace(0, 2 * np.pi, SIZE[1])
 
-    for i, thetaP in enumerate(thetaP_list):
-        for j, phiP in enumerate(phiP_list):
-            ksi = np.arccos(np.sin(thetaP) * np.cos(phiP)) 
+    for i, phiP in enumerate(phiP_list):
+        for j, thetaP in enumerate(thetaP_list):
+            ksi = np.arccos(np.cos(phiP) * np.cos(thetaP)) 
             Tmap[i, j] = spl(ksi)
-            Ar[i, j] = splAr(ksi)
 
     # plot Tmap, xlabel: "$\theta$", ylabel: "$\phi$", using the gray map to show the temperature distribution
     Tmap_plotter(Tmap, Theta, id)
-    np.save(f'temp/R{id}/variables/Area.npy', Ar)
 
     return Tmap
 
@@ -955,7 +959,7 @@ def para_rad(Theta, lam = 0, Temperature = Temperature):
         return - np.cos(theta)**2 * np.cos(phi) **2 *np.cos(theta + Theta)
     
     Int2 = dblquad(Fp2_func,-np.pi/2, np.pi/2, np.pi/2-Theta, np.pi/2)
-    Fp2 = Int2[0] * R2**2 / np.pi * B(lam, Temperature)
+    Fp2 = Int2[0] * R2**2 / np.pi * B(lam, Temperature) *(R1/r)**2
 
     return Fp/Fs, Fp2/Fs
 

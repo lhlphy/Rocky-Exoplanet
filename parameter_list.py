@@ -53,13 +53,13 @@ def A_Specular(lam):
     # data_A = 0.5 * np.ones(data_lam.size)
     # spl = interp1d(data_lam, data_A, kind='cubic')
     # return spl(lam)
-    return 0
+    return 1
 
 def A_diffuse(lam):
     # data_lam = np.linspace(0.1, 10) *1e-6
     # data_A = 0.5 * np.ones(data_lam.size)
     # spl = interp1d(data_lam, data_A, kind='cubic')
     # return spl(lam)
-    return 0
+    return 1
 
 

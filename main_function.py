@@ -124,7 +124,7 @@ def BRDF(i, j, Theta, Coarse, Model='Lambert', id= 0):
         # Calculate the intensity of the reflected light
         # Model Choice 
         if Model == 'Lambert':   #Coarse = 0
-            Diffuse = Oren_Nayar_BRDF(i,j, id,nv, Pos, camera)
+            Diffuse = Oren_Nayar_BRDF(i, j, id,nv, Pos, camera, Theta)
             SR  = specular_reflection(RV, camera, nv, r)
             # SR is the reflected light intensity divided by B(T,lam)
         elif Model == 'Oren_Nayar':
@@ -424,6 +424,7 @@ def ratio_plotter(Wavelength, spectrum_S, spectrum_P, ratio, id, Theta):
     plt.savefig(name)
     plt.close()
 
+
 @decorator_timer('vertify_radiation')
 def vertify_radiation(wavelength_bound, Temperature= Temperature, id=0, Ntheta = 5, NWavelength = 1):
     # Calculate the blackbody radiation spectrum
@@ -433,7 +434,7 @@ def vertify_radiation(wavelength_bound, Temperature= Temperature, id=0, Ntheta =
     if Ntheta == 1:
         Theta_list = np.array([np.pi])
     else:
-        Theta_list = np.linspace(0, 2* np.pi, Ntheta)  # 0-pi 与 pi-2pi 重复
+        Theta_list = np.linspace(0, np.pi, Ntheta)  # 0-pi 与 pi-2pi 重复
     Wavelength = np.linspace(wavelength_bound[0], wavelength_bound[1], NWavelength)
 
     RAT = np.zeros([len(Theta_list), len(Wavelength)])
@@ -448,28 +449,65 @@ def vertify_radiation(wavelength_bound, Temperature= Temperature, id=0, Ntheta =
                 RAT[i, j], DIF[i,j] = para_rad(Theta, wavelength, Temperature)
         # Plot the spectrum
 
-    #save RAT to temp/ folder
-    np.save(f'temp/V{id}/variables/RAT.npy', RAT)
-    np.save(f'temp/V{id}/variables/DIF.npy', DIF)
-
     #print(RAT)
     if Ntheta > 2:   # Ntheta = 1, 2 too less to plot; the main intention is to plot the contrast ratio
+        Theta_list = sym_complete(Theta_list, 0)
+        Theta_list[Ntheta: 2*Ntheta] = 2*np.pi - Theta_list[Ntheta: 2*Ntheta]
+        Theta_list[Ntheta] += 1e-10
+        RAT = sym_complete(RAT, 0)
+        DIF = sym_complete(DIF, 0)
+            #save RAT to temp/ folder
+        np.save(f'temp/V{id}/variables/RAT.npy', RAT)
+        np.save(f'temp/V{id}/variables/DIF.npy', DIF)
+        np.save(f'temp/V{id}/variables/Wave.npy',Wavelength)
+        np.save(f'temp/V{id}/variables/Theta.npy', Theta_list)
+        
         x = np.linspace(0, 2*np.pi, 400)
-        print(Theta_list.shape)
-        print(RAT.shape)
-        f = interp1d(Theta_list, RAT.T, kind='cubic')
+        f = interp1d(Theta_list, RAT.T, kind='cubic', fill_value='extrapolate')
         y = f(x)
-        f2 = interp1d(Theta_list, DIF.T, kind='cubic')
+        f2 = interp1d(Theta_list, DIF.T, kind='cubic', fill_value='extrapolate')
         y2 = f2(x)
 
-        plt.figure(figsize=(8, 8))
-        plt.plot(x , y * 1e6 , 'k-', label = 'Thermal radiation')
-        plt.plot(x , y2 * 1e6 , 'r-', label = 'Diffuse')
-        plt.xlabel('Orbital Phase Angle (rad)')
-        plt.ylabel('Contrast Ratio (ppm)')
-        plt.title('LHS 3844 b')
-        plt.savefig(f'temp/V{id}/Results/contrast_ratio.png')
-        plt.close()
+        for i, wave in enumerate(Wavelength):
+            mpl.rcParams['axes.unicode_minus']=False       #显示负号
+
+            a = 0.45
+            fig, ax = plt.subplots(figsize=(26*a,13*a))
+            plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.3, hspace=0.3)
+            plt.rcParams['ytick.direction'] = 'in'# 刻度线显示在内部
+            plt.rcParams['xtick.direction'] = 'in'# 刻度线显示在内部
+
+            axpos = [0.1, 0.15, 0.7, 0.7]
+            bwith = 2
+            ax.spines['bottom'].set_linewidth(bwith)
+            ax.spines['left'].set_linewidth(bwith)
+            ax.spines['top'].set_linewidth(bwith)
+            ax.spines['right'].set_linewidth(bwith)
+            ax.set_position(axpos)
+            #ax.axhline(y=np.average(Tc[3:]), color='gray', ls='-', )
+            ax.plot(x , y[i] * 1e6 ,'k-' , label = 'Thermal radiation')
+            ax.set_ylim(ymin=0, ymax= np.max(y[i] * 1e6)*1.1)
+            ax.set_xlabel('Orbital Phase Angle (rad)', fontsize=18)
+            ax.set_ylabel('Contrast Ratio (ppm)', fontsize=18)
+            ax.tick_params(length=6, width=2)
+            ax.spines['right'].set_visible(False)
+
+            lambda_color = 'blue'
+            labmda_ax = ax.twinx()
+            labmda_ax.set_position(axpos)
+            labmda_ax.plot(x , y2[i] * 1e6 , color=lambda_color , label = 'Diffuse')
+            labmda_ax.set_ylim(ymin=0, ymax= np.max( y2[i] * 1e6)*1.1)
+            labmda_ax.set_xlabel('Orbital Phase Angle (rad)', fontsize=18)
+            labmda_ax.tick_params(length=6, width=2, color=lambda_color, labelcolor=lambda_color)
+            labmda_ax.set_ylabel('Contrast Ratio (ppm)', fontsize=18, color=lambda_color)
+            labmda_ax.spines['right'].set(color=lambda_color, linewidth=2.0, linestyle=':')
+            plt.title('LHS 3844 b')
+            fig.legend()
+            plt.title(f'Wavelength = {int(wave*1e9)} nm')
+            plt.savefig(f'temp/V{id}/Results/contrast_ratio_{int(wave*1e9)}.png')
+            plt.close()
+            
+
 
     Tmap = np.zeros((SIZE[0], SIZE[1]))
     phiP_list = np.linspace(0, 2* np.pi, SIZE[1])
@@ -496,5 +534,8 @@ def vertify_radiation(wavelength_bound, Temperature= Temperature, id=0, Ntheta =
     plt.savefig(f'temp/V{id}/Results/Tmap{int(Theta*180/np.pi)}.png')
     plt.close()
     np.save(f'temp/V{id}/variables/Tmap{int(Theta*180/np.pi)}.npy', Tmap)
+
+    
+
 
 
