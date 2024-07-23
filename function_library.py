@@ -959,7 +959,7 @@ def para_rad(Theta, lam = 0, Temperature = Temperature):
         return - np.cos(theta)**2 * np.cos(phi) **2 *np.cos(theta + Theta)
     
     Int2 = dblquad(Fp2_func,-np.pi/2, np.pi/2, np.pi/2-Theta, np.pi/2)
-    Fp2 = Int2[0] * R2**2 / np.pi * B(lam, Temperature) *(R1/r)**2
+    Fp2 = Int2[0] * R2**2 * B(lam, Temperature) *(R1/r)**2
 
     return Fp/Fs, Fp2/Fs
 
