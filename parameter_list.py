@@ -8,7 +8,7 @@ AU = 149_597_870.7  # km, 1 Astronomical Unit 149597870.7
 R1 = 695_500 * 0.19 # km, radius of the Star
 R2 = 69_911 * 0.116      # km, radius of the Planet
 e = 0  # Eccentricity of the Earth's orbit
-a = AU* 0.006 # km, semi-major axis of the Earth's orbit / 10 
+a = AU * 0.05 # km, semi-major axis of the Earth's orbit / 10 
 # m1 = 1.989e30   # kg, mass of the Sun
 # m2 = 5.972e24   # kg, mass of the Earth
 # m1 = m1 / m2    # Normalized mass of the Sun
@@ -23,7 +23,7 @@ camera = camera / np.linalg.norm(camera)
 
 
 ### Accuracy control parameters
-SIZE = [180, 360]  # Size of the meshgrid
+SIZE = [360, 720]  # Size of the meshgrid
 # Create meshgrid for the planet
 phiP_list = np.linspace(-np.pi / 2, np.pi / 2, SIZE[0])
 thetaP_list = np.linspace(0, 2 * np.pi, SIZE[1])

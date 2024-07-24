@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=PythonTest
-#SBATCH --nodes=1
+#SBATCH --nodes=3
 #SBATCH --ntasks-per-node=64
 #SBATCH --cpus-per-task=1
 #SBATCH --partition=wzhcnormal
@@ -14,7 +14,8 @@ echo "Maxwell"
 module load apps/anaconda3/5.2.0
 conda activate test
 
-python  Full_spectrum_main.py --id 3 --Ntheta 60 --Nwave 200
+python  Full_spectrum_main.py --id 3 --Ntheta 30 --Nwave 200
 # python plot_lib.py
 # python demo_vertify.py
+# python Tmap_2D_plot.py
 

@@ -956,7 +956,7 @@ def para_rad(Theta, lam = 0, Temperature = Temperature):
         Fs = Cal_star_flux(Theta, lam, Temperature)   #2* h *c_const**2 * Bf(lam, Temperature) * np.pi * R1**2
 
     def Fp2_func(theta,phi):
-        return - np.cos(theta)**2 * np.cos(phi) **2 *np.cos(theta + Theta)
+        return - np.cos(theta) * np.cos(phi) **3 *np.cos(theta + Theta)
     
     Int2 = dblquad(Fp2_func,-np.pi/2, np.pi/2, np.pi/2-Theta, np.pi/2)
     Fp2 = Int2[0] * R2**2 * B(lam, Temperature) *(R1/r)**2
