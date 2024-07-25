@@ -101,7 +101,7 @@ def IDS_plot(name, Obs_wave):
     omglog_ax.set_ylabel('Contrast ratio (ppm)', fontsize=18, color=omglog_color)
     omglog_ax.tick_params(length=6, width=2, color=omglog_color, labelcolor=omglog_color)
     omglog_ax.spines['right'].set(color=omglog_color, linewidth=2.0, linestyle='-.')
-    fig.legend(['Specular', 'Diffuse', 'Thermal'])
+    fig.legend(['Specular', 'Diffuse', 'Thermal'], loc='upper left')
     plt.show()
     os.makedirs(f'temp/P0', exist_ok= True)
     plt.savefig(f'temp/P0/compare.png')
