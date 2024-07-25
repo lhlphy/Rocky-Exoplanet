@@ -16,7 +16,7 @@ duration = 0.3  # 每帧展示时间 (秒)
 img_files = [os.path.join(folder_path, f"plot_0_{i}.png") for i in range(0,360, 10)]
 
 frames = []
-IT = mf.blackbody_radiation(Temperature, Wavelengh) * np.pi *R2**2 /(4*np.pi*a**2) *np.pi *R1**2
+IT = mf.blackbody_radiation(Temperature, Wavelength) * np.pi *R2**2 /(4*np.pi*a**2) *np.pi *R1**2
 id = 5
 Star_flux = np.load(f'./temp/R{id}/variables/star_flux.npy')
 Intensity = np.load(f'./temp/R{id}/variables/TOT_Intensity.npy')

@@ -39,21 +39,29 @@ def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, id =
     I_specular = I_intensity.copy()
 
     # Create vector to store the geometry results, and using the gemotry result to generate the intensity I_xxxxxx
-    G_intensity = np.zeros(Ntheta)
-    G_diffuse = G_intensity.copy()
-    G_specular = G_intensity.copy()
+    Tmap = np.load(f'temp/R{id}/plots/Tmap0.npy')
+
+    AD_matrix = np.zeros([Nwave, SIZE[0], SIZE[1]])
+    AS_matrix = np.zeros([Nwave, SIZE[0], SIZE[1]])
+    for j, wave in enumerate(Wave_list): 
+        for n, phi in enumerate(phiP_list):
+            for m, theta in enumerate(thetaP_list):
+                AD_matrix[j, n, m] = A_diffuse( Wavelength, Tmap[n, m])
+                AS_matrix[j, n, m] = A_Specular( Wavelength, Tmap[n, m])
+
+        AD_matrix[j,:,:] = AD_matrix[j,:,:] * B(wave, Temperature)
+        AS_matrix[j,:,:] = AS_matrix[j,:,:] * B(wave, Temperature)
 
     for i, Theta in enumerate(Theta_list2):
         I, D, S = mf.global_intensity(Theta, Coarse_g, id, Model= 'Lambert', mode = 'geo')
-        G_intensity[i] = I.sum()
-        G_diffuse[i] = D.sum()
-        G_specular[i] = S.sum()
 
-    for j, wave in enumerate(Wave_list):   
-        coef =  B(wave, Temperature) # the coefficient should be divided for diffused and specular light
-        I_diffuse[j,:] = coef * G_diffuse[:] * A_diffuse(wave)
-        I_specular[j,:] = coef * G_specular[:] * A_Specular(wave)
-        I_intensity[j,:] = I_diffuse[j,:] + I_specular[j,:]
+        for j, wave in enumerate(Wave_list):
+            D1 = D * AD_matrix[j,:,:]
+            S1 = S * AS_matrix[j,:,:]
+            # I1 = D1 + S1  
+            I_diffuse[j, i] = D1.sum()
+            I_specular[j, i] = S1.sum()
+            I_intensity[j, i] = I_diffuse[j, i] + I_specular[j, i]
 
     # symmetry
     I_intensity = sym_complete(I_intensity,1) / Star_flux

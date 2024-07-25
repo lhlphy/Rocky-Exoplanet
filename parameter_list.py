@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d, interp2d
 from scipy.integrate import quad
 # Constants List
 
@@ -8,7 +8,7 @@ AU = 149_597_870.7  # km, 1 Astronomical Unit 149597870.7
 R1 = 695_500 * 0.19 # km, radius of the Star
 R2 = 69_911 * 0.116      # km, radius of the Planet
 e = 0  # Eccentricity of the Earth's orbit
-a = AU * 0.05 # km, semi-major axis of the Earth's orbit / 10 
+a = AU * 0.006 # km, semi-major axis of the Earth's orbit / 10 
 # m1 = 1.989e30   # kg, mass of the Sun
 # m2 = 5.972e24   # kg, mass of the Earth
 # m1 = m1 / m2    # Normalized mass of the Sun
@@ -23,7 +23,7 @@ camera = camera / np.linalg.norm(camera)
 
 
 ### Accuracy control parameters
-SIZE = [360, 720]  # Size of the meshgrid
+SIZE = [120, 240]  # Size of the meshgrid
 # Create meshgrid for the planet
 phiP_list = np.linspace(-np.pi / 2, np.pi / 2, SIZE[0])
 thetaP_list = np.linspace(0, 2 * np.pi, SIZE[1])
@@ -31,7 +31,7 @@ thetaP_list = np.linspace(0, 2 * np.pi, SIZE[1])
 
 ### Thermal and optical parameters
 Temperature = 3036  # K, temperature of the Star
-Wavelengh = 5e-6  # m, wavelength of the light  ### Attention: wavelength and wavelengh
+Wavelength = 5e-6  # m, wavelength of the light  ### Attention: wavelength and wavelengh
 # SPE_REF_g = 555  # Specular reflection coefficient  1.if SPE_REF <0 , using the experiment data   2.if SPE_REF >1, using the Fresnel equation model
 # DIF_REF_g = 0.1 # Diffuse reflection coefficient
 Coarse_g = 0  # Coarseness of the surface
@@ -41,21 +41,23 @@ Sigma = 5.67e-8  # W/m^2/K^4, Stefan-Boltzmann constant
 Wind_speed = 10   # wind speed in m/s (only available for the Gaussian wave model)
 Obs_array = np.array([6e-7, 8e-7, 1e-6, 1.5*1e-6, 2*1e-6, 3*1e-6, 5*1e-6])
 
-def Albedo(lam):
-    # data_lam = np.linspace(0.1, 10) *1e-6
-    # data_A = 0.5 * np.ones(data_lam.size)
-    # spl = interp1d(data_lam, data_A, kind='cubic')
-    # return spl(lam)
-    return 0
+def Albedo(lam, T):
+    # Wave_list = np.array([])
+    # T_list = np.array([])
+    # E_matrix = np.array([])
 
-def A_Specular(lam):
+    # spl = interp2d(Wave_list, T_list, E_matrix, kind='cubic')
+
+    return  0 # 1 - spl(lam, T)
+
+def A_Specular(lam, T):
     # data_lam = np.linspace(0.1, 10) *1e-6
     # data_A = 0.5 * np.ones(data_lam.size)
     # spl = interp1d(data_lam, data_A, kind='cubic')
     # return spl(lam)
     return 1
 
-def A_diffuse(lam):
+def A_diffuse(lam, T):
     # data_lam = np.linspace(0.1, 10) *1e-6
     # data_A = 0.5 * np.ones(data_lam.size)
     # spl = interp1d(data_lam, data_A, kind='cubic')

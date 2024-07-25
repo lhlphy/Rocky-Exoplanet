@@ -9,6 +9,7 @@ from scipy.integrate._quadpack_py import IntegrationWarning
 # warnings.filterwarnings('ignore', category=IntegrationWarning) 
 
 if __name__ == '__main__':
+    warnings.filterwarnings('ignore', category=IntegrationWarning) 
     warnings.filterwarnings("ignore")
     parser = argparse.ArgumentParser()
     parser.add_argument('--id', default=0 , type=int)

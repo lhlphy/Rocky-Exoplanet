@@ -145,7 +145,7 @@ def process_pack(i, Intensity, I_diffuse, Theta, Coarse, Model, id):
         Intensity[SIZE[1]*i+j] = (Diffuse + SR)
         I_diffuse[SIZE[1]*i+j] = Diffuse
 
-@decorator_timer('global_intensity')
+@decorator_timer('global_intensity: ')
 def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = 'geo'):
     """
     Calculate the intensity map of the reflection and diffusion of the planet surface
@@ -184,8 +184,8 @@ def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = '
         process.join()
 
     if mode == 'phy':
-        Intensity = Intensity* blackbody_radiation(Temperature, Wavelengh)
-        I_diffuse = I_diffuse* blackbody_radiation(Temperature, Wavelengh)
+        Intensity = Intensity* blackbody_radiation(Temperature, Wavelength)
+        I_diffuse = I_diffuse* blackbody_radiation(Temperature, Wavelength)
 
     Intensity = np.array(Intensity[:]).reshape(SIZE[0], SIZE[1])
     I_diffuse = np.array(I_diffuse[:]).reshape(SIZE[0], SIZE[1])

@@ -110,4 +110,4 @@ def IDS_plot(name, Obs_wave):
 
 
 if __name__ =='__main__':
-    IDS_plot('R3 0.001 AU', np.array([5]) * 1e-6)
+    IDS_plot('R3', np.array([5]) * 1e-6)

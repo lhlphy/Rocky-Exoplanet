@@ -616,7 +616,7 @@ def Cal_star_area(Theta):
         return Area - Cal_intersection_area(d, R1, R2) 
 
 
-def Cal_star_flux(Theta, Wavelength = Wavelengh, Temperature = Temperature):
+def Cal_star_flux(Theta, Wavelength = Wavelength, Temperature = Temperature):
     # Calculate the flux of the star that radiates light to the Earth
     #检查Theta的数据类型是数还是数组？
     Si = np.size(Theta)
@@ -697,7 +697,7 @@ def B(lam,T):
     B = 2* h * c**2 / lam**5 / A
     return B
 
-def Temperature_cal(ksi, Theta, Int_B, Tmap_1D = [], i = -1, Ar_1D = []):
+def Temperature_cal(ksi, Theta, Tmap_1D = [], i = -1, Ar_1D = []):
     ## calculate the temperature distribution of the planet
     ## ksi is the angle between the normal vector and the vector from the star to the planet
     r = orbit_calculator(a, e, Theta)
@@ -720,10 +720,12 @@ def Temperature_cal(ksi, Theta, Int_B, Tmap_1D = [], i = -1, Ar_1D = []):
         zeta = np.arcsin(R2/rP*np.sin(ksi))
         Phi = zeta + ksi
 
-        LHS = Int_B *(R1/r)**2 *np.cos(Phi)
+        LHS = (R1/r)**2 *np.cos(Phi)
         def equation(T):
-            func = lambda lam: B(lam, T) * (1-Albedo(lam))
-            return quad(func, 0, np.inf)[0] - LHS
+            # func1 = lambda lam: B(lam, Temperature) * (1- Albedo(lam, T))
+            # func2 = lambda lam: B(lam, T) * (1-Albedo(lam, T))
+            func3 = lambda lam: (B(lam, T) - LHS* B(lam, Temperature)) * (1- Albedo(lam, T))
+            return quad(func3, 0, 1)[0] 
         
         sol = root(equation, T0)
         T = sol.x[0]
@@ -749,12 +751,13 @@ def Temperature_cal(ksi, Theta, Int_B, Tmap_1D = [], i = -1, Ar_1D = []):
         
         Int = dblquad(integrate_func, 0, 2* np.pi, 0, np.pi)
         Ar_1D[i] = Int[0]
-        LHS = Int[0] * Int_B/ np.pi
+        LHS = Int[0] / np.pi
 
         def equation(T): # the integral function
-            
-            func = lambda lam: B(lam, T) * (1-Albedo(lam))
-            return quad(func, 0, np.inf)[0] - LHS
+            # func1 = lambda lam: B(lam, Temperature) * (1- Albedo(lam, T))
+            # func2 = lambda lam: B(lam, T) * (1-Albedo(lam, T))
+            func3 = lambda lam: (B(lam, T) - B(lam, Temperature)* LHS)* (1-Albedo(lam, T))
+            return quad(func3 , 0, 1)[0]
 
         sol = root(equation, T0)
         T = sol.x[0]
@@ -816,11 +819,6 @@ def Temperature_cal(ksi, Theta, Int_B, Tmap_1D = [], i = -1, Ar_1D = []):
 def Tmap(Theta, id = 0):
     ## calculate the temperature map of the planet
     ## the map is a 2D array of thetaP and phiP
-    def int_func(lam):
-        return B(lam, Temperature) * (1- Albedo(lam))
-
-    Int_B = quad(int_func, 0 , np.inf)[0]
-
     ksi_list = np.linspace(0, np.pi, SIZE[0])
     
     processes = []     # processing pool
@@ -830,7 +828,7 @@ def Tmap(Theta, id = 0):
     # Loop through all points on the planet's surface
     #calculate the intensity of the reflect and diffusion using the BRDF function
     for i in range(SIZE[0]):
-        process = multiprocessing.Process(target= Temperature_cal, args = (ksi_list[i], Theta, Int_B, Tmap_1D, i, Ar_1D))
+        process = multiprocessing.Process(target= Temperature_cal, args = (ksi_list[i], Theta, Tmap_1D, i, Ar_1D))
         processes.append(process)
         process.start()
 
@@ -904,7 +902,7 @@ def Radiation_cal(Tmap, Theta, camera, Temperature, Wavelength = 0):
                     sigma = 5.670373 * 1e-8
                     Rad += sigma * Temperature**4/np.pi * np.cos(angle) * dA
                 else:
-                    Rad += (1-Albedo(Wavelength)) * B(Wavelength, T) * np.cos(angle) * dA
+                    Rad += (1-Albedo(Wavelength, T)) * B(Wavelength, T) * np.cos(angle) * dA
 
     return Rad
 

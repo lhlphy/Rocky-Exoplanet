@@ -5,7 +5,7 @@ import warnings
 from scipy.integrate._quadpack_py import IntegrationWarning  
 import argparse
 import os
-from parameter_list import Wavelengh
+from parameter_list import Wavelength
 
 import matplotlib.pyplot as plt
 

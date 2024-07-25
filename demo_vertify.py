@@ -14,7 +14,7 @@ Wave = np.load(f'temp/V{ID}/variables/Wave.npy')
 DIF = DIF[:,-1]
 RAT = RAT[:,-1]
 
-fname = 'R3 0.004 AU'
+fname = 'R3'
 I_diffuse = np.load(f'temp/{fname}/variables/I_diffuse.npy')
 Thermal = np.load(f'temp/{fname}/variables/Thermal.npy')
 Wave_list = np.load(f'temp/{fname}/variables/wave_list.npy')
@@ -105,5 +105,5 @@ template_plot( xname,x1 = Theta, y1 = DIF* 1e6, y1name = yname, y1label = 'Diffu
               X1 = Theta_list, d1 = I_diffuse* 1e6, d1name = yname, d1label = 'Diffuse: My model',\
                  x2 = Theta, y2 =RAT* 1e6, y2name=yname, y2label='Thermal radiation: Theoretical calculation',\
                      X2 = Theta_list, d2 = Thermal* 1e6, d2name=yname, d2label='Thermal radiation: My model', \
-                        id = ID, pic_name = 'Cross-validation of the model, LHS 3844 b, a = 0.004 AU')
+                        id = ID, pic_name = 'Cross-validation of the model, LHS 3844 b, a = 0.006 AU')
 
