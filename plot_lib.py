@@ -103,11 +103,11 @@ def IDS_plot(name, Obs_wave):
     omglog_ax.spines['right'].set(color=omglog_color, linewidth=2.0, linestyle='-.')
     fig.legend(['Specular', 'Diffuse', 'Thermal'], loc='upper left')
     plt.show()
-    os.makedirs(f'temp/P0', exist_ok= True)
-    plt.savefig(f'temp/P0/compare.png')
+    os.makedirs(f'temp/P3', exist_ok= True)
+    plt.savefig(f'temp/P3/compare.png')
     plt.close()
 
 
 
 if __name__ =='__main__':
-    IDS_plot('R3', np.array([5]) * 1e-6)
+    IDS_plot('R3', np.array([4.5]) * 1e-6)
