@@ -492,7 +492,7 @@ def specular_reflection(RV, camera, normal, r, Temperature= Temperature):
     # Calculate the intensity of the reflected light
     Dtheta = np.pi/SIZE[0]
     Dphi = 2*np.pi/SIZE[1]
-    DA = R2**2 *np.sin(theta)*Dtheta*Dphi
+    DA = R2**2 * np.sin(theta) * Dtheta * Dphi
     
     return  DA * np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelength)
    #Bug repaired in 7/1: * np.cos(theta_c)
@@ -725,7 +725,7 @@ def Temperature_cal(ksi, Theta, Tmap_1D = [], i = -1, Ar_1D = []):
             # func1 = lambda lam: B(lam, Temperature) * (1- Albedo(lam, T))
             # func2 = lambda lam: B(lam, T) * (1-Albedo(lam, T))
             func3 = lambda lam: (B(lam, T) - LHS* B(lam, Temperature)) * (1- Albedo(lam, T))
-            return quad(func3, 0, 1)[0] 
+            return quad(func3, 0, 0.1)[0] 
         
         sol = root(equation, T0)
         T = sol.x[0]
@@ -757,7 +757,7 @@ def Temperature_cal(ksi, Theta, Tmap_1D = [], i = -1, Ar_1D = []):
             # func1 = lambda lam: B(lam, Temperature) * (1- Albedo(lam, T))
             # func2 = lambda lam: B(lam, T) * (1-Albedo(lam, T))
             func3 = lambda lam: (B(lam, T) - B(lam, Temperature)* LHS)* (1-Albedo(lam, T))
-            return quad(func3 , 0, 1)[0]
+            return quad(func3 , 0, 0.1)[0]
 
         sol = root(equation, T0)
         T = sol.x[0]

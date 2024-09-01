@@ -1,7 +1,7 @@
 import numpy as np
 from parameter_list import *
-import main_function as mf
-from function_library import B, sym_complete, decorator_timer
+import lib.main_function as mf
+from lib.function_library import B, sym_complete, decorator_timer, Cal_star_flux, sym_complete
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import os
@@ -19,11 +19,18 @@ def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, id =
     os.makedirs(f'temp/R{id}/Results', exist_ok=True)
 
     """ Calculate the thermal spectrum """ 
-    mf.thermal_spectrum(wavelength_bound, Temperature, id= id, Ntheta = Ntheta, NWavelength= Nwave)
+    # mf.thermal_spectrum(wavelength_bound, Temperature, id= id, Ntheta = Ntheta, NWavelength= Nwave)
     # Load the results
-    thermal_ratio = np.load(f'temp/R{id}/variables/Thermal.npy')
-    Theta_list  = np.load(f'temp/R{id}/variables/Theta.npy')
-    Star_flux  = np.load(f'temp/R{id}/variables/Star_flux.npy')
+    Theta_list = np.linspace(0,np.pi,Ntheta)
+    Wave_list = np.linspace(wavelength_bound[0], wavelength_bound[1], Nwave)
+    Star_flux = np.zeros([Nwave, Ntheta])
+    for i, Wave in enumerate(Wave_list):
+        for j, Theta in enumerate(Theta_list):
+            Star_flux[i, j] = Cal_star_flux(Theta, Wave, Temperature)
+
+    Star_flux = sym_complete(Star_flux, 1)
+    Theta_list = sym_complete(Theta_list, 1)
+    thermal_ratio = np.zeros(Star_flux.shape)
 
 
     """ Calculate the reflected and diffused light   """
@@ -31,7 +38,7 @@ def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, id =
         Theta_list2 = np.array([np.pi])
     else:
         Theta_list2 = np.linspace(0, np.pi, Ntheta)  # 0-pi 与 pi-2pi 重复
-    Wave_list = np.linspace(wavelength_bound[0], wavelength_bound[1], Nwave)
+
 
     # 与 thermal_ratio 一致
     I_intensity = np.zeros([Nwave, Ntheta])
@@ -39,29 +46,21 @@ def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, id =
     I_specular = I_intensity.copy()
 
     # Create vector to store the geometry results, and using the gemotry result to generate the intensity I_xxxxxx
-    Tmap = np.load(f'temp/R{id}/plots/Tmap0.npy')
-
-    AD_matrix = np.zeros([Nwave, SIZE[0], SIZE[1]])
-    AS_matrix = np.zeros([Nwave, SIZE[0], SIZE[1]])
-    for j, wave in enumerate(Wave_list): 
-        for n, phi in enumerate(phiP_list):
-            for m, theta in enumerate(thetaP_list):
-                AD_matrix[j, n, m] = A_diffuse( Wavelength, Tmap[n, m])
-                AS_matrix[j, n, m] = A_Specular( Wavelength, Tmap[n, m])
-
-        AD_matrix[j,:,:] = AD_matrix[j,:,:] * B(wave, Temperature)
-        AS_matrix[j,:,:] = AS_matrix[j,:,:] * B(wave, Temperature)
+    G_intensity = np.zeros(Ntheta)
+    G_diffuse = G_intensity.copy()
+    G_specular = G_intensity.copy()
 
     for i, Theta in enumerate(Theta_list2):
         I, D, S = mf.global_intensity(Theta, Coarse_g, id, Model= 'Lambert', mode = 'geo')
+        G_intensity[i] = I.sum()
+        G_diffuse[i] = D.sum()
+        G_specular[i] = S.sum()
 
-        for j, wave in enumerate(Wave_list):
-            D1 = D * AD_matrix[j,:,:]
-            S1 = S * AS_matrix[j,:,:]
-            # I1 = D1 + S1  
-            I_diffuse[j, i] = D1.sum()
-            I_specular[j, i] = S1.sum()
-            I_intensity[j, i] = I_diffuse[j, i] + I_specular[j, i]
+    for j, wave in enumerate(Wave_list):   
+        coef =  B(wave, Temperature) # the coefficient should be divided for diffused and specular light
+        I_diffuse[j,:] = coef * G_diffuse[:] * A_diffuse(wave)
+        I_specular[j,:] = coef * G_specular[:] * A_Specular(wave)
+        I_intensity[j,:] = I_diffuse[j,:] + I_specular[j,:]
 
     # symmetry
     I_intensity = sym_complete(I_intensity,1) / Star_flux

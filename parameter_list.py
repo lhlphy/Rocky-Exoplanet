@@ -7,10 +7,10 @@ import pandas as pd
 
 ### orbital parameters
 AU = 149_597_870.7  # km, 1 Astronomical Unit 149597870.7
-R1 = 695_500 * 0.19* 0.1 # km, radius of the Star
-R2 = 69_911 * 0.116      # km, radius of the Planet
-e = 0  # Eccentricity of the Earth's orbit
-a = AU * 0.002 # km, semi-major axis of the Earth's orbit / 10 
+R1 = 695500 * 1.66 #695_500 * 0.68 # km, radius of the Star
+R2 = 69_911 * 1.937      # km, radius of the Planet
+e = 0.0167  # Eccentricity of the Earth's orbit
+a = AU * 0.023 # km, semi-major axis of the Earth's orbit / 10 
 # m1 = 1.989e30   # kg, mass of the Sun
 # m2 = 5.972e24   # kg, mass of the Earth
 # m1 = m1 / m2    # Normalized mass of the Sun
@@ -25,15 +25,15 @@ camera = camera / np.linalg.norm(camera)
 
 
 ### Accuracy control parameters
-SIZE = [180, 360]  # Size of the meshgrid
+SIZE = [181, 361]  # Size of the meshgrid
 # Create meshgrid for the planet
 phiP_list = np.linspace(-np.pi / 2, np.pi / 2, SIZE[0])
 thetaP_list = np.linspace(0, 2 * np.pi, SIZE[1])
 
 
 ### Thermal and optical parameters
-Temperature = 3036  # K, temperature of the Star
-Wavelength = 5e-6  # m, wavelength of the light  ### Attention: wavelength and wavelengh
+Temperature = 6360  # K, temperature of the Star
+Wavelength = 2.778 *1e-6  # m, wavelength of the light  ### Attention: wavelength and wavelengh
 # SPE_REF_g = 555  # Specular reflection coefficient  1.if SPE_REF <0 , using the experiment data   2.if SPE_REF >1, using the Fresnel equation model
 # DIF_REF_g = 0.1 # Diffuse reflection coefficient
 Coarse_g = 0  # Coarseness of the surface
@@ -41,7 +41,7 @@ Coarse_g = 0  # Coarseness of the surface
 Sigma = 5.67e-8  # W/m^2/K^4, Stefan-Boltzmann constant
 
 Wind_speed = 10   # wind speed in m/s (only available for the Gaussian wave model)
-Obs_array = np.array([6e-7, 8e-7, 1e-6, 1.5*1e-6, 2*1e-6, 3*1e-6, 5*1e-6])
+Obs_array = np.array([2.778]) * 1e-6  # The wavelength of the observation array
 
 # 读取CSV文件  
 file_path = 'Teide.csv'  # 请确保将路径更改为正确的文件路径  
@@ -64,7 +64,7 @@ for i in range(Data.shape[1]//2):
     x = x + np.random.rand(x.size) * 1e-6
     spl[i] = interp1d(x , Data[~np.isnan(Data[:,2*i+1]),2*i+1], kind='linear', fill_value="extrapolate")
 
-def Albedo(lam, T):
+def Albedo2(lam, T):
     T_list = np.array([1187, 1413, 1673, 1963, 2164])
 
     E1 = np.zeros(len(T_list))
@@ -78,6 +78,9 @@ def Albedo(lam, T):
     E2 = spl2(T)
     return  1 - E2
 
+def Albedo(lam, T):
+    return  Albedo2(lam, T) # (Albedo2(2.5*1e-6, T) + Albedo2(3.5*1e-6, T))/2
+
 def A_Specular(lam, T):
     # data_lam = np.linspace(0.1, 10) *1e-6
     # data_A = 0.5 * np.ones(data_lam.size)
@@ -90,7 +93,7 @@ def A_diffuse(lam, T):
     # data_A = 0.5 * np.ones(data_lam.size)
     # spl = interp1d(data_lam, data_A, kind='cubic')
     # return spl(lam)
-    return 1 - Albedo(lam, T)
+    return  Albedo(lam, T)
 
 
 # w = np.linspace(1, 10,100) * 1e-6
@@ -99,4 +102,15 @@ def A_diffuse(lam, T):
 #     A[i] = Albedo(wave, 00)
 # plt.plot(w, A)
 # plt.show()
+
+# def A_diffuse(lam, T):
+#     return 0.3
+
+# def A_Specular(lam, T):
+#     return 0.3
+
+# def Albedo(lam, T):
+#     return 0.3
+
+
 

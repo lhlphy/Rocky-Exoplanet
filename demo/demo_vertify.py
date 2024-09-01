@@ -1,5 +1,5 @@
 import numpy as np
-from main_function import *
+from lib.main_function import *
 from parameter_list import  Temperature
 import matplotlib.pyplot as plt
 # 理论推导模型和我的模型的交叉验证

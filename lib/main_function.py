@@ -1,89 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from parameter_list import *
-from function_library import *
+from lib.function_library import *
 import multiprocessing
 import os
 from matplotlib import rcParams
 from matplotlib.pylab import mpl
 from scipy.interpolate import interp1d
 import time
-#import time
-
-# Use 'TkAgg' as the backend for Matplotlib
-# global Intensity
-# Intensity = np.zeros((len(phiP_list), len(thetaP_list)))
-# Use 'TkAgg' as the backend for Matplotlib
-#matplotlib.use('TkAgg')
-
-# Main function
-
-
-# angle = np.linspace(0, np.pi / 2, 100)
-# I = np.zeros(len(angle))
-# for i in range(len(angle)):
-#     I[i] = I_dist_afterreflect(R1,a,angle[i],camera,camera)
-# plt.plot(angle, I)
-
-
-# def BRDF(i, j, Intensity, I_diffuse, Theta, Coarse, Model='Lambert'):
-#     """
-#     calculate the reflection and diffusion intensity  (divided by B(T,lam)) of the planet surface at the point (i,j)
-#     i: the index of phiP
-#     j: the index of thetaP
-#     Intensity: the shared memory of the Intensity
-#     I_diffuse: the shared memory of the I_diffuse
-#     Theta: orbital phase angle
-#     Coarse: the coarse of the surface, the standard derivation of incline angle of the surface (0-pi/2)
-#     Temperature: the temperature of the star
-#     Model: the model of the reflection and diffusion
-#         switch:
-#         1. Lambert: the Lambertian model Coarse = 0
-#         2. Oren_Nayar: the Oren-Nayar model
-#         3. Gaussian_wave: the Gaussian wave model (depends on the surfave wind speed)
-
-#     """
-#     phiP = phiP_list[i]
-#     thetaP = thetaP_list[j]
-#     # Calculate the normal vector and position
-#     nv, Pos, r = normal_vec(phiP, thetaP, Theta, a, e, R2)
-
-#     # if check_intersection_with_star(Pos, camera):  # Check if the line intersects with the star--Check block
-#     #     with Intensity.get_lock():
-#     #         Intensity[SIZE[1]*i+j] = 0
-
-#     #     return
-    
-#     # Calculate the reflected vector
-#     RV = reflect(Pos, nv)
-    
-#     # Check if the reflection direction is towards the camera
-#     if check_direction(RV, nv, camera, Pos):
-#         # Calculate the angle between the camera and the reflected vector
-#         # angle = angle_between(camera, RV)
-#         # Calculate the intensity of the reflected light
-#         # Model Choice 
-#         if Model == 'Lambert':   #Coarse = 0
-#             Diffuse = Oren_Nayar_BRDF(R1, r, nv, Pos, camera, 0 )
-#             SR  = specular_reflection(RV, camera, nv, r)
-#             # SR is the reflected light intensity divided by B(T,lam)
-#         elif Model == 'Oren_Nayar':
-#             Diffuse = Oren_Nayar_BRDF(R1, r, nv, Pos, camera, Coarse)
-#             SR  = specular_reflection(RV, camera, nv, r)
-#         elif Model == 'Gaussian_wave':  # In this model Diffuse and RF are considered together
-#             Diffuse = Wave_reflect(R1, r, nv, Pos, camera )
-#             SR = 0
-
-    
-#         with Intensity.get_lock():
-#             Intensity[SIZE[1]*i+j] = (Diffuse + SR) #* blackbody_radiation(6000, 1e-6)
-#             # Intensity : total intensity divided by B(T,lam)   
-
-#         with I_diffuse.get_lock():
-#             I_diffuse[SIZE[1]*i+j] = Diffuse
-#     # else:
-#     #     Intensity[i, j] = 0
-#     #print(Intensity[SIZE[1]*i+j])
 
 
 def BRDF(i, j, Theta, Coarse, Model='Lambert', id= 0):
@@ -150,7 +74,7 @@ def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = '
     """
     Calculate the intensity map of the reflection and diffusion of the planet surface
     mode: the mode of the calculation
-        switch: "geo" or "phy"
+        switch: "geo" or "phy" 
         "geo": It's a gemotry problem, don't need to consider the thermal radiation and albedo
             return:
             Intensity: the intensity of the reflection and diffusion/B(T,lam)
@@ -238,8 +162,8 @@ def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = '
     #print("Program run time:",t2-t1,'s')
     
 
-#A line passes point Pos, with the direction vector Camera. Calculate the distance between this line and the origin.
-#The line is defined by the equation: r = Pos + t*Camera
+# A line passes point Pos, with the direction vector Camera. Calculate the distance between this line and the origin.
+# The line is defined by the equation: r = Pos + t*Camera
 # #The distance between the line and the origin is given by: |Pos x Camera|/|Camera|
 # print(np.linalg.norm(np.cross(Pos, camera))/np.linalg.norm(camera))
 # #The distance between the line and the origin is given by: |Pos| sin(theta)

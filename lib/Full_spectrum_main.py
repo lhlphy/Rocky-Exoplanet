@@ -1,5 +1,5 @@
 import numpy as np
-from Full_spectrum import Full_spectrum
+from lib.Full_spectrum import Full_spectrum
 import argparse
 import warnings
 from scipy.integrate._quadpack_py import IntegrationWarning 
@@ -20,7 +20,7 @@ if __name__ == '__main__':
     parser.add_argument('--Ntheta', default=5 , type=int)
     parser.add_argument('--Nwave', default=1 , type=int)
     args = parser.parse_args()
-    Wavelength_bound = np.array([500, 5000]) *1e-9   # Wavelength range (m)
+    Wavelength_bound = np.array([2.77, 2.78]) *1e-6   # Wavelength range (m)
 
     Full_spectrum(Wavelength_bound, args)
     

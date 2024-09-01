@@ -1,5 +1,5 @@
 import numpy as np
-import main_function as mf
+import lib.main_function as mf
 import time
 import warnings  
 from scipy.integrate._quadpack_py import IntegrationWarning  

@@ -3,7 +3,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from parameter_list import *
-from function_library import *
+from lib.function_library import *
 
 # Use 'TkAgg' as the backend for Matplotlib
 matplotlib.use('TkAgg')

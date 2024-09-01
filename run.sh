@@ -14,9 +14,9 @@ echo "Maxwell"
 module load apps/anaconda3/5.2.0
 conda activate test
 
-python  Full_spectrum_main.py --id 3 --Ntheta 5 --Nwave 451
-python plot_lib.py
-python demo_vertify.py
+python  Full_spectrum_main.py --id 1 --Ntheta 20 --Nwave 5
+# python plot_lib.py
+# python demo_vertify.py
 # python Tmap_2D_plot.py
 
 

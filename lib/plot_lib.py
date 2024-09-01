@@ -4,6 +4,11 @@ from scipy.interpolate import interp1d
 import os
 
 def IDS_plot(name, Obs_wave):
+    """
+    plot the phase curve of total intensity, diffusion, specular reflection in one figure
+    name: the middle name of the file
+    Obs_wave: the wavelength that should be plotted
+    """
     # load data
     I_specular = np.load(f'temp/{name}/variables/I_specular.npy')
     I_intensity = np.load(f'temp/{name}/variables/I_intensity.npy')
