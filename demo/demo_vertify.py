@@ -1,6 +1,6 @@
 import numpy as np
 from lib.main_function import *
-from parameter_list import  Temperature
+from lib.parameter_list import  Temperature
 import matplotlib.pyplot as plt
 # 理论推导模型和我的模型的交叉验证
 ID = 4

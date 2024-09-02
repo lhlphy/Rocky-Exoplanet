@@ -1,5 +1,5 @@
 import numpy as np
-from parameter_list import *
+from lib.parameter_list import *
 import lib.main_function as mf
 from lib.function_library import B, sym_complete, decorator_timer, Cal_star_flux, sym_complete
 from scipy.interpolate import interp1d

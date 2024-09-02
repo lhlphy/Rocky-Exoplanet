@@ -1,5 +1,5 @@
 import numpy as np
-from lib.Full_spectrum import Full_spectrum
+from Full_spectrum import Full_spectrum
 import argparse
 import warnings
 from scipy.integrate._quadpack_py import IntegrationWarning 

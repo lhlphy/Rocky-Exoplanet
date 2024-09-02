@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from parameter_list import *
-from lib.function_library import *
+from function_library import *
 import multiprocessing
 import os
 from matplotlib import rcParams

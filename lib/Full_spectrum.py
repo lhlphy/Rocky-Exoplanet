@@ -1,7 +1,7 @@
 import numpy as np
 from parameter_list import *
-import lib.main_function as mf
-from lib.function_library import B, sym_complete, decorator_timer
+import main_function as mf
+from function_library import B, sym_complete, decorator_timer
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import os

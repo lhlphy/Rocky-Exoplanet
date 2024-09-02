@@ -2,7 +2,7 @@ import os
 from PIL import Image, ImageDraw, ImageFont, ImageEnhance
 import imageio
 import numpy as np
-import lib.main_function as mf
+import main_function as mf
 from parameter_list import *
 
 # 图片文件夹路径

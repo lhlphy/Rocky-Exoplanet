@@ -5,7 +5,7 @@ import warnings
 from scipy.integrate._quadpack_py import IntegrationWarning  
 import argparse
 import os
-from parameter_list import Albedo, Temperature
+from lib.parameter_list import Albedo, Temperature
 
 import matplotlib.pyplot as plt
 
