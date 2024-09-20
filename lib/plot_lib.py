@@ -108,11 +108,49 @@ def IDS_plot(name, Obs_wave):
     omglog_ax.spines['right'].set(color=omglog_color, linewidth=2.0, linestyle='-.')
     fig.legend(['Specular', 'Diffuse', 'Thermal'], loc='upper left')
     plt.show()
-    os.makedirs(f'temp/P3', exist_ok= True)
-    plt.savefig(f'temp/P3/compare.png')
+    # os.makedirs(f'temp/P3', exist_ok= True)
+    plt.savefig(f'temp/{name}/compare_{Obs_wave[0]*1e6}.png')
     plt.close()
 
+    fig, ax = plt.subplots(figsize=(9,6))
+    ax.plot(theta, (I_s[i,:]+I_t[i,:])*1e6 , label = 'Specular')
+    ax.plot(theta, (I_d[i,:]+I_t[i,:])*1e6 , label = 'Diffuse')
+    ax.set_xlabel('Orbital angle (rad)', fontsize=18)
+    ax.set_ylabel('Contrast ratio (ppm)', fontsize=18)
 
+    N  = I_s.size
+    plt.errorbar(theta[N//2], (I_s[i,N//2]+I_t[i,N//2])*1e6, yerr = 1.25, capsize= 10)
+    plt.plot(theta[N//2], (I_s[i,N//2]+I_t[i,N//2])*1e6,'.')
+
+    plt.legend(['Specular', 'Diffuse'])
+    plt.show()
+    plt.savefig(f'temp/{name}/compare_PC_{Obs_wave[0]*1e6}.png')
+    plt.close()
+    print('Wavelength: ', Obs_wave[0]*1e6, 'um')
+    print('Secondary eclipse depth difference: ',(I_d[i,N//2]-I_s[i,N//2])*1e6,' ppm')
+
+
+def spectrum_plot(name):
+    # load data, I_diffuse,I_specular is contrast ratio 
+    I_diffuse = np.load(f'temp/{name}/variables/I_diffuse.npy')
+    I_specular = np.load(f'temp/{name}/variables/I_specular.npy')
+    Star_flux = np.load(f'temp/{name}/variables/Star_flux.npy')
+    wave_list = np.load(f'temp/{name}/variables/wave_list.npy')
+    Thermal = np.load(f'temp/{name}/variables/Thermal.npy')
+
+    # convert I_diffuse,I_specular (contrast ratio) to absolute intensity
+    N1 = Star_flux.shape[0]
+    N2 = Star_flux.shape[1]
+    ID = I_diffuse[:, N2//2]
+    IS = I_specular[:, N2//2]
+    Star_flux = Star_flux[:, N2//2]
+    Thermal = Thermal[:, N2//2]
 
 if __name__ =='__main__':
-    IDS_plot('R3', np.array([4.5]) * 1e-6)
+    # parser = argparser.ArgumentParser()
+    # parser.add_argument('--file', default = 'R1', type = str)
+    # args = parser.parse_args()
+    IDS_plot('R2', np.array([1]) * 1e-6)
+    
+    
+    

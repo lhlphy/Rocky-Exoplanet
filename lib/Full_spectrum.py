@@ -8,6 +8,9 @@ import os
 
 @decorator_timer('Full_spectrum')
 def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, id = 0, Ntheta = 5, Nwave = 1):
+    """
+    calculate thermal spectrum and reflection spectrum
+    """
 
     if args != None:
         id = args.id
@@ -41,27 +44,49 @@ def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, id =
     # Create vector to store the geometry results, and using the gemotry result to generate the intensity I_xxxxxx
     Tmap = np.load(f'temp/R{id}/plots/Tmap0.npy')
 
-    AD_matrix = np.zeros([Nwave, SIZE[0], SIZE[1]])
-    AS_matrix = np.zeros([Nwave, SIZE[0], SIZE[1]])
-    for j, wave in enumerate(Wave_list): 
-        for n, phi in enumerate(phiP_list):
-            for m, theta in enumerate(thetaP_list):
-                AD_matrix[j, n, m] = A_diffuse( Wavelength, Tmap[n, m])
-                AS_matrix[j, n, m] = A_Specular( Wavelength, Tmap[n, m])
-
-        AD_matrix[j,:,:] = AD_matrix[j,:,:] * B(wave, Temperature)
-        AS_matrix[j,:,:] = AS_matrix[j,:,:] * B(wave, Temperature)
-
+    # calculate the reflection coefficent in different wavelength and different location
+    # different wavelength and different surface temperature result in different albedo
+    consider_temperature = True   # this key determined wheather consider the influence of T, False will save the time #######
+    if consider_temperature:  # consider the influence of Temperature
+        # need a matrix to save the albedo in each location and each wavelength
+        AD_matrix = np.zeros([Nwave, SIZE[0], SIZE[1]])
+        AS_matrix = np.zeros([Nwave, SIZE[0], SIZE[1]])
+        
+        for j, wave in enumerate(Wave_list): 
+            for n, phi in enumerate(phiP_list):
+                for m, theta in enumerate(thetaP_list):
+                    AD_matrix[j, n, m] = A_diffuse( wave, Tmap[n, m])
+                    AS_matrix[j, n, m] = A_Specular( wave, Tmap[n, m])
+            # 补上planck函数, global_intensity给出的结果不包含普朗克函数和反射率
+            AD_matrix[j,:,:] = AD_matrix[j,:,:] * B(wave, Temperature)   
+            AS_matrix[j,:,:] = AS_matrix[j,:,:] * B(wave, Temperature)
+            
+    else:   # do not consider the influence of Temperature
+        # only need to save albedo in each wavelength
+        AD_matrix = np.zeros(Nwave)
+        AS_matrix = np.zeros(Nwave)
+        for j, wave in enumerate(Wave_list):
+            AD_matrix[j] = A_diffuse(wave)
+            AS_matrix[j] = A_Specular(wave)
+            # 补上planck函数, global_intensity给出的结果不包含普朗克函数和反射率
+            AD_matrix[j] = AD_matrix[j] * B(wave, Temperature)   
+            AS_matrix[j] = AS_matrix[j] * B(wave, Temperature)
+            
+    # calculate the reflection using global_intensity
     for i, Theta in enumerate(Theta_list2):
         I, D, S = mf.global_intensity(Theta, Coarse_g, id, Model= 'Lambert', mode = 'geo')
+        # I: total intensity; D:diffuse ; S:specular reflection
+        # both under the condition of albedo = 1
 
         for j, wave in enumerate(Wave_list):
-            D1 = D * AD_matrix[j,:,:]
-            S1 = S * AS_matrix[j,:,:]
+            D1 = D * AD_matrix[j]
+            S1 = S * AS_matrix[j]
+            # consider the reflection coefficent, D1,S1 is diffuse and specular reflection map in different location of planet
             # I1 = D1 + S1  
             I_diffuse[j, i] = D1.sum()
             I_specular[j, i] = S1.sum()
             I_intensity[j, i] = I_diffuse[j, i] + I_specular[j, i]
+            # sum up intensity in different location get the total intensity
 
     # symmetry
     I_intensity = sym_complete(I_intensity,1) / Star_flux
@@ -89,7 +114,8 @@ def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, id =
 
 
 def FS_plotter(FS, Wave_list, Theta_list, Nwave, Ntheta, id = 0 , Obs_wavelength = Obs_array):
-    """Plot the full spectrum
+    """
+    Plot the Contrast_ratio and Full_spectrum and phase_curve
     FS: Full Spectrum (matrix: Nwave* (2*Ntheta))
     Obs_wavelength: wavelength be observed (array)
     """

@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import os
 import multiprocessing
 import time
+from lava_data import LA
 
 
 def decorator_timer(name):
@@ -349,7 +350,7 @@ def Wave_reflect(R1, r, normal, Pos, camera ):
 
 def Oren_Nayar_BRDF(i, j, id, normal, Pos, camera, Theta):
     """
-    Calculate the intensity of  diffusion.
+    Calculate the intensity of  diffusion, when albedo = 1 
     
     Parameters:
     R1 (float): Radius of the Sun.
@@ -467,10 +468,9 @@ def Oren_Nayar_BRDF(i, j, id, normal, Pos, camera, Theta):
 #     DA = R2**2 *np.sin(theta) *Dtheta *Dphi 
 #     return Integ[0] *DA *np.cos(theta_c) #* blackbody_radiation(Temperature, Wavelength)   
 
-
 def specular_reflection(RV, camera, normal, r, Temperature= Temperature):
     """
-    Calculate the intensity of specular reflection.
+    Calculate the intensity of specular reflection, when albedo = 1 
     
     Parameters:
     RV (array): Reflected vector.
@@ -616,7 +616,7 @@ def Cal_star_area(Theta):
         return Area - Cal_intersection_area(d, R1, R2) 
 
 
-def Cal_star_flux(Theta, Wavelength = Wavelength, Temperature = Temperature):
+def Cal_star_flux(Theta, Wavelength = 0, Temperature = Temperature):
     # Calculate the flux of the star that radiates light to the Earth
     #检查Theta的数据类型是数还是数组？
     Si = np.size(Theta)
@@ -725,7 +725,7 @@ def Temperature_cal(ksi, Theta, Tmap_1D = [], i = -1, Ar_1D = []):
             # func1 = lambda lam: B(lam, Temperature) * (1- Albedo(lam, T))
             # func2 = lambda lam: B(lam, T) * (1-Albedo(lam, T))
             func3 = lambda lam: (B(lam, T) - LHS* B(lam, Temperature)) * (1- Albedo(lam, T))
-            return quad(func3, 0, 0.1)[0] 
+            return quad(func3, LA.Wmin *1e-6, LA.Wmax *1e-6)[0] 
         
         sol = root(equation, T0)
         T = sol.x[0]
@@ -757,7 +757,7 @@ def Temperature_cal(ksi, Theta, Tmap_1D = [], i = -1, Ar_1D = []):
             # func1 = lambda lam: B(lam, Temperature) * (1- Albedo(lam, T))
             # func2 = lambda lam: B(lam, T) * (1-Albedo(lam, T))
             func3 = lambda lam: (B(lam, T) - B(lam, Temperature)* LHS)* (1-Albedo(lam, T))
-            return quad(func3 , 0, 0.1)[0]
+            return quad(func3 , LA.Wmin * 1e-6, LA.Wmax * 1e-6)[0]
 
         sol = root(equation, T0)
         T = sol.x[0]
@@ -877,6 +877,7 @@ def Tmap_plotter(Tmap, Theta, id = 0):
 
 def Radiation_cal(Tmap, Theta, camera, Temperature, Wavelength = 0):
     ## calculate the radiation distribution of the planet
+    ## Only thermal radiation
     ## the map is a 2D array of thetaP and phiP
     Rad = 0
     Dtheta = np.pi/SIZE[0]
@@ -901,6 +902,7 @@ def Radiation_cal(Tmap, Theta, camera, Temperature, Wavelength = 0):
                 if Wavelength == 0:
                     sigma = 5.670373 * 1e-8
                     Rad += sigma * Temperature**4/np.pi * np.cos(angle) * dA
+                    print("all wavelength radiation ")
                 else:
                     Rad += (1-Albedo(Wavelength, T)) * B(Wavelength, T) * np.cos(angle) * dA
 
@@ -960,5 +962,4 @@ def para_rad(Theta, lam = 0, Temperature = Temperature):
     Fp2 = Int2[0] * R2**2 * B(lam, Temperature) *(R1/r)**2
 
     return Fp/Fs, Fp2/Fs
-
 

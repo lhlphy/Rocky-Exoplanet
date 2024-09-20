@@ -12,6 +12,7 @@ if __name__ == '__main__':
     warnings.filterwarnings('ignore', category=IntegrationWarning) 
     warnings.filterwarnings("ignore")
     parser = argparse.ArgumentParser()
+    parser.add_argument('--target', default='none' , type=str)
     parser.add_argument('--id', default=0 , type=int)
     # parser.add_argument('--coarse', default=0 , type=float)
     # parser.add_argument('--specular', default=0.5 , type=float)
@@ -19,8 +20,10 @@ if __name__ == '__main__':
     # parser.add_argument('--Albedo', default=0.5 , type=float)
     parser.add_argument('--Ntheta', default=5 , type=int)
     parser.add_argument('--Nwave', default=1 , type=int)
+    parser.add_argument('--LB', default=1, type=float)  # lower bound (unit: um)
+    parser.add_argument('--UB', default=1, type=float)  # upper bound (unit: um)
     args = parser.parse_args()
-    Wavelength_bound = np.array([2.77, 2.78]) *1e-6   # Wavelength range (m)
+    Wavelength_bound = np.array([args.LB, args.UB]) *1e-6   # Wavelength range (m)
 
     Full_spectrum(Wavelength_bound, args)
     

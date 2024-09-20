@@ -217,8 +217,8 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature , id=0, Ntheta =
             TMAP = Tmap(Theta, id)
 
         processes = []     # processing pool
-        spectrum_P = multiprocessing.Array('d', len(Wave_list))
-        spectrum_S = multiprocessing.Array('d', len(Wave_list))
+        spectrum_P = multiprocessing.Array('d', len(Wave_list))  # Thermal radiation of planet
+        spectrum_S = multiprocessing.Array('d', len(Wave_list))  # Thermal radiation of star
 
         for j, wavelength in enumerate(Wave_list):
             # Calculate the blackbody radiation spectrum
@@ -332,7 +332,7 @@ def ratio_plotter(Wavelength, spectrum_S, spectrum_P, ratio, id, Theta):
     offset_text.set_position((1.12, 0))
     # 调整字体大小
     offset_text.set_size(18)  # 或者使用 offset_text.set_fontsize(12)
-    omglog_ax.spines['right'].set_position(('data', np.max(Wavelength)*1.15e6))
+    omglog_ax.spines['right'].set_position(('data', np.max(Wavelength)*1.08e6))
     omglog_ax.set_ylim(0, np.max(ratio)*1.1e6)
     omglog_ax.set_position(axpos)
     omglog_ax.plot(Wavelength* 1e6, ratio* 1e6, '-.', color=omglog_color)
@@ -340,7 +340,7 @@ def ratio_plotter(Wavelength, spectrum_S, spectrum_P, ratio, id, Theta):
     omglog_ax.tick_params(length=6, width=2, color=omglog_color, labelcolor=omglog_color)
     omglog_ax.spines['right'].set(color=omglog_color, linewidth=2.0, linestyle='-.')
 
-
+    plt.legend(['Stellar','Planet', 'Contrast ratio'])
     plt.title(f'$\mathrm{{\Theta = {Theta}}}$', fontsize=18)
     # save the plot to temp/ folder
     os.makedirs(f'temp/R{id}/Results', exist_ok=True)
