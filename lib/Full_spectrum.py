@@ -46,7 +46,7 @@ def Full_spectrum(wavelength_bound, args = None, Temperature = Temperature, id =
 
     # calculate the reflection coefficent in different wavelength and different location
     # different wavelength and different surface temperature result in different albedo
-    consider_temperature = True   # this key determined wheather consider the influence of T, False will save the time #######
+    consider_temperature = False   # this key determined wheather consider the influence of T, False will save the time #######
     if consider_temperature:  # consider the influence of Temperature
         # need a matrix to save the albedo in each location and each wavelength
         AD_matrix = np.zeros([Nwave, SIZE[0], SIZE[1]])
