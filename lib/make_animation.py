@@ -3,7 +3,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageEnhance
 import imageio
 import numpy as np
 import main_function as mf
-from parameter_list import *
+from parameter_list import PPs
 
 # 图片文件夹路径
 folder_path = r'./temp/6/plots'  # 修改为你的图片文件夹路径
@@ -16,7 +16,8 @@ duration = 0.3  # 每帧展示时间 (秒)
 img_files = [os.path.join(folder_path, f"plot_0_{i}.png") for i in range(0,360, 10)]
 
 frames = []
-IT = mf.blackbody_radiation(Temperature, Wavelength) * np.pi *R2**2 /(4*np.pi*a**2) *np.pi *R1**2
+Wavelength = 1  # 动画绘制的波长
+IT = mf.blackbody_radiation(PPs.Stellar_T, Wavelength) * np.pi * PPs.Rp**2 /(4*np.pi* PPs.semi_axis**2) *np.pi * PPs.Rs**2
 id = 5
 Star_flux = np.load(f'./temp/R{id}/variables/star_flux.npy')
 Intensity = np.load(f'./temp/R{id}/variables/TOT_Intensity.npy')

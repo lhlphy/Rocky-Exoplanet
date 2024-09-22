@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.integrate import simps, quad
 from function_library import B, R1, R2
-from parameter_list import Temperature
+from parameter_list import PPs
 
 def integrate_spectrum_with_interpolation(wave_list, IS, Wavelength_min, Wavelength_max):
 
@@ -55,7 +55,7 @@ def bond_albedo_calculator(Wavelength_min, Wavelength_max, name ):
     TT = integrate_spectrum_with_interpolation(wave_list, IT, Wavelength_min, Wavelength_max) # Thermal radiation
     Tstar = integrate_spectrum_with_interpolation(wave_list, Star_flux, Wavelength_min, Wavelength_max) # Star radiation flux
 
-    # Tin = quad(B, Wavelength_min, Wavelength_max, args=(Temperature,)) * np.pi * R2**2  # Energy flux that the planet received
+    # Tin = quad(B, Wavelength_min, Wavelength_max, args=(PPs.Stellar_T,)) * np.pi * R2**2  # Energy flux that the planet received
 
     Spectral_Contrast_ratio_S = TS / Tstar
     Spectral_Contrast_ratio_D = TD / Tstar

@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from parameter_list import *
+from parameter_list import PPs, APs
 from function_library import *
 import multiprocessing
 import os
@@ -27,14 +27,14 @@ def BRDF(i, j, Theta, Coarse, Model='Lambert', id= 0):
         3. Gaussian_wave: the Gaussian wave model (depends on the surfave wind speed)
 
     """
-    phiP = phiP_list[i]
-    thetaP = thetaP_list[j]
+    phiP = APs.phiP_list[i]
+    thetaP = APs.thetaP_list[j]
     # Calculate the normal vector and position
-    nv, Pos, r = normal_vec(phiP, thetaP, Theta, a, e, R2)
+    nv, Pos, r = normal_vec(phiP, thetaP, Theta)
 
-    # if check_intersection_with_star(Pos, camera):  # Check if the line intersects with the star--Check block
+    # if check_intersection_with_star(Pos, PPs.camera):  # Check if the line intersects with the star--Check block
     #     with Intensity.get_lock():
-    #         Intensity[SIZE[1]*i+j] = 0
+    #         Intensity[APs.SIZE[1]*i+j] = 0
 
     #     return
     
@@ -42,20 +42,20 @@ def BRDF(i, j, Theta, Coarse, Model='Lambert', id= 0):
     RV = reflect(Pos, nv)
     
     # Check if the reflection direction is towards the camera
-    if check_direction(RV, nv, camera, Pos):
+    if check_direction(RV, nv, PPs.camera, Pos):
         # Calculate the angle between the camera and the reflected vector
-        # angle = angle_between(camera, RV)
+        # angle = angle_between(PPs.camera, RV)
         # Calculate the intensity of the reflected light
         # Model Choice 
         if Model == 'Lambert':   #Coarse = 0
-            Diffuse = Oren_Nayar_BRDF(i, j, id,nv, Pos, camera, Theta)
-            SR  = specular_reflection(RV, camera, nv, r)
+            Diffuse = Lambert_BRDF(i, j, id, nv, Pos, PPs.camera, Theta)
+            SR  = specular_reflection(RV, PPs.camera, nv, r)
             # SR is the reflected light intensity divided by B(T,lam)
         elif Model == 'Oren_Nayar':
-            Diffuse = Oren_Nayar_BRDF(R1, r, nv, Pos, camera, Coarse)
-            SR  = specular_reflection(RV, camera, nv, r)
+            Diffuse = Oren_Nayar_BRDF(r, nv, Pos, PPs.camera, Coarse)
+            SR  = specular_reflection(RV, PPs.camera, nv, r)
         elif Model == 'Gaussian_wave':  # In this model Diffuse and RF are considered together
-            Diffuse = Wave_reflect(R1, r, nv, Pos, camera )
+            Diffuse = Wave_reflect(r, nv, Pos, PPs.camera )
             SR = 0
 
         return Diffuse, SR
@@ -64,13 +64,13 @@ def BRDF(i, j, Theta, Coarse, Model='Lambert', id= 0):
     
 def process_pack(i, Intensity, I_diffuse, Theta, Coarse, Model, id):
     #with Intensity.get_lock(), I_diffuse.get_lock():
-    for j, thetaP in enumerate(thetaP_list):
+    for j, thetaP in enumerate(APs.thetaP_list):
         Diffuse, SR = BRDF(i, j, Theta, Coarse, Model, id)
-        Intensity[SIZE[1]*i+j] = (Diffuse + SR)
-        I_diffuse[SIZE[1]*i+j] = Diffuse
+        Intensity[APs.SIZE[1]*i+j] = (Diffuse + SR)
+        I_diffuse[APs.SIZE[1]*i+j] = Diffuse
 
 @decorator_timer('global_intensity: ')
-def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = 'geo'):
+def global_intensity(Theta, id=0, Model = 'Lambert', Coarse = PPs.Coarse_g, mode = 'geo'):
     """
     Calculate the intensity map of the reflection and diffusion of the planet surface
     mode: the mode of the calculation
@@ -94,12 +94,12 @@ def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = '
     #     SPE_REF = 1
     #     DIF_REF = 1
     processes = []
-    Intensity = multiprocessing.Array('d', SIZE[0]*SIZE[1])   # diffusion + reflection
-    I_diffuse = multiprocessing.Array('d', SIZE[0]*SIZE[1]) # diffusion  intensity
+    Intensity = multiprocessing.Array('d', APs.SIZE[0]*APs.SIZE[1])   # diffusion + reflection
+    I_diffuse = multiprocessing.Array('d', APs.SIZE[0]*APs.SIZE[1]) # diffusion  intensity
 
     # Loop through all points on the planet's surface
     #calculate the intensity of the reflect and diffusion using the BRDF function
-    for i, phiP in enumerate(phiP_list):
+    for i, phiP in enumerate(APs.phiP_list):
         process = multiprocessing.Process(target= process_pack, args = (i, Intensity, I_diffuse, Theta, Coarse, Model, id))
         processes.append(process)
         process.start()
@@ -107,20 +107,16 @@ def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = '
     for process in processes:
         process.join()
 
-    if mode == 'phy':
-        Intensity = Intensity* blackbody_radiation(Temperature, Wavelength)
-        I_diffuse = I_diffuse* blackbody_radiation(Temperature, Wavelength)
-
-    Intensity = np.array(Intensity[:]).reshape(SIZE[0], SIZE[1])
-    I_diffuse = np.array(I_diffuse[:]).reshape(SIZE[0], SIZE[1])
+    Intensity = np.array(Intensity[:]).reshape(APs.SIZE[0], APs.SIZE[1])
+    I_diffuse = np.array(I_diffuse[:]).reshape(APs.SIZE[0], APs.SIZE[1])
 
     # print(Intensity)
     # Intensity = Intensity / np.max(Intensity)
     # Create a sphere plot
-    phiP, thetaP = np.meshgrid(phiP_list, thetaP_list)
-    x = R2 * np.cos(phiP) * np.cos(thetaP)
-    y = R2 * np.cos(phiP) * np.sin(thetaP)
-    z = R2 * np.sin(phiP)
+    phiP, thetaP = np.meshgrid(APs.phiP_list, APs.thetaP_list)
+    x = PPs.Rp * np.cos(phiP) * np.cos(thetaP)
+    y = PPs.Rp * np.cos(phiP) * np.sin(thetaP)
+    z = PPs.Rp * np.sin(phiP)
 
     # Plotting the sphere
     fig = plt.figure(figsize=(8, 8))
@@ -134,8 +130,8 @@ def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = '
         mappable = ax.plot_surface(x, y, z, facecolors=plt.cm.gray(Intensity.T /temp), rstride=1, cstride=1, antialiased=False)
 
     # Plot the incident and reflected vectors
-    # ax.quiver(-(2000 + R2) * np.cos(Theta), -(2000 + R2) * np.sin(Theta), 0, np.cos(Theta), np.sin(Theta), 0, color='r', length=2000.0, normalize=True)
-    # ax.quiver(R2 * camera[0], R2 * camera[1], R2 * camera[2], camera[0], camera[1], camera[2], color='g', length=2000.0, normalize=True, linestyle='dashed')
+    # ax.quiver(-(2000 + PPs.Rp) * np.cos(Theta), -(2000 + PPs.Rp) * np.sin(Theta), 0, np.cos(Theta), np.sin(Theta), 0, color='r', length=2000.0, normalize=True)
+    # ax.quiver(PPs.Rp * PPs.camera[0], PPs.Rp * PPs.camera[1], PPs.Rp * PPs.camera[2], PPs.camera[0], PPs.camera[1], PPs.camera[2], color='g', length=2000.0, normalize=True, linestyle='dashed')
 
     # Set axis labels
     ax.set_xlabel('X (km)') 
@@ -143,11 +139,11 @@ def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = '
     ax.set_zlabel('Z (km)') 
 
     # Set the view angle 
-    elev = np.arcsin(camera[2])
-    if camera[2] == 1:
+    elev = np.arcsin(PPs.camera[2])
+    if PPs.camera[2] == 1:
         azim = 0
     else:
-        azim = np.arccos(camera[0]/np.cos(elev))
+        azim = np.arccos(PPs.camera[0]/np.cos(elev))
     ax.view_init(elev=np.rad2deg(elev) , azim=np.rad2deg(azim))
 
     # Show the plot
@@ -165,23 +161,23 @@ def global_intensity(Theta, Coarse = Coarse_g, id=0, Model = 'Lambert', mode = '
 # A line passes point Pos, with the direction vector Camera. Calculate the distance between this line and the origin.
 # The line is defined by the equation: r = Pos + t*Camera
 # #The distance between the line and the origin is given by: |Pos x Camera|/|Camera|
-# print(np.linalg.norm(np.cross(Pos, camera))/np.linalg.norm(camera))
+# print(np.linalg.norm(np.cross(Pos, PPs.camera))/np.linalg.norm(PPs.camera))
 # #The distance between the line and the origin is given by: |Pos| sin(theta)
-# print(np.linalg.norm(Pos)*np.sin(angle_between(Pos, camera)))
+# print(np.linalg.norm(Pos)*np.sin(angle_between(Pos, PPs.camera)))
 
 def multiprocess_func2(spectrum_P, spectrum_S, Theta, j, TMAP, wavelength):
     # with spectrum_P.get_lock():
     if Theta < 1e-6:
         spectrum_P[j] = 0
     else:
-        spectrum_P[j] = Radiation_cal(TMAP, Theta, camera, Temperature, wavelength)
+        spectrum_P[j] = Radiation_cal(TMAP, Theta, PPs.camera, wavelength)
 
     # with spectrum_S.get_lock():     
-    spectrum_S[j] = Cal_star_flux(Theta, wavelength, Temperature)   
+    spectrum_S[j] = Cal_star_flux(Theta, wavelength, PPs.Stellar_T)   
 
 
 @decorator_timer('thermal_spectrum')
-def thermal_spectrum(wavelength_bound, Temperature= Temperature , id=0, Ntheta = 5, NWavelength = 1):
+def thermal_spectrum(wavelength_bound, id=0, Ntheta = 5, NWavelength = 1):
     """
     Calculate the blackbody radiation spectrum
 
@@ -211,7 +207,7 @@ def thermal_spectrum(wavelength_bound, Temperature= Temperature , id=0, Ntheta =
     RAT = np.zeros([len(Theta_list), len(Wave_list)])
 
     for i, Theta in enumerate(Theta_list):
-        if e == 0:
+        if PPs.eccentricity == 0:
             TMAP = TMAP0
         else:
             TMAP = Tmap(Theta, id)
@@ -291,8 +287,8 @@ def ratio_plotter(Wavelength, spectrum_S, spectrum_P, ratio, id, Theta):
     #mpl.rcParams['font.sans-serif'] = ['SimHei']   #显示中文
     mpl.rcParams['axes.unicode_minus']=False       #显示负号
 
-    a = 0.45
-    fig, ax = plt.subplots(figsize=(26*a,13*a))
+    A = 0.45
+    fig, ax = plt.subplots(figsize=(26*A,13*A))
     plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.3, hspace=0.3)
     plt.rcParams['ytick.direction'] = 'in'# 刻度线显示在内部
     plt.rcParams['xtick.direction'] = 'in'# 刻度线显示在内部
@@ -350,7 +346,7 @@ def ratio_plotter(Wavelength, spectrum_S, spectrum_P, ratio, id, Theta):
 
 
 @decorator_timer('vertify_radiation')
-def vertify_radiation(wavelength_bound, Temperature= Temperature, id=0, Ntheta = 5, NWavelength = 1):
+def vertify_radiation(wavelength_bound, Temperature= PPs.Stellar_T, id=0, Ntheta = 5, NWavelength = 1):
     # Calculate the blackbody radiation spectrum
     os.makedirs(f'temp/V{id}/plots', exist_ok=True)
     os.makedirs(f'temp/V{id}/Results', exist_ok=True)
@@ -395,8 +391,8 @@ def vertify_radiation(wavelength_bound, Temperature= Temperature, id=0, Ntheta =
         for i, wave in enumerate(Wavelength):
             mpl.rcParams['axes.unicode_minus']=False       #显示负号
 
-            a = 0.45
-            fig, ax = plt.subplots(figsize=(26*a,13*a))
+            A = 0.45
+            fig, ax = plt.subplots(figsize=(26*A,13*A))
             plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.3, hspace=0.3)
             plt.rcParams['ytick.direction'] = 'in'# 刻度线显示在内部
             plt.rcParams['xtick.direction'] = 'in'# 刻度线显示在内部
@@ -433,15 +429,15 @@ def vertify_radiation(wavelength_bound, Temperature= Temperature, id=0, Ntheta =
             
 
 
-    Tmap = np.zeros((SIZE[0], SIZE[1]))
-    phiP_list = np.linspace(0, 2* np.pi, SIZE[1])
-    thetaP_list = np.linspace(0, np.pi, SIZE[0])
-    r = orbit_calculator(a, e, Theta)
+    Tmap = np.zeros((APs.SIZE[0], APs.SIZE[1]))
+    phiP_list = np.linspace(0, 2* np.pi, APs.SIZE[1])
+    thetaP_list = np.linspace(0, np.pi, APs.SIZE[0])
+    r = orbit_calculator(PPs.semi_axis, PPs.eccentricity, Theta)
 
     def Tp(cos_Psi):
         #calculate the temperature of planet surface
         if cos_Psi > 0:
-            return  Temperature* np.sqrt(R1 / r) * cos_Psi**(1/4)
+            return  Temperature* np.sqrt(PPs.Rs / r) * cos_Psi**(1/4)
         else:
             return 0
 

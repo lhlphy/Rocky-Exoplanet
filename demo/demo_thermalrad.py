@@ -5,7 +5,6 @@ import warnings
 from scipy.integrate._quadpack_py import IntegrationWarning  
 import argparse
 import os
-from lib.parameter_list import Albedo, Temperature
 
 import matplotlib.pyplot as plt
 
@@ -27,7 +26,7 @@ if __name__ == "__main__":
 
     t5 = time.time()
     wave_bound = np.array([5000 , 5000])*1e-9
-    mf.thermal_spectrum(wave_bound, Temperature, id=args.id, Ntheta = args.Ntheta, NWavelength= args.Nwave)
+    mf.thermal_spectrum(wave_bound, id=args.id, Ntheta = args.Ntheta, NWavelength= args.Nwave)
 
     t6 = time.time()
     print("Total Time = ", t6 - t5, "s, Processing ALL DONE!")

@@ -1,10 +1,10 @@
 import numpy as np
 from lib.main_function import *
-from lib.parameter_list import  Temperature
+from lib.parameter_list import  PPs
 import matplotlib.pyplot as plt
 # 理论推导模型和我的模型的交叉验证
 ID = 4
-vertify_radiation(np.array([4000,5000])* 1e-9, Temperature = Temperature , id = ID, Ntheta = 120, NWavelength = 2)
+vertify_radiation(np.array([4000,5000])* 1e-9, Temperature = PPs.Stellar_T , id = ID, Ntheta = 120, NWavelength = 2)
 
 # plot the results
 DIF = np.load(f'temp/V{ID}/variables/DIF.npy')
