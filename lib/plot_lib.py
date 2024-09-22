@@ -30,6 +30,11 @@ def IDS_plot(name, Obs_wave):
     I_i = spli(Obs_wave).T
     I_d = spld(Obs_wave).T
     I_t = splt(Obs_wave).T
+    
+    if np.size(Theta_list) == 2:
+        print('Wavelength: ', Obs_wave[0]*1e6, 'um')
+        print('Secondary eclipse depth difference: ',(I_d-I_s) *1e6,' ppm')
+        return 
 
     theta = np.linspace(0, 2*np.pi, 200)
     Theta_list[np.size(Theta_list)//2] += 1e-10
@@ -41,10 +46,15 @@ def IDS_plot(name, Obs_wave):
     I_i = spli(theta)
     I_d = spld(theta)
     I_t = splt(theta)
-
+    
+    i = 0
+    N  = I_s.size
+    print('Wavelength: ', Obs_wave[0]*1e6, 'um')
+    print('Secondary eclipse depth difference: ',(I_d[i,N//2]-I_s[i,N//2])*1e6,' ppm')
+    
     # plot
     plt.rcParams['font.size'] = 12
-    i = 0
+    
     # plt.figure(figsize=(8, 5))
 
     # plt.plot(theta, I_s[0,:] * 1e6, label='Specular')
@@ -118,7 +128,6 @@ def IDS_plot(name, Obs_wave):
     ax.set_xlabel('Orbital angle (rad)', fontsize=18)
     ax.set_ylabel('Contrast ratio (ppm)', fontsize=18)
 
-    N  = I_s.size
     plt.errorbar(theta[N//2], (I_s[i,N//2]+I_t[i,N//2])*1e6, yerr = 1.25, capsize= 10)
     plt.plot(theta[N//2], (I_s[i,N//2]+I_t[i,N//2])*1e6,'.')
 
@@ -126,8 +135,6 @@ def IDS_plot(name, Obs_wave):
     plt.show()
     plt.savefig(f'temp/{name}/compare_PC_{Obs_wave[0]*1e6}.png')
     plt.close()
-    print('Wavelength: ', Obs_wave[0]*1e6, 'um')
-    print('Secondary eclipse depth difference: ',(I_d[i,N//2]-I_s[i,N//2])*1e6,' ppm')
 
 
 def spectrum_plot(name):
@@ -144,13 +151,56 @@ def spectrum_plot(name):
     ID = I_diffuse[:, N2//2]
     IS = I_specular[:, N2//2]
     Star_flux = Star_flux[:, N2//2]
-    Thermal = Thermal[:, N2//2]
+    IT = Thermal[:, N2//2]
+    
+    plt.plot(wave_list *1e6, (IT + ID) *1e6)
+    plt.plot(wave_list *1e6, (IT + IS) *1e6)
+    plt.legend(['Lambert surface', 'Specular surface'])
+    plt.xlabel('Wavelength ($\mu$m)')
+    plt.ylabel('Contrast ratio (ppm)')
+    
+    plt.show()
+    plt.savefig(f"temp/{name}/spectrum")
+    
+def compare_spectrum_plot(name_list):
+    # load data, I_diffuse,I_specular is contrast ratio 
+    pallet = ['r','b']
+    for i, name in enumerate(name_list):
+        I_diffuse = np.load(f'temp/{name}/variables/I_diffuse.npy')
+        I_specular = np.load(f'temp/{name}/variables/I_specular.npy')
+        Star_flux = np.load(f'temp/{name}/variables/Star_flux.npy')
+        wave_list = np.load(f'temp/{name}/variables/wave_list.npy')
+        Thermal = np.load(f'temp/{name}/variables/Thermal.npy')
+
+        # convert I_diffuse,I_specular (contrast ratio) to absolute intensity
+        N1 = Star_flux.shape[0]
+        N2 = Star_flux.shape[1]
+        ID = I_diffuse[:, N2//2]
+        IS = I_specular[:, N2//2]
+        Star_flux = Star_flux[:, N2//2]
+        IT = Thermal[:, N2//2]
+    
+        plt.plot(wave_list *1e6, (IT + ID) *1e6, '-', color = pallet[i])
+        plt.plot(wave_list *1e6, (IT + IS) *1e6, '--', color = pallet[i])
+        
+    # plt.legend(['High albedo & Lambert', 'High albedo & Specular', 
+    #             'Low albedo & Lambert', 'Low albedo & Specular'])
+    plt.xlabel('Wavelength ($\mu$m)')
+    plt.ylabel('Contrast ratio (ppm)')
+    
+    plt.show()
+    plt.savefig(f"temp/{name}/spectrum_comp")
+    
 
 if __name__ =='__main__':
     # parser = argparser.ArgumentParser()
     # parser.add_argument('--file', default = 'R1', type = str)
     # args = parser.parse_args()
-    IDS_plot('R2', np.array([1]) * 1e-6)
+    # name = 'R4 low'
+    # IDS_plot(name, np.array([1]) * 1e-6)
+    # spectrum_plot(name)
+    
+    compare_spectrum_plot(['R1 high_H', 'R4 low_H'])
     
     
     
