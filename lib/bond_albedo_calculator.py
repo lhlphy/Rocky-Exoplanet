@@ -69,7 +69,8 @@ def bond_albedo_calculator(Wavelength_min, Wavelength_max, name , Nmark = -1):
     
     return (Spectral_Contrast_ratio_S + Spectral_Contrast_ratio_T) *1e6, (Spectral_Contrast_ratio_D + Spectral_Contrast_ratio_T) *1e6
 
-bond_albedo_calculator(3.9e-6, 4.1e-6, 'R5')
+if __name__ == '__main__':
+    bond_albedo_calculator(3.9e-6, 4.1e-6, 'R5')
 
 
 

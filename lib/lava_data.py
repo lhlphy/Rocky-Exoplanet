@@ -144,7 +144,7 @@ class lava_Albedo:
         plt.close()
         
 # 实例化类，作为对象导入其他程序模块
-LA = lava_Albedo('high')
+LA = lava_Albedo('low')
 
 # run as main program to plot albedo curve
 if __name__ == '__main__':

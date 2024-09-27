@@ -31,15 +31,14 @@ def BRDF(i, j, Theta, Coarse, Model='Lambert', id= 0):
     thetaP = APs.thetaP_list[j]
     # Calculate the normal vector and position
     nv, Pos, r = normal_vec(phiP, thetaP, Theta)
-
-    if check_intersection_with_star(Pos, PPs.camera):  # Check if the line intersects with the star--Check block
-        return 0, 0  # if blocked , intensity is 0, 0
     
     # Calculate the reflected vector
     RV = reflect(Pos, nv)
     
     # Check if the reflection direction is towards the camera
     if check_direction(RV, nv, PPs.camera, Pos):
+        if  np.abs(Theta - np.pi) < np.pi/4 and check_intersection_with_star(Pos, PPs.camera):  # Check if the line intersects with the star--Check block
+            return 0, 0  # if blocked , intensity is 0, 0
         # Calculate the angle between the camera and the reflected vector
         # angle = angle_between(PPs.camera, RV)
         # Calculate the intensity of the reflected light

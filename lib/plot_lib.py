@@ -172,49 +172,20 @@ def spectrum_plot(name, wave_range):
     plt.show()
     plt.savefig(f"temp/{name}/spectrum")
     
-def compare_spectrum_plot(name_list):
-    # load data, I_diffuse,I_specular is contrast ratio 
-    pallet = ['b','g', 'r']
-    plotarr  = [0] * 6
-    fig, ax = plt.subplots()
-    for i, name in enumerate(name_list):
-        I_diffuse = np.load(f'temp/{name}/variables/I_diffuse.npy')
-        I_specular = np.load(f'temp/{name}/variables/I_specular.npy')
-        Star_flux = np.load(f'temp/{name}/variables/Star_flux.npy')
-        wave_list = np.load(f'temp/{name}/variables/wave_list.npy')
-        Thermal = np.load(f'temp/{name}/variables/Thermal.npy')
-
-        # convert I_diffuse,I_specular (contrast ratio) to absolute intensity
-        N1 = Star_flux.shape[0]
-        N2 = Star_flux.shape[1]
-        ID = I_diffuse[:, N2//2]
-        IS = I_specular[:, N2//2]
-        Star_flux = Star_flux[:, N2//2]
-        IT = Thermal[:, N2//2]
-    
-        plotarr[i*2], = plt.plot(wave_list *1e6, (IT + ID) *1e6, '-', color = pallet[i])
-        plotarr[i*2+1], = plt.plot(wave_list *1e6, (IT + IS) *1e6, '--', color = pallet[i])
-        
-    fig.subplots_adjust(bottom=0.25)  
-    # plt.legend(['High albedo & Lambert', 'High albedo & Specular', 
-    #             'Low albedo & Lambert', 'Low albedo & Specular'])
-    plt.legend(plotarr, ['Low albedo & Lambert', 'Low albedo & Specular',  'Mid albedo & Lambert', 'Mid albedo & Specular',
-                'High albedo & Lambert', 'High albedo & Specular'], loc='upper center', bbox_to_anchor=(0.5, -0.13), ncol=2)
-    plt.xlabel('Wavelength ($\mu$m)')
-    plt.ylabel('Contrast ratio (ppm)')
-    ax.set_xlim(5, 12) 
-    ax.set_ylim(20, 160)
-    
-    plt.show()
-    plt.savefig(f"temp/{name}/spectrum_comp")
-    plt.close()
-    
-   
 def compare_phase_curve_plot(name_list, wave_range):
     # load data, I_diffuse,I_specular is contrast ratio 
-    pallet = ['b','g', 'r']
+    sim_obs = np.loadtxt(f"telescope_measure/sim_obs (10).txt", delimiter=' ')
+    x = sim_obs[:,0]
+    y = sim_obs[:,3] *1e6
+    Bin = np.sqrt(1/np.sum(1/y**2))
+    
+    pallet = ['b','r']
     plotarr  = [0] * 6
     fig, ax = plt.subplots()
+    
+    ebar = np.array([Bin, Bin * np.sqrt(1/0.629), Bin])
+    
+    xloc = np.array([0.3948, 0.5, 0.6052])
     for i, name in enumerate(name_list):
         Theta_list = np.load(f'temp/{name}/variables/Theta.npy')
         Theta_list = Theta_list / (2 *np.pi)   # 将相位角归一化
@@ -227,28 +198,80 @@ def compare_phase_curve_plot(name_list, wave_range):
         plotarr[i*2], = plt.plot(Theta_list, CR_D, '-', color = pallet[i], linewidth = 2)
         plotarr[i*2+1], = plt.plot(Theta_list, CR_S, '--', color = pallet[i], linewidth = 2)
         
+        spl = interp1d(Theta_list, CR_D, kind='linear')
+        yloc = spl(xloc)
+        plt.errorbar(xloc, yloc, yerr = 5, fmt='o', ecolor=pallet[i], linestyle='None')
+        
         # 调整布局以便为图例腾出空间  
     fig.subplots_adjust(bottom=0.25)  
 
+    print(ebar)
+    # 设置背景颜色  
+    ax.axvspan(0.4593, 0.5407, color='gray', alpha=0.5)
+    ax.axvspan(0.3303, 0.4593, color='gray', alpha=0.2)
+    ax.axvspan(0.5407, 0.6697, color='gray', alpha=0.2)
     # 设置图例并放置在图窗的正下方  
-    plt.legend(['Low albedo & Lambert', 'Low albedo & Specular', 
+    plt.legend(plotarr, ['Low albedo & Lambert', 'Low albedo & Specular', 
                 'High albedo & Lambert', 'High albedo & Specular'], loc='upper center', bbox_to_anchor=(0.5, -0.13), ncol=2)
     # plt.legend(plotarr, ['Low albedo & Lambert', 'Low albedo & Specular',  'Mid albedo & Lambert', 'Mid albedo & Specular',
     #             'High albedo & Lambert', 'High albedo & Specular'], loc='upper center', bbox_to_anchor=(0.5, -0.13), ncol=2)
     # ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=2)  
     plt.xlabel('Orbital Phase')
     plt.ylabel('Contrast ratio (ppm)')
+    # 添加文字和箭头，设置字体透明度  
+    plt.text(0.3948, -5, '1 hour', fontsize=12, color='black', ha='center') 
+    # plt.text(0.3948, -5, '', fontsize=12, color='black', ha='center')
+    plt.text(0.5, -5, '0.63 hour', fontsize=12, color='black', ha='center')
+    # plt.text(0.3948, -3, '1 hour', fontsize=12, color='black', ha='center')
+    plt.text(0.6052, -5, '1 hour', fontsize=12, color='black', ha='center')
+    # plt.text(0.3948, -3, '1 hour', fontsize=12, color='black', ha='center')
     
     plt.show()
     plt.savefig(f"temp/{name}/phase_curve_comp")
     plt.close()
     
     
+   
 def real_comp(name_list):
     # load data, I_diffuse,I_specular is contrast ratio 
+    ############ load real measured data  ###############
+    data_value = np.loadtxt(f"telescope_measure/JWST_data.txt", delimiter=',')
+    data_ebar = np.loadtxt(f"telescope_measure/JWST_errorbar.txt", delimiter=',')
+    
+    DN = data_value.shape[0]
+    
+    data = np.zeros([DN, 3])
+    data[:,0:2] = data_value
+    for i in range(DN):
+        data[i, 2] = np.abs(data_ebar[i*2,1] - data_ebar[i*2+1,1])/2
+        
+    # 创建散点图  
+    fig, ax = plt.subplots()
+    plt.errorbar(data[:,0], data[:,1], yerr=data[:,2], fmt='ok', ecolor='k', linestyle='None')  
+    
+    DN = DN -1
+    data2 = np.zeros([DN, 3])
+    data2[0:7] = data[0:7]
+    data2[7:] = data[8:]
+    
+    
+    ## 处理模型数据并绘图
     pallet = ['b', 'r']
     plotarr  = [0] * 6
-    fig, ax = plt.subplots()
+    chi2 = np.zeros(np.size(name_list)*2)
+    
+    sim_obs = np.loadtxt(f"telescope_measure/sim_obs.txt", delimiter=' ')
+    x = sim_obs[:,0]
+    y = sim_obs[:,3] *1e6
+    Bin = np.zeros(6)
+    xloc = np.zeros(6)
+    for i in range(6):
+        xq = x[214*i:214*(i+1)]
+        yq = y[214*i:214*(i+1)]
+        Bin[i] = np.sqrt(1/np.sum(1/yq**2))
+        xloc[i] = np.mean(xq)
+    
+  
     for i, name in enumerate(name_list):
         I_diffuse = np.load(f'temp/{name}/variables/I_diffuse.npy')
         I_specular = np.load(f'temp/{name}/variables/I_specular.npy')
@@ -267,32 +290,29 @@ def real_comp(name_list):
         plotarr[i*2], = plt.plot(wave_list *1e6, (IT + ID) *1e6, '-', color = pallet[i])
         plotarr[i*2+1], = plt.plot(wave_list *1e6, (IT + IS) *1e6, '--', color = pallet[i])
         
+        spl = interp1d(wave_list *1e6,  (IT + ID) *1e6, kind='linear')
+        yloc = spl(xloc)
+        plt.errorbar(xloc, yloc, yerr=Bin, fmt='o', ecolor=pallet[i], linestyle='None')
+        
+        chi2[i*2] = chi2_cal(data2[:,0], data2[:,1], data2[:,2], wave_list *1e6, (IT + ID) *1e6)
+        chi2[i*2 + 1] = chi2_cal(data2[:,0], data2[:,1], data2[:,2], wave_list *1e6, (IT + IS) *1e6)
+        
     fig.subplots_adjust(bottom=0.25)  
-    plt.legend(plotarr, ['Low albedo & Lambert', 'Low albedo & Specular', 
-                'High albedo & Lambert', 'High albedo & Specular'], loc='upper center', bbox_to_anchor=(0.5, -0.13), ncol=2)
+    plt.legend(plotarr, [f'Low albedo & Lambert $\chi^2$={chi2[0]:.2f}', f'Low albedo & Specular $\chi^2$={chi2[1]:.2f}', 
+                f'High albedo & Lambert $\chi^2$={chi2[2]:.2f}', f'High albedo & Specular $\chi^2$={chi2[3]:.2f}'], loc='upper center', bbox_to_anchor=(0.5, -0.13), ncol=2)
     # plt.legend(plotarr, ['Low albedo & Lambert', 'Low albedo & Specular',  'Mid albedo & Lambert', 'Mid albedo & Specular',
     #             'High albedo & Lambert', 'High albedo & Specular'], loc='upper center', bbox_to_anchor=(0.5, -0.13), ncol=2)
     
-    ############ load real measured data  ###############
-    data_value = np.loadtxt(f"telescope_measure/JWST_data.txt", delimiter=',')
-    data_ebar = np.loadtxt(f"telescope_measure/JWST_errorbar.txt", delimiter=',')
-
-    DN = data_value.shape[0]
-    data = np.zeros([DN, 3])
-    data[:,0:2] = data_value
-    for i in range(DN):
-        data[i, 2] = np.abs(data_ebar[i*2,1] - data_ebar[i*2+1,1])/2
-        
-    # 创建散点图  
-    plt.errorbar(data[:,0], data[:,1], yerr=data[:,2], fmt='ok', ecolor='k', linestyle='None')  
+    print(chi2)
+    print(Bin)
 
     # 添加标题和标签  
     # plt.title('')  
     plt.xlabel('Wavelength ($\mu$m)')  
     plt.ylabel('Eclipse depth (ppm)') 
-    plt.axis([5, 12, 20, 160])
+    plt.axis([0.5, 12, 0, 160])
     
-    plt.savefig('telescope_measure/data_plot.png') 
+    plt.savefig('telescope_measure/data_plot3.png') 
 
     # 显示图表  
     plt.show()
@@ -309,9 +329,10 @@ if __name__ =='__main__':
     # spectrum_plot(name, wave_range)
     
     # compare_spectrum_plot(['R3', 'R4', 'R5'])
-    real_comp()
+    # real_comp(['GJ-367 b low', 'GJ-367 b high'])
     
-    # compare_phase_curve_plot(['R0', 'R1'], np.array([0.42, 0.9])* 1e-6)
+    compare_phase_curve_plot(['GJ-367 b PC low', 'GJ-367 b PC high'], np.array([2.87, 5.10])* 1e-6)
+    
     
     
     
