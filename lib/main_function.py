@@ -32,11 +32,8 @@ def BRDF(i, j, Theta, Coarse, Model='Lambert', id= 0):
     # Calculate the normal vector and position
     nv, Pos, r = normal_vec(phiP, thetaP, Theta)
 
-    # if check_intersection_with_star(Pos, PPs.camera):  # Check if the line intersects with the star--Check block
-    #     with Intensity.get_lock():
-    #         Intensity[APs.SIZE[1]*i+j] = 0
-
-    #     return
+    if check_intersection_with_star(Pos, PPs.camera):  # Check if the line intersects with the star--Check block
+        return 0, 0  # if blocked , intensity is 0, 0
     
     # Calculate the reflected vector
     RV = reflect(Pos, nv)
@@ -69,7 +66,7 @@ def process_pack(i, Intensity, I_diffuse, Theta, Coarse, Model, id):
         Intensity[APs.SIZE[1]*i+j] = (Diffuse + SR)
         I_diffuse[APs.SIZE[1]*i+j] = Diffuse
 
-@decorator_timer('global_intensity: ')
+# @decorator_timer('global_intensity: ')
 def global_intensity(Theta, id=0, Model = 'Lambert', Coarse = PPs.Coarse_g, mode = 'geo'):
     """
     Calculate the intensity map of the reflection and diffusion of the planet surface

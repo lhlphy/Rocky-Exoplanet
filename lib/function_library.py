@@ -789,11 +789,16 @@ def Radiation_cal(Tmap, Theta, camera, Wavelength = 0):
     Dphi = 2*np.pi/APs.SIZE[1]
     thetaP_list = np.linspace(0, np.pi, APs.SIZE[0])
     phiP_list = np.linspace(0, 2* np.pi, APs.SIZE[1])
+    r = orbit_calculator(PPs.semi_axis, PPs.eccentricity, Theta)
+    r_vec = np.array([np.cos(Theta), np.sin(Theta), 0]) * r
 
     for i, thetaP in enumerate(thetaP_list):
         for j, phiP in enumerate(phiP_list):
             normalP = np.array([-np.sin(thetaP)*np.cos(phiP), -np.sin(thetaP)*np.sin(phiP), np.cos(thetaP)])
             normalP = rotate_vector(normalP, 'z', Theta)  #calculate the normal vector of the planet in global coordinate system
+            Pos = r_vec + normalP *PPs.Rp
+            if check_intersection_with_star(Pos, PPs.camera):  # Check if the line intersects with the star--Check block
+                continue  # if blocked 
 
             angle = angle_between(normalP, camera)
             if angle >= np.pi/2:
@@ -869,4 +874,17 @@ def para_rad(Theta, lam = 0, Temperature = PPs.Stellar_T):
     Fp2 = Int2[0] * PPs.Rp**2 * B(lam, Temperature) *(PPs.Rs/r)**2
 
     return Fp/Fs, Fp2/Fs
+
+
+def chi2_cal(jwst_wavelength, jwst_spectrum, jwst_error, model_wavelength, model_spectrum):
+    # 对模型光谱进行插值，使其与实测数据对齐  
+    interp_model_spectrum = interp1d(model_wavelength, model_spectrum, kind='linear')  
+    model_spectrum_aligned = interp_model_spectrum(jwst_wavelength)  
+    # 计算chi2值  
+    chi2 = np.sum(((jwst_spectrum - model_spectrum_aligned) ** 2) / (jwst_error ** 2))  
+
+    # 打印结果  
+    # print(f"Chi-squared (χ²) value: {chi2}")  
+    return chi2
+
 

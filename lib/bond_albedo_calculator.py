@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.integrate import simps, quad
-from function_library import B, R1, R2
 from parameter_list import PPs
 
 def integrate_spectrum_with_interpolation(wave_list, IS, Wavelength_min, Wavelength_max):
@@ -26,7 +25,7 @@ def integrate_spectrum_with_interpolation(wave_list, IS, Wavelength_min, Wavelen
     return integral
 
 
-def bond_albedo_calculator(Wavelength_min, Wavelength_max, name ):
+def bond_albedo_calculator(Wavelength_min, Wavelength_max, name , Nmark = -1):
     # load data, I_diffuse,I_specular is contrast ratio 
     I_diffuse = np.load(f'temp/{name}/variables/I_diffuse.npy')
     I_specular = np.load(f'temp/{name}/variables/I_specular.npy')
@@ -40,10 +39,13 @@ def bond_albedo_calculator(Wavelength_min, Wavelength_max, name ):
     # convert I_diffuse,I_specular (contrast ratio) to absolute intensity
     N1 = Star_flux.shape[0]
     N2 = Star_flux.shape[1]
-    ID = I_diffuse[:, N2//2]
-    IS = I_specular[:, N2//2]
-    Star_flux = Star_flux[:, N2//2]
-    Thermal = Thermal[:, N2//2]
+    if Nmark == -1:
+        Nmark = N2//2
+        
+    ID = I_diffuse[:, Nmark]
+    IS = I_specular[:, Nmark]
+    Star_flux = Star_flux[:, Nmark]
+    Thermal = Thermal[:, Nmark]
 
     ID = ID *Star_flux
     IS = IS *Star_flux
@@ -64,8 +66,10 @@ def bond_albedo_calculator(Wavelength_min, Wavelength_max, name ):
     print('Spectral Contrast ratio of Specular reflection in [',Wavelength_min, Wavelength_max,'] $\mu$m is:', Spectral_Contrast_ratio_S* 1e6,' ppm' )
     print('Spectral Contrast ratio of diffuse reflection in [',Wavelength_min, Wavelength_max,'] $\mu$m is:', Spectral_Contrast_ratio_D* 1e6, ' ppm' )
     print('Spectral Contrast ratio of Thermal radiation in [',Wavelength_min, Wavelength_max,'] $\mu$m is:', Spectral_Contrast_ratio_T* 1e6,' ppm' )
+    
+    return (Spectral_Contrast_ratio_S + Spectral_Contrast_ratio_T) *1e6, (Spectral_Contrast_ratio_D + Spectral_Contrast_ratio_T) *1e6
 
-bond_albedo_calculator(0.33e-6, 0.5e-6, 'R10')
+bond_albedo_calculator(3.9e-6, 4.1e-6, 'R5')
 
 
 
