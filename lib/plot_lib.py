@@ -219,12 +219,15 @@ def compare_phase_curve_plot(name_list, wave_range):
     plt.xlabel('Orbital Phase')
     plt.ylabel('Contrast ratio (ppm)')
     # 添加文字和箭头，设置字体透明度  
-    plt.text(0.3948, -5, '1 hour', fontsize=12, color='black', ha='center') 
+    plt.text(0.3948, -4, '1 hour', fontsize=10, color='black', ha='center') 
     # plt.text(0.3948, -5, '', fontsize=12, color='black', ha='center')
-    plt.text(0.5, -5, '0.63 hour', fontsize=12, color='black', ha='center')
+    plt.text(0.5, -6.5, '0.63 h', fontsize=9, color='black', ha='center')
     # plt.text(0.3948, -3, '1 hour', fontsize=12, color='black', ha='center')
-    plt.text(0.6052, -5, '1 hour', fontsize=12, color='black', ha='center')
+    plt.text(0.6052, -4, '1 hour', fontsize=10, color='black', ha='center')
     # plt.text(0.3948, -3, '1 hour', fontsize=12, color='black', ha='center')
+    
+    plt.text(0.9,38, 'G395M/F290LP', fontsize = 10, ha='center', fontweight='bold')
+    plt.text(0.9,35, '2.87-5.10 $\mu$m', fontsize = 10, ha='center', fontweight='bold')
     
     plt.show()
     plt.savefig(f"temp/{name}/phase_curve_comp")
@@ -305,6 +308,9 @@ def real_comp(name_list):
     
     print(chi2)
     print(Bin)
+    ax.axvspan(2.87, 5.10, color='gray', alpha=0.2)
+    plt.text(3.985, 150, 'G395M/F290LP', fontsize = 9.5, ha='center')
+    plt.text(3.985, 140, '2.87-5.10 $\mu$m', fontsize = 9.5, ha='center')
 
     # 添加标题和标签  
     # plt.title('')  
@@ -329,9 +335,9 @@ if __name__ =='__main__':
     # spectrum_plot(name, wave_range)
     
     # compare_spectrum_plot(['R3', 'R4', 'R5'])
-    # real_comp(['GJ-367 b low', 'GJ-367 b high'])
+    real_comp(['GJ-367 b low', 'GJ-367 b high'])
     
-    compare_phase_curve_plot(['GJ-367 b PC low', 'GJ-367 b PC high'], np.array([2.87, 5.10])* 1e-6)
+    # compare_phase_curve_plot(['GJ-367 b PC low', 'GJ-367 b PC high'], np.array([2.87, 5.10])* 1e-6)
     
     
     
