@@ -5,7 +5,7 @@ from function_library import B, sym_complete, decorator_timer
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import os
-
+ 
 @decorator_timer('Full_spectrum')
 def Full_spectrum(wavelength_bound, args = None, id = 0, Ntheta = 5, Nwave = 1):
     """
@@ -22,7 +22,7 @@ def Full_spectrum(wavelength_bound, args = None, id = 0, Ntheta = 5, Nwave = 1):
     os.makedirs(f'temp/R{id}/Results', exist_ok=True)
 
     """ Calculate the thermal spectrum """ 
-    mf.thermal_spectrum(wavelength_bound, id= id, Ntheta = Ntheta, NWavelength= Nwave)
+    mf.thermal_spectrum(wavelength_bound, id= id, Ntheta = Ntheta, NWavelength= Nwave, Nsubpro= args.Nsubpro)
     # Load the results
     thermal_ratio = np.load(f'temp/R{id}/variables/Thermal.npy')
     Theta_list  = np.load(f'temp/R{id}/variables/Theta.npy')

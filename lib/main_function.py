@@ -37,7 +37,7 @@ def BRDF(i, j, Theta, Coarse, Model='Lambert', id= 0):
     
     # Check if the reflection direction is towards the camera
     if check_direction(RV, nv, PPs.camera, Pos):
-        if  np.abs(Theta - np.pi) < np.pi/4 and check_intersection_with_star(Pos, PPs.camera):  # Check if the line intersects with the star--Check block
+        if  (APs.mode == 'Phase curve') and np.abs(Theta - np.pi) < np.pi/4 and check_intersection_with_star(Pos, PPs.camera):  # Check if the line intersects with the star--Check block
             return 0, 0  # if blocked , intensity is 0, 0
         # Calculate the angle between the camera and the reflected vector
         # angle = angle_between(PPs.camera, RV)
@@ -161,19 +161,23 @@ def global_intensity(Theta, id=0, Model = 'Lambert', Coarse = PPs.Coarse_g, mode
 # #The distance between the line and the origin is given by: |Pos| sin(theta)
 # print(np.linalg.norm(Pos)*np.sin(angle_between(Pos, PPs.camera)))
 
-def multiprocess_func2(spectrum_P, spectrum_S, Theta, j, TMAP, wavelength):
+def multiprocess_func2(spectrum_P, spectrum_S, Theta, TMAP, wave_list, indx_start):
     # with spectrum_P.get_lock():
-    if Theta < 1e-6:
-        spectrum_P[j] = 0
-    else:
-        spectrum_P[j] = Radiation_cal(TMAP, Theta, PPs.camera, wavelength)
+    # if Theta < 1e-6:
+    #     spectrum_P[j] = 0
+    # else:
+    #     spectrum_P[j] = Radiation_cal(TMAP, Theta, PPs.camera, wavelength)
 
-    # with spectrum_S.get_lock():     
-    spectrum_S[j] = Cal_star_flux(Theta, wavelength, PPs.Stellar_T)   
+    # # with spectrum_S.get_lock():     
+    # spectrum_S[j] = Cal_star_flux(Theta, wavelength, PPs.Stellar_T)   
+    
+    for i, wave in enumerate(wave_list):
+        spectrum_P[indx_start + i] = Radiation_cal(TMAP, Theta, PPs.camera, wave)
+        spectrum_S[indx_start + i] = Cal_star_flux(Theta, wave, PPs.Stellar_T)  
 
 
 @decorator_timer('thermal_spectrum')
-def thermal_spectrum(wavelength_bound, id=0, Ntheta = 5, NWavelength = 1):
+def thermal_spectrum(wavelength_bound, id=0, Ntheta = 5, NWavelength = 1, Nsubpro = 1):
     """
     Calculate the blackbody radiation spectrum
 
@@ -198,26 +202,43 @@ def thermal_spectrum(wavelength_bound, id=0, Ntheta = 5, NWavelength = 1):
     # processes = []
     # spectrum_P = multiprocessing.Array('d', len(Wavelength))   
     # spectrum_S = multiprocessing.Array('d', len(Wavelength))
-    SP = np.zeros([len(Theta_list), len(Wave_list)])
-    SS = np.zeros([len(Theta_list), len(Wave_list)])
-    RAT = np.zeros([len(Theta_list), len(Wave_list)])
+    SP = np.zeros([len(Theta_list), NWavelength])
+    SS = np.zeros([len(Theta_list), NWavelength])
+    RAT = np.zeros([len(Theta_list), NWavelength])
+    
+    sub_Nwave = NWavelength // Nsubpro
+    sub_wave_pack = []
+    
+    for i in range(Nsubpro - 1):
+        sub_wave_pack.append(Wave_list[i *sub_Nwave : (i+1) *sub_Nwave])
+        
+    sub_wave_pack.append(Wave_list[(Nsubpro-1) *sub_Nwave : ])
 
     for i, Theta in enumerate(Theta_list):
-        if PPs.eccentricity == 0:
+        if Theta < 1e-4:
+            continue
+        if PPs.eccentricity == 0: 
             TMAP = TMAP0
         else:
             TMAP = Tmap(Theta, id)
 
         processes = []     # processing pool
-        spectrum_P = multiprocessing.Array('d', len(Wave_list))  # Thermal radiation of planet
-        spectrum_S = multiprocessing.Array('d', len(Wave_list))  # Thermal radiation of star
+        spectrum_P = multiprocessing.Array('d', NWavelength)  # Thermal radiation of planet
+        spectrum_S = multiprocessing.Array('d', NWavelength)  # Thermal radiation of star
 
-        for j, wavelength in enumerate(Wave_list):
+        # for j, wavelength in enumerate(Wave_list):
+        #     # Calculate the blackbody radiation spectrum
+        #     process = multiprocessing.Process(target= multiprocess_func2, args = (spectrum_P, spectrum_S, Theta, TMAP, sub_wave_list, indx_start))
+        #     processes.append(process)
+        #     process.start()
+        # # Plot the spectrum
+        
+        for j, sub_wave_list in enumerate(sub_wave_pack):
             # Calculate the blackbody radiation spectrum
-            process = multiprocessing.Process(target= multiprocess_func2, args = (spectrum_P, spectrum_S, Theta, j, TMAP, wavelength))
+            indx_start = j * sub_Nwave
+            process = multiprocessing.Process(target= multiprocess_func2, args = (spectrum_P, spectrum_S, Theta, TMAP, sub_wave_list, indx_start))
             processes.append(process)
             process.start()
-        # Plot the spectrum
             
         for process in processes:
             process.join()

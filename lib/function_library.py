@@ -9,6 +9,7 @@ import multiprocessing
 import time
 from lava_data import LA
 
+print('function_library')
 
 def decorator_timer(name):
     def run_time(func):
@@ -742,6 +743,22 @@ def Tmap(Theta, id = 0):
 
     ## interpolate the 1D array to 2D array using the spline interpolation
     np.save(f'temp/R{id}/variables/Area_1D.npy', np.array(Ar_1D))
+    # 在这里，由于Area_1D后面还要用到，是完全的几何参数表，与温度无关；所以计算并保存
+    # 但接下来的Tmap计算需要no redistribution
+    # first read "heat_redist": Full: Tmap[:,:] = PPs.pl_eqT ; No: calculate using energy balance ; Yes: consider redistribution(Not support yet)
+    with open('log/temp_vars.txt', 'r') as f:
+        # read in the tyoe of lava: 'low' ? 'high'? 'mode1'?
+        lines = f.readlines()
+        heat_redist = lines[2].strip()
+        
+    if heat_redist == 'Full':  # under fully redistribution, the planet has unique temperature
+        Tmap = np.ones((APs.SIZE[0], APs.SIZE[1])) * PPs.pl_eqT
+        print(f"Heat fully redistribute: Equilibrium Temperature = {PPs.pl_eqT}")
+        Tmap_plotter(Tmap, Theta, id)
+        return Tmap  # 所有地方的温度一致，PPs.pl_eqT
+        
+        
+    # Otherwise, calculate the Tmap
     spl = interp1d(ksi_list , Tmap_1D, kind='cubic') #spline interpolation
 
     Tmap = np.zeros((APs.SIZE[0], APs.SIZE[1]))
@@ -805,8 +822,8 @@ def Radiation_cal(Tmap, Theta, camera, Wavelength = 0):
                 if T < 1e-2:  # the temperature is too low, the radiation is negligible
                     continue
                 
-                Pos = r_vec + normalP *PPs.Rp
-                if check_intersection_with_star(Pos, camera):  # Check if the line intersects with the star--Check block
+                # Pos = r_vec + normalP *PPs.Rp  # cal Pos used in check_intersection_with_star ##不再使用中间变量，加快运行速度
+                if (APs.mode == 'Phase curve') and check_intersection_with_star(r_vec + normalP *PPs.Rp, camera):  # Check if the line intersects with the star--Check block
                     continue  # if blocked 
 
                 dA = PPs.Rp**2 * np.sin(thetaP) * Dtheta * Dphi
@@ -882,7 +899,7 @@ def chi2_cal(jwst_wavelength, jwst_spectrum, jwst_error, model_wavelength, model
     interp_model_spectrum = interp1d(model_wavelength, model_spectrum, kind='linear')  
     model_spectrum_aligned = interp_model_spectrum(jwst_wavelength)  
     # 计算chi2值  
-    chi2 = np.sum(((jwst_spectrum - model_spectrum_aligned) ** 2) / (model_spectrum_aligned))  
+    chi2 = np.sum(((jwst_spectrum - model_spectrum_aligned) ** 2) / (jwst_error **2))  
 
     # 打印结果  
     # print(f"Chi-squared (χ²) value: {chi2}")  

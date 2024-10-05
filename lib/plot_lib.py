@@ -259,11 +259,11 @@ def real_comp(name_list):
     
     
     ## 处理模型数据并绘图
-    pallet = ['b', 'r']
-    plotarr  = [0] * 6
+    pallet = ['b', 'r',  'g', 'm']
+    plotarr  = [0] * 100
     chi2 = np.zeros(np.size(name_list)*2)
     
-    sim_obs = np.loadtxt(f"telescope_measure/sim_obs.txt", delimiter=' ')
+    sim_obs = np.loadtxt(f"telescope_measure/sim_obs (12).txt", delimiter=' ')
     x = sim_obs[:,0]
     y = sim_obs[:,3] *1e6
     Bin = np.zeros(6)
@@ -293,16 +293,19 @@ def real_comp(name_list):
         plotarr[i*2], = plt.plot(wave_list *1e6, (IT + ID) *1e6, '-', color = pallet[i])
         plotarr[i*2+1], = plt.plot(wave_list *1e6, (IT + IS) *1e6, '--', color = pallet[i])
         
-        spl = interp1d(wave_list *1e6,  (IT + ID) *1e6, kind='linear')
-        yloc = spl(xloc)
-        plt.errorbar(xloc, yloc, yerr=Bin, fmt='o', ecolor=pallet[i], linestyle='None')
+        if i == 0:
+            spl = interp1d(wave_list *1e6,  (IT + ID) *1e6, kind='linear')
+            yloc = spl(xloc)
+            plt.errorbar(xloc, yloc, yerr=Bin, fmt='o', ecolor=pallet[i], linestyle='None')
         
         chi2[i*2] = chi2_cal(data2[:,0], data2[:,1], data2[:,2], wave_list *1e6, (IT + ID) *1e6)
         chi2[i*2 + 1] = chi2_cal(data2[:,0], data2[:,1], data2[:,2], wave_list *1e6, (IT + IS) *1e6)
         
-    fig.subplots_adjust(bottom=0.25)  
+    fig.subplots_adjust(bottom=0.4)  
     plt.legend(plotarr, [f'Low albedo & Lambert $\chi^2$={chi2[0]:.2f}', f'Low albedo & Specular $\chi^2$={chi2[1]:.2f}', 
-                f'High albedo & Lambert $\chi^2$={chi2[2]:.2f}', f'High albedo & Specular $\chi^2$={chi2[3]:.2f}'], loc='upper center', bbox_to_anchor=(0.5, -0.13), ncol=2)
+                f'High albedo & Lambert $\chi^2$={chi2[2]:.2f}', f'High albedo & Specular $\chi^2$={chi2[3]:.2f}', 
+                'Blackbody & Lambert', 'Blackbody & Specular', 'Full redistribution & Lambert', 'Full redistribution & Specular',
+                'O-H & Lambert', 'O-H & Specular'], loc='upper center', bbox_to_anchor=(0.5, -0.13), ncol=2)
     # plt.legend(plotarr, ['Low albedo & Lambert', 'Low albedo & Specular',  'Mid albedo & Lambert', 'Mid albedo & Specular',
     #             'High albedo & Lambert', 'High albedo & Specular'], loc='upper center', bbox_to_anchor=(0.5, -0.13), ncol=2)
     
@@ -318,7 +321,7 @@ def real_comp(name_list):
     plt.ylabel('Eclipse depth (ppm)') 
     plt.axis([0.5, 12, 0, 160])
     
-    plt.savefig('telescope_measure/data_plot3.png') 
+    plt.savefig('telescope_measure/data_plot4.png') 
 
     # 显示图表  
     plt.show()
@@ -335,7 +338,7 @@ if __name__ =='__main__':
     # spectrum_plot(name, wave_range)
     
     # compare_spectrum_plot(['R3', 'R4', 'R5'])
-    real_comp(['GJ-367 b low', 'GJ-367 b high'])
+    real_comp(['R3', 'R4', 'R1', 'R2', 'R5'])
     
     # compare_phase_curve_plot(['GJ-367 b PC low', 'GJ-367 b PC high'], np.array([2.87, 5.10])* 1e-6)
     

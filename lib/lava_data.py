@@ -20,6 +20,12 @@ import numpy as np
 from scipy.interpolate import interp1d  
 import matplotlib.pyplot as plt  
 
+print("lava_data")
+with open('log/temp_vars.txt', 'r') as f:
+    # read in the tyoe of lava: 'low' ? 'high'? 'mode1'?
+    lines = f.readlines()
+    lavatype = lines[1].strip()
+
 def remove_duplicate(wave_combined, IS_combined):
     # 移除重复的波长值并取平均  
     unique_waves, indices = np.unique(wave_combined, return_index=True)  
@@ -33,7 +39,73 @@ def remove_duplicate(wave_combined, IS_combined):
 class lava_Albedo:
     def __init__(self, type = 'low'):
         self.type = type
-        def Alow():
+        # def Alow():
+        #     # load data, can combined them to get low albedo curve
+        #     CaFeSiOF4 = np.loadtxt(f"lava_lib/CaFeSiO F11, T=1823 K.txt", delimiter=',')
+        #     Bglass = np.loadtxt(f"lava_lib/B-glass, T=1654 K.txt", delimiter=',')
+        #     MORB = np.loadtxt(f'lava_lib/MORB, T=1653 K.txt', delimiter=',')
+
+        #     # 数据提取，第一列是波长，第二列是波长对应的反射率 
+        #     wave_list1 =  CaFeSiOF4[:,0]
+        #     IS1 = CaFeSiOF4[:,1]
+
+        #     wave_list2 = MORB[:,0] 
+        #     IS2 = MORB[:,1] 
+
+        #     # 合并数据  
+        #     wave_combined = np.concatenate((wave_list1, wave_list2))  
+        #     IS_combined = np.concatenate((IS1, IS2))
+
+        #     wave_combined, IS_combined = remove_duplicate(wave_combined, IS_combined)
+        #     return wave_combined, IS_combined
+        
+        # def Ahigh():
+        #     # load data, can combined them to get high albedo curve
+        #     CaFeSiOF6 = np.loadtxt(f"lava_lib/CaFeSiO F6, T=1673 K.txt", delimiter=',')
+        #     Teide = np.loadtxt(f"lava_lib/Teide, T=1187 K.txt", delimiter = ',')
+        #     Forsterite = np.loadtxt('lava_lib/Forsterite, T=1473 K.txt', delimiter= ',')
+        #     Hawaiian = np.loadtxt('lava_lib/Hawaiian basalt, T=1573 K.txt', delimiter= ',')
+            
+        #     wave_list1 =  CaFeSiOF6[:,0]
+        #     IS1 = CaFeSiOF6[:,1]
+            
+        #     wave_list2 = Teide[:,0]
+        #     IS2 = Teide[:,1]
+        #     IS2 = IS2[wave_list2 < 2.71]
+        #     wave_list2 = wave_list2[wave_list2 < 2.71]
+            
+        #     wave_list3 = Teide[:,0]
+        #     IS3 = Teide[:,1]
+        #     IS3 = IS3[(wave_list3 < 3.7) & (wave_list3 > 3.237)]
+        #     wave_list3 = wave_list3[(wave_list3 < 3.7) & (wave_list3 > 3.237)]
+            
+        #     wave_list4 = Forsterite[:,0]
+        #     IS4 = Forsterite[:,1]
+        #     IS4 = IS4[(wave_list4 < 8.4) & (wave_list4 > 3.7)]
+        #     wave_list4 = wave_list4[(wave_list4 < 8.4) & (wave_list4 > 3.7)]
+            
+        #     wave_list5 = Teide[:,0]
+        #     IS5 = Teide[:,1]
+        #     IS5 = IS5[ (wave_list5 < 10.4) & (wave_list5 > 8.4)]
+        #     wave_list5 = wave_list5[(wave_list5 < 10.4) & (wave_list5 > 8.4)]
+            
+        #     wave_list6 = Hawaiian[:,0]
+        #     IS6 = Hawaiian[:,1]
+        #     IS6 = IS6[wave_list6 > 10.4]
+        #     wave_list6 = wave_list6[wave_list6 > 10.4]
+            
+        #     wave_combined = np.concatenate((wave_list1, wave_list2, wave_list3, wave_list4, wave_list5, wave_list6))
+        #     IS_combined = np.concatenate((IS1, IS2, IS3, IS4, IS5, IS6))
+        #     data_combined = np.array([wave_combined,IS_combined])
+        #     data_combined = data_combined[:, data_combined[0,:].argsort()]
+            
+        #     wave_combined = data_combined[0,:]
+        #     IS_combined = data_combined[1,:]
+
+        #     wave_combined, IS_combined = remove_duplicate(wave_combined, IS_combined)
+        #     return wave_combined, IS_combined
+        
+        def Alow():  # same sample when lam > 2um
             # load data, can combined them to get low albedo curve
             CaFeSiOF4 = np.loadtxt(f"lava_lib/CaFeSiO F11, T=1823 K.txt", delimiter=',')
             Bglass = np.loadtxt(f"lava_lib/B-glass, T=1654 K.txt", delimiter=',')
@@ -53,7 +125,7 @@ class lava_Albedo:
             wave_combined, IS_combined = remove_duplicate(wave_combined, IS_combined)
             return wave_combined, IS_combined
         
-        def Ahigh():
+        def Ahigh():  # same sample when lam > 2um
             # load data, can combined them to get high albedo curve
             CaFeSiOF6 = np.loadtxt(f"lava_lib/CaFeSiO F6, T=1673 K.txt", delimiter=',')
             Teide = np.loadtxt(f"lava_lib/Teide, T=1187 K.txt", delimiter = ',')
@@ -70,8 +142,35 @@ class lava_Albedo:
             
             wave_list3 = Teide[:,0]
             IS3 = Teide[:,1]
-            IS3 = IS3[(wave_list3 < 3.7) & (wave_list3 > 3.237)]
-            wave_list3 = wave_list3[(wave_list3 < 3.7) & (wave_list3 > 3.237)]
+            IS3 = IS3[(wave_list3 > 3.237)]
+            wave_list3 = wave_list3[ (wave_list3 > 3.237)]
+            
+            
+            wave_combined = np.concatenate((wave_list1, wave_list2, wave_list3))
+            IS_combined = np.concatenate((IS1, IS2, IS3))
+            data_combined = np.array([wave_combined,IS_combined])
+            data_combined = data_combined[:, data_combined[0,:].argsort()]
+            
+            wave_combined = data_combined[0,:]
+            IS_combined = data_combined[1,:]
+
+            wave_combined, IS_combined = remove_duplicate(wave_combined, IS_combined)
+            return wave_combined, IS_combined
+        
+        def Ahigh_OH():
+            # load data, can combined them to get high albedo curve
+            CaFeSiOF6 = np.loadtxt(f"lava_lib/CaFeSiO F6, T=1673 K.txt", delimiter=',')
+            Teide = np.loadtxt(f"lava_lib/Teide, T=1187 K.txt", delimiter = ',')
+            Forsterite = np.loadtxt('lava_lib/Forsterite, T=1473 K.txt', delimiter= ',')
+            Hawaiian = np.loadtxt('lava_lib/Hawaiian basalt, T=1573 K.txt', delimiter= ',')
+            
+            wave_list1 =  CaFeSiOF6[:,0]
+            IS1 = CaFeSiOF6[:,1]
+            
+            wave_list2 = Teide[:,0]
+            IS2 = Teide[:,1]
+            IS2 = IS2[wave_list2 < 3.7]
+            wave_list2 = wave_list2[wave_list2 < 3.7]
             
             wave_list4 = Forsterite[:,0]
             IS4 = Forsterite[:,1]
@@ -88,8 +187,8 @@ class lava_Albedo:
             IS6 = IS6[wave_list6 > 10.4]
             wave_list6 = wave_list6[wave_list6 > 10.4]
             
-            wave_combined = np.concatenate((wave_list1, wave_list2, wave_list3, wave_list4, wave_list5, wave_list6))
-            IS_combined = np.concatenate((IS1, IS2, IS3, IS4, IS5, IS6))
+            wave_combined = np.concatenate((wave_list1, wave_list2, wave_list4, wave_list5, wave_list6))
+            IS_combined = np.concatenate((IS1, IS2, IS4, IS5, IS6))
             data_combined = np.array([wave_combined,IS_combined])
             data_combined = data_combined[:, data_combined[0,:].argsort()]
             
@@ -122,6 +221,13 @@ class lava_Albedo:
             
             # 创建插值函数
             self.interp_func = interp1d(wave_combined, IS_combined, kind='slinear')
+        elif type == 'zero':
+            wave_combined  = np.array([0.1, 25])
+            
+        elif type == 'high_OH':  # high albedo model includes O-H vibration absorber at 3600 cm^{-1} (2.7778 um)
+            wave_combined, IS_combined = Ahigh_OH()
+            # 创建插值函数
+            self.interp_func = interp1d(wave_combined, IS_combined, kind='slinear')
             
         self.Wmax = np.max(wave_combined)
         self.Wmin = np.min(wave_combined)
@@ -130,7 +236,10 @@ class lava_Albedo:
             
     # 计算插值光谱数据  
     def A_interp(self, lam):
-        return self.interp_func(lam)
+        if self.type == 'zero':
+            return 0
+        else:
+            return self.interp_func(lam)
     
     def albedo_plotter(self):
         wave_list = np.linspace(self.Wmin, self.Wmax, 1000)
@@ -144,28 +253,28 @@ class lava_Albedo:
         plt.close()
         
 # 实例化类，作为对象导入其他程序模块
-LA = lava_Albedo('low')
+LA = lava_Albedo(lavatype)
 
 # run as main program to plot albedo curve
 if __name__ == '__main__':
     print('lava_data.py processing...')
-    LAl = lava_Albedo('low')
-    wave = np.linspace(LAl.Wmin,LAl.Wmax,1000)
-    Spectrum = LAl.A_interp(wave)
-    S1 = np.array([wave,Spectrum])
-    np.savetxt('lava_lib/S_l.txt', S1, fmt='%f') 
-    plt.plot(wave, Spectrum, color = 'b')
+    LAl = lava_Albedo('low') # get 'low' Albedo lava model
+    wave = np.linspace(LAl.Wmin,LAl.Wmax,2000) # create wavelength array
+    Spectrum = LAl.A_interp(wave)  # interp to get albedo spectrum
+    S1 = np.array([wave, Spectrum]) # combined wavelength and albedo, ready to save .txt
+    np.savetxt('lava_lib/S_l.txt', S1, fmt='%f') # save the txt data
+    plt.plot(wave, Spectrum, color = 'b') # plot 3 different types in one plot
     # plt.savefig('lava_lib/high_albedo.png')
 
     LAh = lava_Albedo('high')
-    wave = np.linspace(LAh.Wmin,LAh.Wmax,1000)
+    wave = np.linspace(LAh.Wmin,LAh.Wmax,2000)
     Spectrum = LAh.A_interp(wave)
     S2 = np.array([wave,Spectrum])
     np.savetxt('lava_lib/S_h.txt', S2, fmt='%f')
     plt.plot(wave, Spectrum, color = 'r')
     
     LAm1 = lava_Albedo('mode1')
-    wave = np.linspace(LAm1.Wmin,LAm1.Wmax,1000)
+    wave = np.linspace(LAm1.Wmin,LAm1.Wmax,2000)
     Spectrum = LAm1.A_interp(wave)
     S2 = np.array([wave,Spectrum])
     np.savetxt('lava_lib/S_m1.txt', S2, fmt='%f')
@@ -174,9 +283,10 @@ if __name__ == '__main__':
     plt.xlabel('Wavelength ($\mu$m)')
     plt.ylabel('Albedo')
     plt.legend(['Low albedo', 'high albedo', 'band high albedo'])
-    plt.savefig('lava_lib/albedo_comp.png')
+    plt.savefig('lava_lib/albedo_comp_10_4.png')
     plt.close()
     
+    # plot 3 lava models seperatelly
     LAl.albedo_plotter()
     LAh.albedo_plotter()
     LAm1.albedo_plotter()
