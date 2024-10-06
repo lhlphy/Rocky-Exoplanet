@@ -14,14 +14,37 @@ echo "Maxwell"
 module load apps/anaconda3/5.2.0
 conda activate test
 
-# python  lib/Full_spectrum_main.py --id 1 --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype zero --Nsubpro 190 --heat_redist No
-# python  lib/Full_spectrum_main.py --id 2 --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype zero --Nsubpro 190 --heat_redist Full
-# python  lib/Full_spectrum_main.py --id 3 --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype low --Nsubpro 190 --heat_redist No
-# python  lib/Full_spectrum_main.py --id 4 --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype high --Nsubpro 190 --heat_redist No
-# python  lib/Full_spectrum_main.py --id 5 --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype high_OH --Nsubpro 190 --heat_redist No
-# python  lib/Full_spectrum_main.py --id 6 --Ntheta 30 --Nwave 1201 --LB 0.3 --UB 12.3 --mode PC --lavatype high --Nsubpro 190 --heat_redist No
-# python  lib/Full_spectrum_main.py --id 7 --Ntheta 30 --Nwave 1201 --LB 0.3 --UB 12.3 --mode PC --lavatype low --Nsubpro 190 --heat_redist No
-python  lib/plot_lib.py
+# env
+id=5
+
+# python  lib/Full_spectrum_main.py --id $id --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype zero --Nsubpro 190 --heat_redist No
+# python  lib/Full_spectrum_main.py --id $id --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype zero --Nsubpro 190 --heat_redist Full
+# python  lib/Full_spectrum_main.py --id $id --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype low --Nsubpro 190 --heat_redist No
+# python  lib/Full_spectrum_main.py --id $id --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype high --Nsubpro 190 --heat_redist No
+# python  lib/Full_spectrum_main.py --id $id --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype high_OH --Nsubpro 190 --heat_redist No
+# python  lib/Full_spectrum_main.py --id $id --Ntheta 30 --Nwave 1201 --LB 0.3 --UB 12.3 --mode PC --lavatype high --Nsubpro 190 --heat_redist No
+# python  lib/Full_spectrum_main.py --id $id --Ntheta 30 --Nwave 1201 --LB 0.3 --UB 12.3 --mode PC --lavatype low --Nsubpro 190 --heat_redist No
+# python  lib/Full_spectrum_main.py --id $id --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype zero --Nsubpro 62 --heat_redist Full
+
+# 获取当前脚本的路径
+SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_NAME="run.sh"
+
+echo "<$SCRIPT_NAME>"
+
+# 目标目录
+DEST_DIR="$SCRIPT_PATH/temp/R$id"
+
+# 确保目标目录存在
+mkdir -p "$DEST_DIR"
+
+# 复制当前脚本到目标目录
+cat "$SCRIPT_PATH/$SCRIPT_NAME" > "$DEST_DIR/$SCRIPT_NAME"
+
+echo "Script copied to $DEST_DIR/$SCRIPT_NAME"
+
+
+# python  lib/plot_lib.py
 # python  lib/bond_albedo_calculator.py
 # python demo_vertify.py
 # python Tmap_2D_plot.py

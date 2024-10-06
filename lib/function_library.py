@@ -899,10 +899,10 @@ def chi2_cal(jwst_wavelength, jwst_spectrum, jwst_error, model_wavelength, model
     interp_model_spectrum = interp1d(model_wavelength, model_spectrum, kind='linear')  
     model_spectrum_aligned = interp_model_spectrum(jwst_wavelength)  
     # 计算chi2值  
-    chi2 = np.sum(((jwst_spectrum - model_spectrum_aligned) ** 2) / (jwst_error **2))  
+    chi2 = np.sum(((jwst_spectrum - model_spectrum_aligned) ** 2) / (jwst_error **2)) /np.size(jwst_error)  
 
     # 打印结果  
     # print(f"Chi-squared (χ²) value: {chi2}")  
-    return chi2
+    return chi2 
 
 

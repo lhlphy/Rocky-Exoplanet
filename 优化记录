@@ -1,0 +1,2 @@
+10/6: plot_lib.real_comp 其中不同仪器的波长范围可以通过文件来定义，不再需要输入；
+10/6: plot_lib.real_comp JWST测量数据和PandEXO计算数据需要做文件夹的区分

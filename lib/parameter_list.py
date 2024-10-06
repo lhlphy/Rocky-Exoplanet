@@ -41,7 +41,8 @@ class Planet_parameters:
         self.semi_axis = row_data['pl_orbsmax'] * AU  # km, semi-major axis of the planet's orbit
         ### Thermal and optical parameters
         self.Stellar_T = row_data['st_teff'] # K, temperature of the Star
-        self.pl_eqT = row_data['pl_eqt']  # K, fully redistribution, planet equilibrium Temperature [K]
+        # self.pl_eqT = row_data['pl_eqt']  # K, fully redistribution, planet equilibrium Temperature [K] (from database)
+        self.pl_eqT = self.Stellar_T * np.sqrt(self.Rs / 2 /self.semi_axis)  # from theoretical calculation
         
         self.Coarse_g = 0  # Coarseness of the surface
         self.Wind_speed = 10   # wind speed in m/s (only available for the Gaussian wave model)

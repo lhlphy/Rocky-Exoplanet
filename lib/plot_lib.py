@@ -25,6 +25,9 @@ def IDS_plot(name, Obs_wave):
 
     # interpolate
     # print(Wave_list.shape, I_specular.T.shape)
+    I_specular = np.nan_to_num(I_specular, nan=0) 
+    I_intensity = np.nan_to_num(I_intensity, nan=0) 
+    I_diffuse = np.nan_to_num(I_diffuse, nan=0) 
     spls = interp1d(Wave_list, I_specular.T, kind='cubic', fill_value='extrapolate')
     spli = interp1d(Wave_list, I_intensity.T, kind='cubic', fill_value='extrapolate')
     spld = interp1d(Wave_list, I_diffuse.T, kind='cubic', fill_value='extrapolate')
@@ -33,6 +36,7 @@ def IDS_plot(name, Obs_wave):
     I_i = spli(Obs_wave).T
     I_d = spld(Obs_wave).T
     I_t = splt(Obs_wave).T
+    
     
     if np.size(Theta_list) == 2:
         print('Wavelength: ', Obs_wave[0]*1e6, 'um')
@@ -64,13 +68,14 @@ def IDS_plot(name, Obs_wave):
     # plt.plot(theta, I_d[0,:] * 1e6, label='Diffuse')
     # plt.plot(theta, I_t[0,:] * 1e6, label='Thermal')
 
-    # plt.xlabel('Orbital angle (rad)')
+    # plt.xlabel('Orbital phase')
     # plt.ylabel('Contrast ratio (ppm)')
     # plt.legend()
     # plt.show()
     # os.makedirs(f'temp/P0', exist_ok= True)
     # plt.savefig(f'temp/P0/compare.png')
     # plt.close()
+    theta = theta/(2 *np.pi)
 
     fig, ax = plt.subplots(figsize=(9,6))
     plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.3, hspace=0.3)
@@ -87,7 +92,7 @@ def IDS_plot(name, Obs_wave):
     #ax.axhline(y=np.average(Tc[3:]), color='gray', ls='-', )
     ax.plot(theta, I_s[i,:] * 1e6, label='Specular', color='k')
     ax.set_ylim(ymin=0, ymax= np.max(I_s[i,:])*1.1e6)
-    ax.set_xlabel('Orbital angle (rad)', fontsize=18)
+    ax.set_xlabel('Orbital phase', fontsize=18)
     ax.set_ylabel('Contrast ratio (ppm)', fontsize=18)
     ax.tick_params(length=6, width=2)
     ax.spines['right'].set_visible(False)
@@ -97,7 +102,7 @@ def IDS_plot(name, Obs_wave):
     labmda_ax.set_position(axpos)
     labmda_ax.plot(theta, I_d[i,:] * 1e6, label='Diffuse', color=lambda_color)
     labmda_ax.set_ylim(ymin=0, ymax= np.max(I_d[i,:])*1.1e6)
-    labmda_ax.set_xlabel('Orbital angle (rad)', fontsize=18)
+    labmda_ax.set_xlabel('Orbital phase', fontsize=18)
     labmda_ax.tick_params(length=6, width=2, color=lambda_color, labelcolor=lambda_color)
     labmda_ax.set_ylabel('Contrast ratio (ppm)', fontsize=18, color=lambda_color)
     labmda_ax.spines['right'].set(color=lambda_color, linewidth=2.0, linestyle=':')
@@ -105,7 +110,7 @@ def IDS_plot(name, Obs_wave):
     omglog_color = 'red'
     omglog_ax = ax.twinx()
     # 使用科学计数法的刻度
-    omglog_ax.ticklabel_format(style='scientific', axis='y', scilimits=(0,0))
+    omglog_ax.ticklabel_format(style='plain', axis='y', scilimits=(0,0))
     # 获取 y 轴 OffsetText 对象
     offset_text = omglog_ax.yaxis.get_offset_text()
     # 调整位置示例，偏移 (dx, dy) 单位是像素 (points)
@@ -119,7 +124,8 @@ def IDS_plot(name, Obs_wave):
     omglog_ax.set_ylabel('Contrast ratio (ppm)', fontsize=18, color=omglog_color)
     omglog_ax.tick_params(length=6, width=2, color=omglog_color, labelcolor=omglog_color)
     omglog_ax.spines['right'].set(color=omglog_color, linewidth=2.0, linestyle='-.')
-    fig.legend(['Specular', 'Diffuse', 'Thermal'], loc='upper left')
+    fig.legend(['Specular', 'Diffuse', 'Thermal'] )
+    fig.legend(prop={'weight': 'bold'}) 
     plt.show()
     # os.makedirs(f'temp/P3', exist_ok= True)
     plt.savefig(f'temp/{name}/compare_{Obs_wave[0]*1e6}.png')
@@ -128,7 +134,7 @@ def IDS_plot(name, Obs_wave):
     fig, ax = plt.subplots(figsize=(9,6))
     ax.plot(theta, (I_s[i,:]+I_t[i,:])*1e6 , label = 'Specular')
     ax.plot(theta, (I_d[i,:]+I_t[i,:])*1e6 , label = 'Diffuse')
-    ax.set_xlabel('Orbital angle (rad)', fontsize=18)
+    ax.set_xlabel('Orbital phase', fontsize=18)
     ax.set_ylabel('Contrast ratio (ppm)', fontsize=18)
 
     plt.errorbar(theta[N//2], (I_s[i,N//2]+I_t[i,N//2])*1e6, yerr = 1.25, capsize= 10)
@@ -166,7 +172,7 @@ def spectrum_plot(name, wave_range):
     plt.plot(wave_list *1e6, (IT + ID) *1e6)
     plt.plot(wave_list *1e6, (IT + IS) *1e6)
     plt.legend(['Lambert surface', 'Specular surface'])
-    plt.xlabel('Wavelength ($\mu$m)')
+    plt.xlabel('Wavelength (μm)')
     plt.ylabel('Contrast ratio (ppm)')
     
     plt.show()
@@ -174,7 +180,7 @@ def spectrum_plot(name, wave_range):
     
 def compare_phase_curve_plot(name_list, wave_range):
     # load data, I_diffuse,I_specular is contrast ratio 
-    sim_obs = np.loadtxt(f"telescope_measure/sim_obs (10).txt", delimiter=' ')
+    sim_obs = np.loadtxt(f"telescope_measure/sim_obs (14).txt", delimiter=' ')
     x = sim_obs[:,0]
     y = sim_obs[:,3] *1e6
     Bin = np.sqrt(1/np.sum(1/y**2))
@@ -184,8 +190,10 @@ def compare_phase_curve_plot(name_list, wave_range):
     fig, ax = plt.subplots()
     
     ebar = np.array([Bin, Bin * np.sqrt(1/0.629), Bin])
+    tbar = np.array([0.0647, 0.0407, 0.0647])
     
     xloc = np.array([0.3948, 0.5, 0.6052])
+    # Period: 7.72614 h
     for i, name in enumerate(name_list):
         Theta_list = np.load(f'temp/{name}/variables/Theta.npy')
         Theta_list = Theta_list / (2 *np.pi)   # 将相位角归一化
@@ -200,7 +208,9 @@ def compare_phase_curve_plot(name_list, wave_range):
         
         spl = interp1d(Theta_list, CR_D, kind='linear')
         yloc = spl(xloc)
-        plt.errorbar(xloc, yloc, yerr = 5, fmt='o', ecolor=pallet[i], linestyle='None')
+        for k, xl in enumerate(xloc):
+            plt.errorbar(xloc[k], yloc[k], yerr = ebar[k], xerr=tbar[k], fmt='o', color = pallet[i], ecolor=pallet[i], linestyle='None')
+            # plt.errorbar(xloc[k], yloc[k] + ebar[k] * np.random.random(), yerr = ebar[k], xerr=tbar[k], fmt='o', color = pallet[i], ecolor=pallet[i], linestyle='None')
         
         # 调整布局以便为图例腾出空间  
     fig.subplots_adjust(bottom=0.25)  
@@ -216,18 +226,19 @@ def compare_phase_curve_plot(name_list, wave_range):
     # plt.legend(plotarr, ['Low albedo & Lambert', 'Low albedo & Specular',  'Mid albedo & Lambert', 'Mid albedo & Specular',
     #             'High albedo & Lambert', 'High albedo & Specular'], loc='upper center', bbox_to_anchor=(0.5, -0.13), ncol=2)
     # ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=2)  
-    plt.xlabel('Orbital Phase')
-    plt.ylabel('Contrast ratio (ppm)')
+    plt.xlabel('Orbital Phase', fontsize = 13)
+    plt.ylabel(r'$F_p/F_*$ (ppm)', fontsize = 13)
     # 添加文字和箭头，设置字体透明度  
-    plt.text(0.3948, -4, '1 hour', fontsize=10, color='black', ha='center') 
+    plt.text(0.3948, 0, '1 hour', fontsize=10,fontweight='bold', color='black', ha='center') 
     # plt.text(0.3948, -5, '', fontsize=12, color='black', ha='center')
-    plt.text(0.5, -6.5, '0.63 h', fontsize=9, color='black', ha='center')
+    plt.text(0.5, -4, '0.63 h', fontsize=10,fontweight='bold', color='black', ha='center')
     # plt.text(0.3948, -3, '1 hour', fontsize=12, color='black', ha='center')
-    plt.text(0.6052, -4, '1 hour', fontsize=10, color='black', ha='center')
+    plt.text(0.6052, 0, '1 hour', fontsize=10,fontweight='bold', color='black', ha='center')
     # plt.text(0.3948, -3, '1 hour', fontsize=12, color='black', ha='center')
     
-    plt.text(0.9,38, 'G395M/F290LP', fontsize = 10, ha='center', fontweight='bold')
-    plt.text(0.9,35, '2.87-5.10 $\mu$m', fontsize = 10, ha='center', fontweight='bold')
+    plt.text(0.85,32, 'NIRCam/F322W2', fontsize = 10, ha='center', fontweight='bold')
+    plt.text(0.85,29.5, '2.4-4.22 μm', fontsize = 10, ha='center', fontweight='bold')
+    plt.axis([0, 1, -5, 35])
     
     plt.show()
     plt.savefig(f"temp/{name}/phase_curve_comp")
@@ -242,6 +253,7 @@ def real_comp(name_list):
     data_ebar = np.loadtxt(f"telescope_measure/JWST_errorbar.txt", delimiter=',')
     
     DN = data_value.shape[0]
+    plotarr  = [0] * 2 * np.size(name_list) 
     
     data = np.zeros([DN, 3])
     data[:,0:2] = data_value
@@ -250,32 +262,37 @@ def real_comp(name_list):
         
     # 创建散点图  
     fig, ax = plt.subplots()
-    plt.errorbar(data[:,0], data[:,1], yerr=data[:,2], fmt='ok', ecolor='k', linestyle='None')  
+    plt.errorbar(data[:,0], data[:,1], yerr=data[:,2], fmt='ok', ecolor='k', linestyle='None', label = 'JWST')  
     
-    DN = DN -1
+    # 处理离群点，计算chi2是否要去除离群点，store the new data after removing outliers in data2
+    DN = DN # the size of data2
     data2 = np.zeros([DN, 3])
-    data2[0:7] = data[0:7]
-    data2[7:] = data[8:]
+    data2[0:7] = data[0:7]  # the data point before outlier
+    data2[7:] = data[7:]  # the data point after outlier
     
     
     ## 处理模型数据并绘图
-    pallet = ['b', 'r',  'g', 'm']
-    plotarr  = [0] * 100
-    chi2 = np.zeros(np.size(name_list)*2)
+    pallet = ['#033eff', '#ff033e',  'black', '#3eff03', '#03bcff', '#c403ff'] # color library
+    chi2 = np.zeros(np.size(name_list)*2)  # 
     
-    sim_obs = np.loadtxt(f"telescope_measure/sim_obs (12).txt", delimiter=' ')
+    # processing error bar
+    sim_obs = np.loadtxt(f"telescope_measure/sim_obs (13).txt", delimiter=' ')
     x = sim_obs[:,0]
     y = sim_obs[:,3] *1e6
-    Bin = np.zeros(6)
-    xloc = np.zeros(6)
-    for i in range(6):
-        xq = x[214*i:214*(i+1)]
-        yq = y[214*i:214*(i+1)]
-        Bin[i] = np.sqrt(1/np.sum(1/yq**2))
-        xloc[i] = np.mean(xq)
+    Nbin = 6 # the number of bin: 6
+    Bin = np.zeros(Nbin)  
+    xloc = np.zeros(Nbin)
+    NGroup = sim_obs.shape[0] // Nbin # the number of pixels in each bin
+    for i in range(Nbin):  # calculate the errorbar of each bins
+        xq = x[NGroup*i:NGroup*(i+1)]  # group pixel points to each bin
+        yq = y[NGroup*i:NGroup*(i+1)]
+        Bin[i] = np.sqrt(1/np.sum(1/yq**2)) # calculate the errorbar of each bins
+        xloc[i] = np.mean(xq) # calculate the mean wavelength of each bin
+        
+    print([f'Pixels: {sim_obs.shape[0]}, bins number: {Nbin}, pixels number in each bin: {NGroup}'])
     
   
-    for i, name in enumerate(name_list):
+    for i, name in enumerate(name_list):  # Plot the spectra of each dataset
         I_diffuse = np.load(f'temp/{name}/variables/I_diffuse.npy')
         I_specular = np.load(f'temp/{name}/variables/I_specular.npy')
         Star_flux = np.load(f'temp/{name}/variables/Star_flux.npy')
@@ -290,38 +307,49 @@ def real_comp(name_list):
         Star_flux = Star_flux[:, N2//2]
         IT = Thermal[:, N2//2]
     
-        plotarr[i*2], = plt.plot(wave_list *1e6, (IT + ID) *1e6, '-', color = pallet[i])
-        plotarr[i*2+1], = plt.plot(wave_list *1e6, (IT + IS) *1e6, '--', color = pallet[i])
+        plotarr[i], = plt.plot(wave_list *1e6, (IT + ID) *1e6, '--', color = pallet[i]) # lambert diffuse case
+        plotarr[i + np.size(name_list)], = plt.plot(wave_list *1e6, (IT + IS) *1e6, '-', color = pallet[i]) # specular case
         
         if i == 0:
             spl = interp1d(wave_list *1e6,  (IT + ID) *1e6, kind='linear')
             yloc = spl(xloc)
-            plt.errorbar(xloc, yloc, yerr=Bin, fmt='o', ecolor=pallet[i], linestyle='None')
+            # plt.errorbar(xloc, yloc, yerr=Bin, fmt='o', ecolor=pallet[i], linestyle='None')
+            plt.errorbar(xloc, yloc + Bin* (np.random.random(np.size(Bin)) - 0.5) *2, yerr=Bin, fmt='o', ecolor=pallet[i], linestyle='None')
         
-        chi2[i*2] = chi2_cal(data2[:,0], data2[:,1], data2[:,2], wave_list *1e6, (IT + ID) *1e6)
-        chi2[i*2 + 1] = chi2_cal(data2[:,0], data2[:,1], data2[:,2], wave_list *1e6, (IT + IS) *1e6)
+        chi2[i] = chi2_cal(data2[:,0], data2[:,1], data2[:,2], wave_list *1e6, (IT + ID) *1e6)
+        chi2[i + np.size(name_list)] = chi2_cal(data2[:,0], data2[:,1], data2[:,2], wave_list *1e6, (IT + IS) *1e6)
         
-    fig.subplots_adjust(bottom=0.4)  
-    plt.legend(plotarr, [f'Low albedo & Lambert $\chi^2$={chi2[0]:.2f}', f'Low albedo & Specular $\chi^2$={chi2[1]:.2f}', 
-                f'High albedo & Lambert $\chi^2$={chi2[2]:.2f}', f'High albedo & Specular $\chi^2$={chi2[3]:.2f}', 
-                'Blackbody & Lambert', 'Blackbody & Specular', 'Full redistribution & Lambert', 'Full redistribution & Specular',
-                'O-H & Lambert', 'O-H & Specular'], loc='upper center', bbox_to_anchor=(0.5, -0.13), ncol=2)
+    fig.subplots_adjust(bottom=0.3)  
+    # plt.legend(plotarr, [f'Low albedo & Lambert $\chi^2$={chi2[0]:.2f}', f'Low albedo & Specular $\chi^2$={chi2[1]:.2f}', 
+    #             f'High albedo & Lambert $\chi^2$={chi2[2]:.2f}', f'High albedo & Specular $\chi^2$={chi2[3]:.2f}', 
+    #             'Blackbody & Lambert', 'Blackbody & Specular', 'Full redistribution & Lambert', 'Full redistribution & Specular',
+    #             'O-H & Lambert', 'O-H & Specular'], loc='upper center', bbox_to_anchor=(0.5, -0.13), ncol=2)
     # plt.legend(plotarr, ['Low albedo & Lambert', 'Low albedo & Specular',  'Mid albedo & Lambert', 'Mid albedo & Specular',
     #             'High albedo & Lambert', 'High albedo & Specular'], loc='upper center', bbox_to_anchor=(0.5, -0.13), ncol=2)
-    
+    plt.legend(plotarr, [ f'Low albedo & Lambert $\chi^2$={chi2[0]:.2f}', f'High albedo & Lambert $\chi^2$={chi2[1]:.2f}', 
+                 f'Blackbody & Lambert $\chi^2$={chi2[2]:.2f}', f'Low albedo & Specular $\chi^2$={chi2[0 + np.size(name_list)]:.2f}' ,
+                 f'High albedo & Specular $\chi^2$={chi2[1 + np.size(name_list)]:.2f}', f'Blackbody & Specular $\chi^2$={chi2[2 + np.size(name_list)]:.2f}'], 
+               loc='upper center', bbox_to_anchor=(0.5, -0.17), ncol=2)
     print(chi2)
     print(Bin)
-    ax.axvspan(2.87, 5.10, color='gray', alpha=0.2)
-    plt.text(3.985, 150, 'G395M/F290LP', fontsize = 9.5, ha='center')
-    plt.text(3.985, 140, '2.87-5.10 $\mu$m', fontsize = 9.5, ha='center')
+    # Draw the wavelength range of the instrument
+    Lower_bound = 2.4
+    Upper_bound = 4.22
+    ax.axvspan(Lower_bound, Upper_bound, color='gray', alpha=0.2)
+    plt.text((Lower_bound + Upper_bound) /2, 147, 'NIRCam/F322W2', fontsize = 9, ha='center')
+    plt.text((Lower_bound + Upper_bound) /2, 135, f'{Lower_bound:.2f}-{Upper_bound:.2f} μm', fontsize = 9, ha='center')
 
+    # draw Al2O3 surface
+    GJAl2O3 = np.loadtxt('GJAl2O3.txt')
+    print(GJAl2O3)
+    
     # 添加标题和标签  
     # plt.title('')  
-    plt.xlabel('Wavelength ($\mu$m)')  
-    plt.ylabel('Eclipse depth (ppm)') 
+    plt.xlabel('Wavelength (μm)',  fontsize = 12)  
+    plt.ylabel('Secondary eclipse depth (ppm)', fontsize = 12) 
     plt.axis([0.5, 12, 0, 160])
     
-    plt.savefig('telescope_measure/data_plot4.png') 
+    plt.savefig('telescope_measure/data_plot6.png') 
 
     # 显示图表  
     plt.show()
@@ -332,15 +360,15 @@ if __name__ =='__main__':
     # parser = argparse.ArgumentParser()
     # parser.add_argument('--file', default = 'R1', type = str)
     # args = parser.parse_args()
-    # name = 'R0'
-    # # IDS_plot(name, np.array([1]) * 1e-6)
+    name = 'R6'
+    # IDS_plot(name, np.array([3]) * 1e-6)
     # wave_range = np.array([0.5, 5]) * 1e-6
     # spectrum_plot(name, wave_range)
     
     # compare_spectrum_plot(['R3', 'R4', 'R5'])
-    real_comp(['R3', 'R4', 'R1', 'R2', 'R5'])
+    real_comp(['R3', 'R4', 'R1'])
     
-    # compare_phase_curve_plot(['GJ-367 b PC low', 'GJ-367 b PC high'], np.array([2.87, 5.10])* 1e-6)
+    # compare_phase_curve_plot(['R7', 'R6'], np.array([2.4, 4.22])* 1e-6) # first: low albedo ; second: high albedo
     
     
     

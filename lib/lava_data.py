@@ -169,26 +169,9 @@ class lava_Albedo:
             
             wave_list2 = Teide[:,0]
             IS2 = Teide[:,1]
-            IS2 = IS2[wave_list2 < 3.7]
-            wave_list2 = wave_list2[wave_list2 < 3.7]
             
-            wave_list4 = Forsterite[:,0]
-            IS4 = Forsterite[:,1]
-            IS4 = IS4[(wave_list4 < 8.4) & (wave_list4 > 3.7)]
-            wave_list4 = wave_list4[(wave_list4 < 8.4) & (wave_list4 > 3.7)]
-            
-            wave_list5 = Teide[:,0]
-            IS5 = Teide[:,1]
-            IS5 = IS5[ (wave_list5 < 10.4) & (wave_list5 > 8.4)]
-            wave_list5 = wave_list5[(wave_list5 < 10.4) & (wave_list5 > 8.4)]
-            
-            wave_list6 = Hawaiian[:,0]
-            IS6 = Hawaiian[:,1]
-            IS6 = IS6[wave_list6 > 10.4]
-            wave_list6 = wave_list6[wave_list6 > 10.4]
-            
-            wave_combined = np.concatenate((wave_list1, wave_list2, wave_list4, wave_list5, wave_list6))
-            IS_combined = np.concatenate((IS1, IS2, IS4, IS5, IS6))
+            wave_combined = np.concatenate((wave_list1, wave_list2))
+            IS_combined = np.concatenate((IS1, IS2))
             data_combined = np.array([wave_combined,IS_combined])
             data_combined = data_combined[:, data_combined[0,:].argsort()]
             
