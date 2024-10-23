@@ -1,30 +1,14 @@
-# B´arðarbunga basalts, T=1787 K.txt
-# MORB, T=861 K.txt
-# Fasnia, T=1640 K.txt
-# B-Nat, T=1648 K.txt
-# B-glass, T=1654 K.txt
-
-# CaFeSiO F3, T=1627 K.txt
-# CaFeSiO F4, T=1673 K.txt
-# CaFeSiO F5, T=1673 K.txt
-# CaFeSiO F6, T=1673 K.txt
-# CaFeSiO F7, T=1673 K.txt
-# CaFeSiO F10, T=1673 K.txt
-# CaFeSiO F11, T=1823 K.txt
-# CaFeSiO F12, T=1823 K.txt
-
-#命名中温度有问题
-
-
 import numpy as np
 from scipy.interpolate import interp1d  
 import matplotlib.pyplot as plt  
+import os
 
 print("lava_data")
-with open('log/temp_vars.txt', 'r') as f:
-    # read in the tyoe of lava: 'low' ? 'high'? 'mode1'?
-    lines = f.readlines()
-    lavatype = lines[1].strip()
+# with open('log/temp_vars.txt', 'r') as f:
+#     # read in the tyoe of lava: 'low' ? 'high'? 'mode1'?
+#     lines = f.readlines()
+#     lavatype = lines[1].strip()
+lavatype = os.getenv('lavatype')
 
 def remove_duplicate(wave_combined, IS_combined):
     # 移除重复的波长值并取平均  
@@ -211,6 +195,10 @@ class lava_Albedo:
             wave_combined, IS_combined = Ahigh_OH()
             # 创建插值函数
             self.interp_func = interp1d(wave_combined, IS_combined, kind='slinear')
+            
+        else:
+            print('No such type of lava albedo model')
+            wave_combined  = np.array([0.1, 25])
             
         self.Wmax = np.max(wave_combined)
         self.Wmin = np.min(wave_combined)

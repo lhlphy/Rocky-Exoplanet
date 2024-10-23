@@ -328,7 +328,7 @@ def Lambert_BRDF(i, j, id, normal, Pos, camera, Theta):
     theta = APs.thetaP_list[j]
 
     Phi_list = np.linspace(0, np.pi, np.size(Area))
-    spl = interp1d(Phi_list, Area, kind= 'cubic')
+    spl = interp1d(Phi_list, Area, kind= 'linear')
 
     Phi = np.arccos( - np.cos(phi) * np.cos(theta - Theta))
     return  spl(Phi) * DA * np.cos(theta_c)/ np.pi #* blackbody_radiation(PPs.Stellar_T, Wavelength)  
@@ -534,23 +534,38 @@ def Cal_intersection_area(d, r1, r2):
     r1 : float, radius of the first circle
     r2 : float, radius of the second circle
     """
-    if d >= (r1 + r2):  # 两圆相离
-        return 0
-    if (r1 - r2) >= d:  # 两圆内含，r1 大
-        return np.pi * r2 ** 2
-    if (r2 - r1) >= d:  # 两圆内含，r2 大
-        return np.pi * r1 ** 2
+    # Check if the circles do not intersect  
+    if d >= r1 + r2:  
+        return 0.0  
     
-    angle1 = np.arccos((r1 ** 2 + d ** 2 - r2 ** 2) / (2 * r1 * d))
-    angle2 = np.arccos((r2 ** 2 + d ** 2 - r1 ** 2) / (2 * r2 * d))
+    # Check if one circle is completely inside the other  
+    if d <= abs(r1 - r2):  
+        return np.pi * min(r1, r2) ** 2  
     
-    s1 = angle1 * r1 ** 2
-    s2 = angle2 * r2 ** 2
-    s3 = r1 * d * np.sin(angle1)
-    s = s1 + s2 - s3
+    # Calculate the intersection area  
+    part1 = r1**2 * np.arccos((d**2 + r1**2 - r2**2) / (2 * d * r1))  
+    part2 = r2**2 * np.arccos((d**2 + r2**2 - r1**2) / (2 * d * r2))  
+    part3 = 0.5 * np.sqrt((-d + r1 + r2) * (d + r1 - r2) * (d - r1 + r2) * (d + r1 + r2))  
     
-    return s
-
+    return part1 + part2 - part3
+    # if d >= (r1 + r2):  # 两圆相离
+    #     return 0
+    # if (r1 - r2) >= d:  # 两圆内含，r1 大
+    #     return np.pi * r2 ** 2
+    # if (r2 - r1) >= d:  # 两圆内含，r2 大
+    #     return np.pi * r1 ** 2
+    
+    # angle1 = np.arccos((r1 ** 2 + d ** 2 - r2 ** 2) / (2 * r1 * d))
+    # angle2 = np.arccos((r2 ** 2 + d ** 2 - r1 ** 2) / (2 * r2 * d))
+    
+    # s1 = angle1 * r1 ** 2
+    # s2 = angle2 * r2 ** 2
+    # s3 = r1 * d * np.sin(angle1)
+    
+    # s = s1 + s2 - s3
+    
+    # return s
+ 
 
 def Cal_star_area(Theta):
     # Calculate the area of the star that radiates light to the Earth, considering the blocking effect of the planet
@@ -746,10 +761,11 @@ def Tmap(Theta, id = 0):
     # 在这里，由于Area_1D后面还要用到，是完全的几何参数表，与温度无关；所以计算并保存
     # 但接下来的Tmap计算需要no redistribution
     # first read "heat_redist": Full: Tmap[:,:] = PPs.pl_eqT ; No: calculate using energy balance ; Yes: consider redistribution(Not support yet)
-    with open('log/temp_vars.txt', 'r') as f:
-        # read in the tyoe of lava: 'low' ? 'high'? 'mode1'?
-        lines = f.readlines()
-        heat_redist = lines[2].strip()
+    # with open('log/temp_vars.txt', 'r') as f:
+    heat_redist = os.getenv('heat_redist')
+        # # read in the tyoe of lava: 'low' ? 'high'? 'mode1'?
+        # lines = f.readlines()
+        # heat_redist = lines[2].strip()
         
     if heat_redist == 'Full':  # under fully redistribution, the planet has unique temperature
         Tmap = np.ones((APs.SIZE[0], APs.SIZE[1])) * PPs.pl_eqT
@@ -899,10 +915,11 @@ def chi2_cal(jwst_wavelength, jwst_spectrum, jwst_error, model_wavelength, model
     interp_model_spectrum = interp1d(model_wavelength, model_spectrum, kind='linear')  
     model_spectrum_aligned = interp_model_spectrum(jwst_wavelength)  
     # 计算chi2值  
-    chi2 = np.sum(((jwst_spectrum - model_spectrum_aligned) ** 2) / (jwst_error **2)) /np.size(jwst_error)  
+    chi2 = np.sum(((jwst_spectrum - model_spectrum_aligned) ** 2) / (jwst_error **2)) #/np.size(jwst_error)  
+    # chi2 = np.sum(((jwst_spectrum - model_spectrum_aligned) ** 2) / model_spectrum_aligned) #/np.size(jwst_error)  
 
     # 打印结果  
     # print(f"Chi-squared (χ²) value: {chi2}")  
-    return chi2 
+    return chi2
 
 

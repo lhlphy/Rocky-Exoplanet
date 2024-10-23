@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd 
 from lava_data import LA
+import os
 
 # Constants List
 AU = 149_597_870.7  # km, 1 Astronomical Unit 149597870.7
@@ -9,9 +10,10 @@ Sigma_const = 5.67e-8  # W/m^2/K^4, Stefan-Boltzmann constant
 # parser = argparse.ArgumentParser()
 print('parameter_list.py')
 # read mode = "PC" ? "TR"
-with open('log/temp_vars.txt', 'r') as f:
-    lines = f.readlines()
-    mode = lines[0].strip()  # 去除换行符
+# with open('log/temp_vars.txt', 'r') as f:
+#     lines = f.readlines()
+#     mode = lines[0].strip()  # 去除换行符
+mode = os.getenv('mode')
 
 class Accuracy_parameters:
     ### Accuracy control parameters

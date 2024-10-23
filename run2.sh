@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=PythonTest
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
+#SBATCH --nodes=3
+#SBATCH --ntasks-per-node=64
 #SBATCH --cpus-per-task=1
 #SBATCH --partition=wzhcnormal
 #SBATCH -o log/%j.loop
@@ -13,6 +13,7 @@ echo "Maxwell"
 
 module load apps/anaconda3/5.2.0
 conda activate test
+export lavatype=zero
 
 # python  lib/Full_spectrum_main.py --id 1 --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype zero --Nsubpro 190 --heat_redist No
 # python  lib/Full_spectrum_main.py --id 2 --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype zero --Nsubpro 190 --heat_redist Full
@@ -22,7 +23,7 @@ conda activate test
 # python  lib/Full_spectrum_main.py --id 6 --Ntheta 30 --Nwave 1201 --LB 0.3 --UB 12.3 --mode PC --lavatype high --Nsubpro 190 --heat_redist No
 # python  lib/Full_spectrum_main.py --id 7 --Ntheta 30 --Nwave 1201 --LB 0.3 --UB 12.3 --mode PC --lavatype low --Nsubpro 190 --heat_redist No
 # python  lib/Full_spectrum_main.py --id 8 --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype zero --Nsubpro 62 --heat_redist Full
-
+python  lib/Full_spectrum_main.py --id 9 --Ntheta 30 --Nwave 200 --LB 2.3 --UB 5.2 --mode PC --lavatype zero --Nsubpro 190 --heat_redist No
 
 # python  lib/plot_lib.py
 # python  lib/bond_albedo_calculator.py

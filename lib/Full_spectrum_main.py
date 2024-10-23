@@ -28,13 +28,18 @@ if __name__ == '__main__':
     parser.add_argument('--heat_redist', default = 'No', type = str) # 热再分配 "No","Full","Yes"
     args = parser.parse_args()
     Wavelength_bound = np.array([args.LB, args.UB]) *1e-6   # Wavelength range (m)
+
+    # 设置环境变量
+    os.environ['mode'] = args.mode
+    os.environ['lavatype'] = args.lavatype
+    os.environ['heat_redist'] = args.heat_redist
     
-    # 存储变量，传递
-    os.makedirs('log', exist_ok= True)
-    with open('log/temp_vars.txt', 'w') as f:
-        f.write(f"{args.mode}\n")
-        f.write(f"{args.lavatype}\n")
-        f.write(f"{args.heat_redist}\n")
+    # # 存储变量，传递
+    # os.makedirs('log', exist_ok= True)
+    # with open('log/temp_vars.txt', 'w') as f:
+    #     f.write(f"{args.mode}\n")
+    #     f.write(f"{args.lavatype}\n")
+    #     f.write(f"{args.heat_redist}\n")
 
     from Full_spectrum import Full_spectrum   # have to import after log/temp_vars.txt is created
     Full_spectrum(Wavelength_bound, args)
