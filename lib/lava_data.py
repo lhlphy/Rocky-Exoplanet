@@ -23,71 +23,6 @@ def remove_duplicate(wave_combined, IS_combined):
 class lava_Albedo:
     def __init__(self, type = 'low'):
         self.type = type
-        # def Alow():
-        #     # load data, can combined them to get low albedo curve
-        #     CaFeSiOF4 = np.loadtxt(f"lava_lib/CaFeSiO F11, T=1823 K.txt", delimiter=',')
-        #     Bglass = np.loadtxt(f"lava_lib/B-glass, T=1654 K.txt", delimiter=',')
-        #     MORB = np.loadtxt(f'lava_lib/MORB, T=1653 K.txt', delimiter=',')
-
-        #     # 数据提取，第一列是波长，第二列是波长对应的反射率 
-        #     wave_list1 =  CaFeSiOF4[:,0]
-        #     IS1 = CaFeSiOF4[:,1]
-
-        #     wave_list2 = MORB[:,0] 
-        #     IS2 = MORB[:,1] 
-
-        #     # 合并数据  
-        #     wave_combined = np.concatenate((wave_list1, wave_list2))  
-        #     IS_combined = np.concatenate((IS1, IS2))
-
-        #     wave_combined, IS_combined = remove_duplicate(wave_combined, IS_combined)
-        #     return wave_combined, IS_combined
-        
-        # def Ahigh():
-        #     # load data, can combined them to get high albedo curve
-        #     CaFeSiOF6 = np.loadtxt(f"lava_lib/CaFeSiO F6, T=1673 K.txt", delimiter=',')
-        #     Teide = np.loadtxt(f"lava_lib/Teide, T=1187 K.txt", delimiter = ',')
-        #     Forsterite = np.loadtxt('lava_lib/Forsterite, T=1473 K.txt', delimiter= ',')
-        #     Hawaiian = np.loadtxt('lava_lib/Hawaiian basalt, T=1573 K.txt', delimiter= ',')
-            
-        #     wave_list1 =  CaFeSiOF6[:,0]
-        #     IS1 = CaFeSiOF6[:,1]
-            
-        #     wave_list2 = Teide[:,0]
-        #     IS2 = Teide[:,1]
-        #     IS2 = IS2[wave_list2 < 2.71]
-        #     wave_list2 = wave_list2[wave_list2 < 2.71]
-            
-        #     wave_list3 = Teide[:,0]
-        #     IS3 = Teide[:,1]
-        #     IS3 = IS3[(wave_list3 < 3.7) & (wave_list3 > 3.237)]
-        #     wave_list3 = wave_list3[(wave_list3 < 3.7) & (wave_list3 > 3.237)]
-            
-        #     wave_list4 = Forsterite[:,0]
-        #     IS4 = Forsterite[:,1]
-        #     IS4 = IS4[(wave_list4 < 8.4) & (wave_list4 > 3.7)]
-        #     wave_list4 = wave_list4[(wave_list4 < 8.4) & (wave_list4 > 3.7)]
-            
-        #     wave_list5 = Teide[:,0]
-        #     IS5 = Teide[:,1]
-        #     IS5 = IS5[ (wave_list5 < 10.4) & (wave_list5 > 8.4)]
-        #     wave_list5 = wave_list5[(wave_list5 < 10.4) & (wave_list5 > 8.4)]
-            
-        #     wave_list6 = Hawaiian[:,0]
-        #     IS6 = Hawaiian[:,1]
-        #     IS6 = IS6[wave_list6 > 10.4]
-        #     wave_list6 = wave_list6[wave_list6 > 10.4]
-            
-        #     wave_combined = np.concatenate((wave_list1, wave_list2, wave_list3, wave_list4, wave_list5, wave_list6))
-        #     IS_combined = np.concatenate((IS1, IS2, IS3, IS4, IS5, IS6))
-        #     data_combined = np.array([wave_combined,IS_combined])
-        #     data_combined = data_combined[:, data_combined[0,:].argsort()]
-            
-        #     wave_combined = data_combined[0,:]
-        #     IS_combined = data_combined[1,:]
-
-        #     wave_combined, IS_combined = remove_duplicate(wave_combined, IS_combined)
-        #     return wave_combined, IS_combined
         
         def Alow():  # same sample when lam > 2um
             # load data, can combined them to get low albedo curve
@@ -165,7 +100,7 @@ class lava_Albedo:
             wave_combined, IS_combined = remove_duplicate(wave_combined, IS_combined)
             return wave_combined, IS_combined
             
-        if type =='low':
+        if type == 'low':
             # 读取数据并拼接
             wave_combined, IS_combined = Alow()
             # 创建插值函数  
@@ -188,7 +123,7 @@ class lava_Albedo:
             
             # 创建插值函数
             self.interp_func = interp1d(wave_combined, IS_combined, kind='slinear')
-        elif type == 'zero':
+        elif type == 'zero' or 'one':
             wave_combined  = np.array([0.1, 25])
             
         elif type == 'high_OH':  # high albedo model includes O-H vibration absorber at 3600 cm^{-1} (2.7778 um)
@@ -209,6 +144,8 @@ class lava_Albedo:
     def A_interp(self, lam):
         if self.type == 'zero':
             return 0
+        elif self.type == 'one':
+            return 1
         else:
             return self.interp_func(lam)
     

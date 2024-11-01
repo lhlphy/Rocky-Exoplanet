@@ -74,7 +74,7 @@ def Full_spectrum(wavelength_bound, args = None, id = 0, Ntheta = 5, Nwave = 1):
             
     # calculate the reflection using global_intensity
     for i, Theta in enumerate(Theta_list2):
-        I, D, S = mf.global_intensity(Theta, id, Model= 'Lambert')
+        I, D, S = mf.global_intensity(Theta, id, Model= APs.Model)
         # I: total intensity; D:diffuse ; S:specular reflection
         # both under the condition of albedo = 1
 
@@ -133,7 +133,7 @@ def FS_plotter(FS, Wave_list, Theta_list, Nwave, Ntheta, id = 0 , Obs_wavelength
     legend = ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     legend.set_title("Orbital Phase")
     fig.subplots_adjust(right=0.8)
-    plt.show()
+    plt.show() 
     plt.savefig(f'temp/R{id}/Results/Constrat_ratio.png')
     plt.close()
 

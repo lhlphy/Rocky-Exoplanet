@@ -18,11 +18,12 @@ mode = os.getenv('mode')
 class Accuracy_parameters:
     ### Accuracy control parameters
     def __init__(self, Mode):
-        self.SIZE = [181, 361]  # Size of the meshgrid
+        self.SIZE = [361, 721]  # Size of the meshgrid
         # Create meshgrid for the planet
         self.phiP_list = np.linspace(-np.pi / 2, np.pi / 2, self.SIZE[0])
         self.thetaP_list = np.linspace(0, 2 * np.pi, self.SIZE[1])
-        self.Obs_array = np.array([0.3, 0.5, 0.8, 1,  1.3, 1.5, 1.7, 2.0 ]) * 1e-6  # The wavelength of the observation array
+        self.Obs_array = np.array([3]) * 1e-6  # The wavelength of the observation array
+        self.Model = 'Specular_Only'
         
         if Mode == 'PC':
             self.mode = 'Phase curve'   # Phase curve & Transit

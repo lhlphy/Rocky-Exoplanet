@@ -98,6 +98,8 @@ def IDS_plot(name, Obs_wave):
     ax.set_ylabel(r'$F_p/F_*$ (ppm)', fontsize=18)
     ax.tick_params(length=6, width=2)
     ax.spines['right'].set_visible(False)
+    np.save(f'temp/{name}/variables/sim_theta.npy', theta)
+    np.save(f'temp/{name}/variables/sim_SR.npy', I_s[i,:])
 
     lambda_color = 'blue'
     labmda_ax = ax.twinx()
@@ -678,7 +680,7 @@ if __name__ =='__main__':
     # parser = argparse.ArgumentParser()
     # parser.add_argument('--file', default = 'R1', type = str)
     # args = parser.parse_args()
-    name = 'R7'
+    name = 'R10'
     IDS_plot(name, np.array([3]) * 1e-6)
     # wave_range = np.array([0.5, 5]) * 1e-6
     # spectrum_plot(name, wave_range)

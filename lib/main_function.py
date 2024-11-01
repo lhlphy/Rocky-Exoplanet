@@ -10,7 +10,7 @@ from scipy.interpolate import interp1d
 import time
 
 
-def BRDF(i, j, Theta, Coarse, Model='Lambert', id= 0):
+def BRDF(i, j, Theta, Coarse, Model= APs.Model, id= 0):
     """
     calculate the reflection and diffusion intensity  (divided by B(T,lam)) of the planet surface at the point (i,j)
     i: the index of phiP
@@ -53,6 +53,9 @@ def BRDF(i, j, Theta, Coarse, Model='Lambert', id= 0):
         elif Model == 'Gaussian_wave':  # In this model Diffuse and RF are considered together
             Diffuse = Wave_reflect(r, nv, Pos, PPs.camera )
             SR = 0
+        elif Model == "Specular_Only":
+            Diffuse = 0
+            SR = specular_reflection(RV, PPs.camera, nv, r)
 
         return Diffuse, SR
     else:
@@ -66,7 +69,7 @@ def process_pack(i, Intensity, I_diffuse, Theta, Coarse, Model, id):
         I_diffuse[APs.SIZE[1]*i+j] = Diffuse
 
 # @decorator_timer('global_intensity: ')
-def global_intensity(Theta, id=0, Model = 'Lambert', Coarse = PPs.Coarse_g, mode = 'geo'):
+def global_intensity(Theta, id=0, Model = APs.Model, Coarse = PPs.Coarse_g, mode = 'geo'):
     """
     Calculate the intensity map of the reflection and diffusion of the planet surface
     mode: the mode of the calculation
@@ -161,15 +164,7 @@ def global_intensity(Theta, id=0, Model = 'Lambert', Coarse = PPs.Coarse_g, mode
 # #The distance between the line and the origin is given by: |Pos| sin(theta)
 # print(np.linalg.norm(Pos)*np.sin(angle_between(Pos, PPs.camera)))
 
-def multiprocess_func2(spectrum_P, spectrum_S, Theta, TMAP, wave_list, indx_start):
-    # with spectrum_P.get_lock():
-    # if Theta < 1e-6:
-    #     spectrum_P[j] = 0
-    # else:
-    #     spectrum_P[j] = Radiation_cal(TMAP, Theta, PPs.camera, wavelength)
-
-    # # with spectrum_S.get_lock():     
-    # spectrum_S[j] = Cal_star_flux(Theta, wavelength, PPs.Stellar_T)   
+def multiprocess_func2(spectrum_P, spectrum_S, Theta, TMAP, wave_list, indx_start): 
     
     for i, wave in enumerate(wave_list):
         spectrum_P[indx_start + i] = Radiation_cal(TMAP, Theta, PPs.camera, wave)
@@ -184,6 +179,22 @@ def thermal_spectrum(wavelength_bound, id=0, Ntheta = 5, NWavelength = 1, Nsubpr
     Ratio: [size]: NWavelength * (2*Ntheta)
     Theta_list: [size]: (2*Ntheta)
     """ 
+    # if Model == 'Specular_Only', we don't need to consider the thermal radiation, only consider the geometry problem
+    if APs.Model == 'Specular_Only':
+        # we have to save a zero array to save the thermal spectrum
+        os.makedirs(f'temp/R{id}/plots', exist_ok=True)
+        Theta_list = np.linspace(0, np.pi, Ntheta)
+        Theta_list = np.concatenate((Theta_list, 2* np.pi - Theta_list[::-1]))
+        Ratio = np.zeros([NWavelength, len(Theta_list)])  # 0 
+        Spectrum_S = np.ones([NWavelength, len(Theta_list)]) * np.pi * PPs.Rs**2 * B(3e-6, PPs.Stellar_T)   # 0
+        Tmap0 = np.zeros([len(APs.phiP_list), len(APs.thetaP_list)])
+        np.save(f'temp/R{id}/variables/Thermal.npy', Ratio)
+        np.save(f'temp/R{id}/variables/Star_flux.npy',  Spectrum_S)
+        np.save(f'temp/R{id}/variables/Theta.npy', Theta_list)
+        np.save(f'temp/R{id}/plots/Tmap0.npy', Tmap0)
+        
+        return 0
+        
     t10 = time.time()
     # Planck's constant
     h = 6.62607015e-34
