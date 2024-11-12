@@ -217,7 +217,8 @@ def thermal_spectrum(wavelength_bound, id=0, Ntheta = 5, NWavelength = 1, Nsubpr
     SS = np.zeros([len(Theta_list), NWavelength])
     RAT = np.zeros([len(Theta_list), NWavelength])
     
-    sub_Nwave = NWavelength // Nsubpro
+    Nsubpro = np.min(Nsubpro, NWavelength)
+    sub_Nwave = NWavelength // Nsubpro  # decompose the process to subprocesses
     sub_wave_pack = []
     
     for i in range(Nsubpro - 1):

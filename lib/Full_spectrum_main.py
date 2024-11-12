@@ -33,6 +33,8 @@ if __name__ == '__main__':
     os.environ['mode'] = args.mode
     os.environ['lavatype'] = args.lavatype
     os.environ['heat_redist'] = args.heat_redist
+    os.makedirs('log', exist_ok= True)
+    os.makedirs('temp', exist_ok=True)
     
     # # 存储变量，传递
     # os.makedirs('log', exist_ok= True)
