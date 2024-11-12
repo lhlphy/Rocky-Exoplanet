@@ -1,0 +1,10 @@
+Maxwell
+Traceback (most recent call last):
+  File "/work/home/haolinli/project/Exoplanet_11_12/lib/Full_spectrum_main.py", line 37, in <module>
+    os.environ['roughness'] = args.roughness
+  File "/work/home/haolinli/.conda/envs/test/lib/python3.9/os.py", line 684, in __setitem__
+    value = self.encodevalue(value)
+  File "/work/home/haolinli/.conda/envs/test/lib/python3.9/os.py", line 756, in encode
+    raise TypeError("str expected, not %s" % type(value).__name__)
+TypeError: str expected, not float
+DONE

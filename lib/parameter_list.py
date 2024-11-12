@@ -13,18 +13,23 @@ print('parameter_list.py')
 # with open('log/temp_vars.txt', 'r') as f:
 #     lines = f.readlines()
 #     mode = lines[0].strip()  # 去除换行符
-mode = os.getenv('mode')
+# mode = os.getenv('mode')
 
 class Accuracy_parameters:
     ### Accuracy control parameters
-    def __init__(self, Mode):
+    def __init__(self):
         self.SIZE = [181, 361]  # Size of the meshgrid
         # Create meshgrid for the planet
         self.phiP_list = np.linspace(-np.pi / 2, np.pi / 2, self.SIZE[0])
         self.thetaP_list = np.linspace(0, 2 * np.pi, self.SIZE[1])
         self.Obs_array = np.array([3]) * 1e-6  # The wavelength of the observation array
-        self.Model =  'Gaussian_wave'  # 'Specular_Only'
         
+        if float(os.getenv('roughness')) < 1e-3: # if roughness = 0, use the Specular_Only model
+            self.Model =  'Specular_Only'
+        else:
+            self.Model =  'Gaussian_wave' 
+        
+        Mode = os.getenv('mode') # get mode from environment variable
         if Mode == 'PC':
             self.mode = 'Phase curve'   # Phase curve & Transit
         elif Mode == "TR":
@@ -49,7 +54,7 @@ class Planet_parameters:
         
         self.Coarse_g = 0  # Coarseness of the surface
         self.Wind_speed = 10   # wind speed in m/s (only available for the Gaussian wave model)
-        self.roughness = 10
+        self.roughness = float(os.getenv('roughness'))
         
         ### Observation parameters
         camera = np.array([1, 0, 0]) # Define the direction of the camera (observation vector)
@@ -72,7 +77,7 @@ PPs = Planet_parameters(733 - 98)
 # 55 Cnc e : 215 - 98
 # TOI-2445 b: 34287 - 98
 # GJ-367 b: 733 - 98
-APs = Accuracy_parameters(mode)
+APs = Accuracy_parameters()
 
 
 
