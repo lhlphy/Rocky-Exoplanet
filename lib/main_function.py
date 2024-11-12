@@ -43,7 +43,7 @@ def BRDF(i, j, Theta, Coarse, Model= APs.Model, id= 0):
         # angle = angle_between(PPs.camera, RV)
         # Calculate the intensity of the reflected light
         # Model Choice 
-        if Model == 'Lambert':   #Coarse = 0
+        if Model == 'Lambert' or Model == 'Lambert_Only':   #Coarse = 0
             Diffuse = Lambert_BRDF(i, j, id, nv, Pos, PPs.camera, Theta)
             SR  = specular_reflection(RV, PPs.camera, nv, r)
             # SR is the reflected light intensity divided by B(T,lam)
@@ -180,7 +180,7 @@ def thermal_spectrum(wavelength_bound, id=0, Ntheta = 5, NWavelength = 1, Nsubpr
     Theta_list: [size]: (2*Ntheta)
     """ 
     # if Model == 'Specular_Only', we don't need to consider the thermal radiation, only consider the geometry problem
-    if APs.Model == 'Specular_Only' or APs.Model == 'Gaussian_wave':
+    if APs.Model == 'Specular_Only' or APs.Model == 'Gaussian_wave' or APs.Model == 'Lambert_Only':
         # we have to save a zero array to save the thermal spectrum
         os.makedirs(f'temp/R{id}/plots', exist_ok=True)
         Theta_list = np.linspace(0, np.pi, Ntheta)
@@ -193,6 +193,8 @@ def thermal_spectrum(wavelength_bound, id=0, Ntheta = 5, NWavelength = 1, Nsubpr
         np.save(f'temp/R{id}/variables/Theta.npy', Theta_list)
         np.save(f'temp/R{id}/plots/Tmap0.npy', Tmap0)
         
+        if  APs.Model == 'Lambert_Only':
+            Tmap(0, id)  # cal Tmap to get Area_1D.npy
         return 0
         
     t10 = time.time()

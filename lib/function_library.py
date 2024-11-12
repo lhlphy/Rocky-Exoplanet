@@ -233,6 +233,12 @@ def wave_dist(slope):
     
     # sigma2 = 0.003 + 0.00512* PPs.Wind_speed   #Wind_speed in parameter_list
     sigma2 = PPs.roughness /180 *np.pi
+    if sigma2 == 0:  # same as smooth surface
+        if slope < 1e-3:  # as this time, gaussian function become a delta function
+            return 1  # It can still work as a delta function
+        else:
+            return 0
+        
     P = 1/(np.sqrt(2 * np.pi) * sigma2) * np.exp(-(slope **2) / (2 * sigma2 **2))
     return P
 
@@ -262,7 +268,12 @@ def Wave_reflect(r, normal, Pos, camera, Theta ):
     DA = PPs.Rp**2 * np.sin(theta) * Dtheta * Dphi
     
     theta_c = angle_between(camera, normal)
-    return DA * np.cos(theta_c) * wave_dist(tilt) /(2 * np.pi)      
+    
+    if tilt < PPs.Rs/PPs.semi_axis/2:
+        wd = wave_dist(0)
+    else:
+        wd = wave_dist(tilt)
+    return DA * np.cos(theta_c) * wd * PPs.Rs/PPs.semi_axis   
 
 
 def Lambert_BRDF(i, j, id, normal, Pos, camera, Theta):

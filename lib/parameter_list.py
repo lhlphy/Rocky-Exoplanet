@@ -18,7 +18,7 @@ print('parameter_list.py')
 class Accuracy_parameters:
     ### Accuracy control parameters
     def __init__(self):
-        self.SIZE = [181, 361]  # Size of the meshgrid
+        self.SIZE = [400, 800]  # Size of the meshgrid
         # Create meshgrid for the planet
         self.phiP_list = np.linspace(-np.pi / 2, np.pi / 2, self.SIZE[0])
         self.thetaP_list = np.linspace(0, 2 * np.pi, self.SIZE[1])
@@ -26,8 +26,10 @@ class Accuracy_parameters:
         
         if float(os.getenv('roughness')) < 1e-3: # if roughness = 0, use the Specular_Only model
             self.Model =  'Specular_Only'
-        else:
+        elif float(os.getenv('roughness')) >= 1e-3 and float(os.getenv('roughness')) <= 90 :
             self.Model =  'Gaussian_wave' 
+        else:
+            self.Model = 'Lambert_Only'
         
         Mode = os.getenv('mode') # get mode from environment variable
         if Mode == 'PC':

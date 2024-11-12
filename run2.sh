@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=PythonTest
-#SBATCH --nodes=2
+#SBATCH --nodes=4
 #SBATCH --ntasks-per-node=32
 #SBATCH --cpus-per-task=1
 #SBATCH --partition=wzhctdnormal
@@ -24,7 +24,8 @@ export lavatype=zero
 # python  lib/Full_spectrum_main.py --id 7 --Ntheta 30 --Nwave 1201 --LB 0.3 --UB 12.3 --mode PC --lavatype low --Nsubpro 190 --heat_redist No
 # python  lib/Full_spectrum_main.py --id 8 --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype zero --Nsubpro 62 --heat_redist Full
 # python  lib/Full_spectrum_main.py --id 9 --Ntheta 30 --Nwave 200 --LB 2.3 --UB 5.2 --mode PC --lavatype zero --Nsubpro 190 --heat_redist No
-python  lib/Full_spectrum_main.py --id 4 --Ntheta 15 --Nwave 10 --LB 2.3 --UB 5.2 --mode PC --lavatype one --Nsubpro 62 --heat_redist No --roughness 0
+# python  lib/Full_spectrum_main.py --id 5 --Ntheta 60 --Nwave 5 --LB 2.99 --UB 3.01 --mode PC --lavatype one --Nsubpro 124 --heat_redist No --roughness 0
+python  lib/Full_spectrum_main.py --id 6 --Ntheta 60 --Nwave 5 --LB 2.99 --UB 3.01 --mode PC --lavatype one --Nsubpro 124 --heat_redist No --roughness 1000
 
 # python  lib/plot_lib.py
 # python  lib/bond_albedo_calculator.py
