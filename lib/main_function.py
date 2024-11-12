@@ -51,8 +51,8 @@ def BRDF(i, j, Theta, Coarse, Model= APs.Model, id= 0):
             Diffuse = Oren_Nayar_BRDF(r, nv, Pos, PPs.camera, Coarse)
             SR  = specular_reflection(RV, PPs.camera, nv, r)
         elif Model == 'Gaussian_wave':  # In this model Diffuse and RF are considered together
-            Diffuse = Wave_reflect(r, nv, Pos, PPs.camera )
-            SR = 0
+            Diffuse = 0
+            SR = Wave_reflect(r, nv, Pos, PPs.camera ) 
         elif Model == "Specular_Only":
             Diffuse = 0
             SR = specular_reflection(RV, PPs.camera, nv, r)
@@ -180,7 +180,7 @@ def thermal_spectrum(wavelength_bound, id=0, Ntheta = 5, NWavelength = 1, Nsubpr
     Theta_list: [size]: (2*Ntheta)
     """ 
     # if Model == 'Specular_Only', we don't need to consider the thermal radiation, only consider the geometry problem
-    if APs.Model == 'Specular_Only':
+    if APs.Model == 'Specular_Only' or APs.Model == 'Gaussian_wave':
         # we have to save a zero array to save the thermal spectrum
         os.makedirs(f'temp/R{id}/plots', exist_ok=True)
         Theta_list = np.linspace(0, np.pi, Ntheta)

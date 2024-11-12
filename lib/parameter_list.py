@@ -23,7 +23,7 @@ class Accuracy_parameters:
         self.phiP_list = np.linspace(-np.pi / 2, np.pi / 2, self.SIZE[0])
         self.thetaP_list = np.linspace(0, 2 * np.pi, self.SIZE[1])
         self.Obs_array = np.array([3]) * 1e-6  # The wavelength of the observation array
-        self.Model = 'Specular_Only'
+        self.Model =  'Gaussian_wave'  # 'Specular_Only'
         
         if Mode == 'PC':
             self.mode = 'Phase curve'   # Phase curve & Transit
@@ -49,6 +49,7 @@ class Planet_parameters:
         
         self.Coarse_g = 0  # Coarseness of the surface
         self.Wind_speed = 10   # wind speed in m/s (only available for the Gaussian wave model)
+        self.roughness = 1
         
         ### Observation parameters
         camera = np.array([1, 0, 0]) # Define the direction of the camera (observation vector)

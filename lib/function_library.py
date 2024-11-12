@@ -226,7 +226,7 @@ def blackbody_radiation(T, lam, B=1):
     return  2* B * h * c**2 / lam**5 / (np.exp(h * c / lam / k / T) - 1)
 
 
-def Wave_reflect(r, normal, Pos, camera ):
+def Wave_reflect(r, normal, Pos, camera ): 
     """
     Calculate the intensity of reflected sunlight considering reflectivity and diffusion.
     
@@ -284,7 +284,7 @@ def Wave_reflect(r, normal, Pos, camera ):
         ref_normal = check_normalization(check_normalization(mWi) + check_normalization(camera_local))   #mid vector
         titl = angle_between(ref_normal, normal)   #the titl of surface reflect needed
 
-        return wave_dist(titl)* np.sin(theta_i) *Fresnel(theta_i, N1, N2)
+        return wave_dist(titl)* np.sin(theta_i) # *Fresnel(theta_i, N1, N2)
     # np.sin(theta_i) is from the derivative of solid angle
 
     theta_max = np.arcsin(PPs.Rs/r)
@@ -523,7 +523,8 @@ def wave_dist(alpha):
     # CITE: https://arxiv.org/pdf/0801.1852
     #print("HHH")
     
-    sigma2 = 0.003 + 0.00512* PPs.Wind_speed   #Wind_speed in parameter_list
+    # sigma2 = 0.003 + 0.00512* PPs.Wind_speed   #Wind_speed in parameter_list
+    sigma2 = PPs.roughness /180 *np.pi
     return 1/np.sqrt(2*np.pi*sigma2)*np.exp(- np.tan(alpha)**2 /(2*sigma2))
 
 
