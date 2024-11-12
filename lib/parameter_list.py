@@ -18,7 +18,7 @@ mode = os.getenv('mode')
 class Accuracy_parameters:
     ### Accuracy control parameters
     def __init__(self, Mode):
-        self.SIZE = [19, 37]  # Size of the meshgrid
+        self.SIZE = [181, 361]  # Size of the meshgrid
         # Create meshgrid for the planet
         self.phiP_list = np.linspace(-np.pi / 2, np.pi / 2, self.SIZE[0])
         self.thetaP_list = np.linspace(0, 2 * np.pi, self.SIZE[1])
@@ -49,7 +49,7 @@ class Planet_parameters:
         
         self.Coarse_g = 0  # Coarseness of the surface
         self.Wind_speed = 10   # wind speed in m/s (only available for the Gaussian wave model)
-        self.roughness = 1
+        self.roughness = 10
         
         ### Observation parameters
         camera = np.array([1, 0, 0]) # Define the direction of the camera (observation vector)

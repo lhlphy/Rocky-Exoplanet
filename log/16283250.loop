@@ -1,0 +1,6 @@
+Maxwell
+lava_data
+parameter_list.py
+function_library
+thermal_spectrum process time: 0.014008045196533203  s
+slurmstepd: error: *** JOB 16283250 ON e08r1n17 CANCELLED AT 2024-11-12T17:31:24 ***

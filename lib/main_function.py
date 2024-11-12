@@ -52,7 +52,7 @@ def BRDF(i, j, Theta, Coarse, Model= APs.Model, id= 0):
             SR  = specular_reflection(RV, PPs.camera, nv, r)
         elif Model == 'Gaussian_wave':  # In this model Diffuse and RF are considered together
             Diffuse = 0
-            SR = Wave_reflect(r, nv, Pos, PPs.camera ) 
+            SR = Wave_reflect(r, nv, Pos, PPs.camera, Theta ) 
         elif Model == "Specular_Only":
             Diffuse = 0
             SR = specular_reflection(RV, PPs.camera, nv, r)

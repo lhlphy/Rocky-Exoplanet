@@ -225,8 +225,18 @@ def blackbody_radiation(T, lam, B=1):
     k = 1.38e-23  # Boltzmann constant
     return  2* B * h * c**2 / lam**5 / (np.exp(h * c / lam / k / T) - 1)
 
+def wave_dist(slope):
+    #the distribution of the wave on the ocean obey Gaussian distribution
+    #  alpha is the angle between the wave and the normal vector of the ocean
+    # CITE: https://arxiv.org/pdf/0801.1852
+    #print("HHH")
+    
+    # sigma2 = 0.003 + 0.00512* PPs.Wind_speed   #Wind_speed in parameter_list
+    sigma2 = PPs.roughness /180 *np.pi
+    P = 1/(np.sqrt(2 * np.pi) * sigma2) * np.exp(-(slope **2) / (2 * sigma2 **2))
+    return P
 
-def Wave_reflect(r, normal, Pos, camera ): 
+def Wave_reflect(r, normal, Pos, camera, Theta ): 
     """
     Calculate the intensity of reflected sunlight considering reflectivity and diffusion.
     
@@ -240,61 +250,19 @@ def Wave_reflect(r, normal, Pos, camera ):
     Returns:
     float: Intensity I after reflection divided by B(T,lam).
     """
-    #change the coordinate system from global to local
-
-    uz = normal
-    uy = check_normalization(np.cross(np.array([0,0,1]), uz))
-    ux = np.cross(uy, uz)
-
-    cx = np.dot(camera, ux)
-    cy = np.dot(camera, uy)
-    cz = np.dot(camera, uz)
-    camera_local = np.array([cx, cy, cz])
-
-    Px = np.dot(Pos, ux)
-    Py = np.dot(Pos, uy)
-    Pz = np.dot(Pos, uz)
-    Pos_local = np.array([Px, Py, Pz])
-
-    theta_c = angle_between(camera, normal)
-    t , phi_camera = vec2Euler(camera_local)
-    theta_P, phi_P = vec2Euler(Pos_local)
-
+    RI = 0  # reflection
+    Rin = Pos  # the incident light vector
+    Rin = - check_normalization(Rin) # the incident light vector
+    Rnormal = check_normalization(Rin + camera) # required normal direction to reflect the light
+    tilt = np.arccos(np.dot(Rnormal, normal))  # 表面倾角
     
-    def integrate_func(theta_i, phi):
-
-        tvec = Euler2vec(theta_i, phi)
-        tvec = rotate_vector(tvec, 'y', theta_P)
-        tvec = rotate_vector(tvec, 'z', phi_P)
-        
-
-        theta_i, phi = vec2Euler(tvec)
-
-        #theta_i = np.pi - angle_between(Pos, normal)
-        phi_diff = phi - phi_camera
-        mWi = tvec
-        angle = angle_between(mWi, -Pos_local)
-        angle_max = np.arcsin(PPs.Rs/r)
-
-        if angle > angle_max:   #超出star的范围
-            return 0
-       
-        theta_i = angle_between(mWi, camera_local)/2
-
-        ref_normal = check_normalization(check_normalization(mWi) + check_normalization(camera_local))   #mid vector
-        titl = angle_between(ref_normal, normal)   #the titl of surface reflect needed
-
-        return wave_dist(titl)* np.sin(theta_i) # *Fresnel(theta_i, N1, N2)
-    # np.sin(theta_i) is from the derivative of solid angle
-
-    theta_max = np.arcsin(PPs.Rs/r)
-    Integ = dblquad(integrate_func, 0, 2*np.pi, 0, theta_max )
-    #print(Integ)
+    theta = angle_between(normal, np.array([0,0,1]))
     Dtheta = np.pi/APs.SIZE[0]
     Dphi = 2*np.pi/APs.SIZE[1]
-    theta = angle_between(normal, np.array([0,0,1]))
-    DA = PPs.Rp**2 *np.sin(theta) *Dtheta *Dphi 
-    return Integ[0] *DA *np.cos(theta_c) #* blackbody_radiation(PPs.Stellar_T, Wavelength) 
+    DA = PPs.Rp**2 * np.sin(theta) * Dtheta * Dphi
+    
+    theta_c = angle_between(camera, normal)
+    return DA * np.cos(theta_c) * wave_dist(tilt) /(2 * np.pi)      
 
 
 def Lambert_BRDF(i, j, id, normal, Pos, camera, Theta):
@@ -446,7 +414,6 @@ def specular_reflection(RV, camera, normal, r):
     return  DA * np.cos(theta_c) #* blackbody_radiation(PPs.Stellar_T, Wavelength)
    #Bug repaired in 7/1: * np.cos(theta_c)
 
-
 def REF_fit(theta_r):
     """
     Using experimental data (R-theta_r) to fit the reflection coefficient.
@@ -516,16 +483,6 @@ def multi_result_plotter(Var, name, Theta_list, Coarse, id):
     plt.savefig(f'temp/R{id}/Results/Result.png')
     plt.close()
 
-
-def wave_dist(alpha):
-    #the distribution of the wave on the ocean obey Gaussian distribution
-    #  alpha is the angle between the wave and the normal vector of the ocean
-    # CITE: https://arxiv.org/pdf/0801.1852
-    #print("HHH")
-    
-    # sigma2 = 0.003 + 0.00512* PPs.Wind_speed   #Wind_speed in parameter_list
-    sigma2 = PPs.roughness /180 *np.pi
-    return 1/np.sqrt(2*np.pi*sigma2)*np.exp(- np.tan(alpha)**2 /(2*sigma2))
 
 
 def Cal_intersection_area(d, r1, r2):
