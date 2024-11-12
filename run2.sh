@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=PythonTest
-#SBATCH --nodes=2
-#SBATCH --ntasks-per-node=64
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=20
 #SBATCH --cpus-per-task=1
 #SBATCH --partition=wzhcnormal
 #SBATCH -o log/%j.loop

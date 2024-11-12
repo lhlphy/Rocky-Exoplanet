@@ -680,7 +680,7 @@ if __name__ =='__main__':
     # parser = argparse.ArgumentParser()
     # parser.add_argument('--file', default = 'R1', type = str)
     # args = parser.parse_args()
-    name = 'R10'
+    name = 'R12'
     IDS_plot(name, np.array([3]) * 1e-6)
     # wave_range = np.array([0.5, 5]) * 1e-6
     # spectrum_plot(name, wave_range)
