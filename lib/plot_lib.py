@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 import os
+os.environ['roughness'] = '0'
 import argparse
 from bond_albedo_calculator import bond_albedo_calculator
 from function_library import chi2_cal
@@ -680,7 +681,7 @@ if __name__ =='__main__':
     # parser = argparse.ArgumentParser()
     # parser.add_argument('--file', default = 'R1', type = str)
     # args = parser.parse_args()
-    name = 'R12'
+    name = 'R6copy'
     IDS_plot(name, np.array([3]) * 1e-6)
     # wave_range = np.array([0.5, 5]) * 1e-6
     # spectrum_plot(name, wave_range)

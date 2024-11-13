@@ -18,7 +18,7 @@ print('parameter_list.py')
 class Accuracy_parameters:
     ### Accuracy control parameters
     def __init__(self):
-        self.SIZE = [400, 800]  # Size of the meshgrid
+        self.SIZE = [1000, 2000]  # Size of the meshgrid
         # Create meshgrid for the planet
         self.phiP_list = np.linspace(-np.pi / 2, np.pi / 2, self.SIZE[0])
         self.thetaP_list = np.linspace(0, 2 * np.pi, self.SIZE[1])

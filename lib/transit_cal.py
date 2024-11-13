@@ -1,10 +1,11 @@
+import os
+os.environ['roughness'] = '0'
 import numpy as np
 from parameter_list import PPs, APs
 from function_library import Cal_star_flux, B
-import os
 
 # 将程序结果进行修正，并考虑transit
-name = 'R9'
+name = 'R6'
 I_specular = np.load(f'temp/{name}/variables/I_specular.npy')
 I_intensity = np.load(f'temp/{name}/variables/I_intensity.npy')
 I_diffuse = np.load(f'temp/{name}/variables/I_diffuse.npy')
