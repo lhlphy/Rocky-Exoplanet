@@ -43,10 +43,13 @@ def BRDF(i, j, Theta, Coarse, Model= APs.Model, id= 0):
         # angle = angle_between(PPs.camera, RV)
         # Calculate the intensity of the reflected light
         # Model Choice 
-        if Model == 'Lambert' or Model == 'Lambert_Only':   #Coarse = 0
+        if Model == 'Lambert':   #Coarse = 0
             Diffuse = Lambert_BRDF(i, j, id, nv, Pos, PPs.camera, Theta)
             SR  = specular_reflection(RV, PPs.camera, nv, r)
             # SR is the reflected light intensity divided by B(T,lam)
+        elif Model == 'Lambert_Only':
+            Diffuse = Lambert_BRDF(i, j, id, nv, Pos, PPs.camera, Theta)
+            SR = 0
         elif Model == 'Oren_Nayar':
             Diffuse = Oren_Nayar_BRDF(r, nv, Pos, PPs.camera, Coarse)
             SR  = specular_reflection(RV, PPs.camera, nv, r)
