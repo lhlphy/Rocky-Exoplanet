@@ -38,6 +38,7 @@ def BRDF(i, j, Theta, Coarse, Model= APs.Model, id= 0):
     # Check if the reflection direction is towards the camera
     if check_direction(RV, nv, PPs.camera, Pos):
         if  (APs.mode == 'Phase curve') and np.abs(Theta - np.pi) < np.pi/4 and check_intersection_with_star(Pos, PPs.camera):  # Check if the line intersects with the star--Check block
+            # APS.mode = 'Transit' will not consider the block of star
             return 0, 0  # if blocked , intensity is 0, 0
         # Calculate the angle between the camera and the reflected vector
         # angle = angle_between(PPs.camera, RV)
@@ -186,8 +187,12 @@ def thermal_spectrum(wavelength_bound, id=0, Ntheta = 5, NWavelength = 1, Nsubpr
     if APs.Model == 'Specular_Only' or APs.Model == 'Gaussian_wave' or APs.Model == 'Lambert_Only':
         # we have to save a zero array to save the thermal spectrum
         os.makedirs(f'temp/R{id}/plots', exist_ok=True)
-        Theta_list = np.linspace(0, np.pi, Ntheta)
+        if Ntheta == 1:
+            Theta_list = np.array([np.pi])
+        else:
+            Theta_list = np.linspace(0, np.pi, Ntheta)  # 0-pi 与 pi-2pi 重复
         Theta_list = np.concatenate((Theta_list, 2* np.pi - Theta_list[::-1]))
+        
         Ratio = np.zeros([NWavelength, len(Theta_list)])  # 0 
         Spectrum_S = np.ones([NWavelength, len(Theta_list)]) * np.pi * PPs.Rs**2 * B(3e-6, PPs.Stellar_T)   # 0
         Tmap0 = np.zeros([len(APs.phiP_list), len(APs.thetaP_list)])
@@ -222,7 +227,7 @@ def thermal_spectrum(wavelength_bound, id=0, Ntheta = 5, NWavelength = 1, Nsubpr
     SS = np.zeros([len(Theta_list), NWavelength])
     RAT = np.zeros([len(Theta_list), NWavelength])
     
-    Nsubpro = np.min(Nsubpro, NWavelength)
+    Nsubpro = np.min([Nsubpro, NWavelength])
     sub_Nwave = NWavelength // Nsubpro  # decompose the process to subprocesses
     sub_wave_pack = []
     

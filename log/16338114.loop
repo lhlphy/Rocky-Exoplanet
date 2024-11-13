@@ -1,0 +1,14 @@
+Maxwell
+lava_data
+parameter_list.py
+function_library
+thermal_spectrum process time: 35.20113134384155  s
+Traceback (most recent call last):
+  File "/work/home/haolinli/project/Exoplanet_11_12/lib/Full_spectrum_main.py", line 49, in <module>
+    Full_spectrum(Wavelength_bound, args)
+  File "/work/home/haolinli/project/Exoplanet_11_12/lib/function_library.py", line 18, in warp
+    temp = func(*args, **kwargs)
+  File "/work/home/haolinli/project/Exoplanet_11_12/lib/Full_spectrum.py", line 99, in Full_spectrum
+    raise ValueError("Theta_list is not consistent!")
+ValueError: Theta_list is not consistent!
+DONE

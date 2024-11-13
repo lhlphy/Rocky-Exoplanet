@@ -1,2 +1,11 @@
 10/6: plot_lib.real_comp 其中不同仪器的波长范围可以通过文件来定义，不再需要输入；
 10/6: plot_lib.real_comp JWST测量数据和PandEXO计算数据需要做文件夹的区分
+
+总的phase curve, 到底是specular还是diffuse
+Mode = 'Transit' 并没有任何作用
+Model 叫 "Lambert"不太合适吧，因该叫common之类的，因为同时计算的specular and diffuse
+
+Nsubpro = np.min([Nsubpro, NWavelength]) 严重存疑，可能导致CPU利用率低
+有两个并行：
+1.wave_list : Nsubpro目前只影响这个并行，可能是有价值的（在Nwave》》Nsubpro时）
+2.phi_list : 只受Nphi控制

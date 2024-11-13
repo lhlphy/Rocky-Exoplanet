@@ -96,6 +96,8 @@ def Full_spectrum(wavelength_bound, args = None, id = 0, Ntheta = 5, Nwave = 1):
     Theta_list2[Ntheta: 2*Ntheta] = 2*np.pi - Theta_list2[Ntheta: 2*Ntheta]
 
     if (Theta_list != Theta_list2).any():  # Check the consistency of the Theta_list [size: Ntheta*2]
+        print(Theta_list)
+        print(Theta_list2)
         raise ValueError("Theta_list is not consistent!")
     
     # Save the results

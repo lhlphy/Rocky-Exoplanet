@@ -18,22 +18,24 @@ print('parameter_list.py')
 class Accuracy_parameters:
     ### Accuracy control parameters
     def __init__(self):
-        self.SIZE = [1000, 2000]  # Size of the meshgrid
+        self.SIZE = [500, 1000]  # Size of the meshgrid
         # Create meshgrid for the planet
         self.phiP_list = np.linspace(-np.pi / 2, np.pi / 2, self.SIZE[0])
         self.thetaP_list = np.linspace(0, 2 * np.pi, self.SIZE[1])
         self.Obs_array = np.array([3]) * 1e-6  # The wavelength of the observation array
         
-        if float(os.getenv('roughness')) < 1e-3: # if roughness = 0, use the Specular_Only model
-            self.Model =  'Specular_Only'
-        elif float(os.getenv('roughness')) >= 1e-3 and float(os.getenv('roughness')) <= 90 :
-            self.Model =  'Gaussian_wave' 
-        else:
-            self.Model = 'Lambert_Only'
+        # if float(os.getenv('roughness')) < 1e-3: # if roughness = 0, use the Specular_Only model
+        #     self.Model =  'Specular_Only'
+        # elif float(os.getenv('roughness')) >= 1e-3 and float(os.getenv('roughness')) <= 90 :
+        #     self.Model =  'Gaussian_wave' 
+        # else:
+        #     self.Model = 'Lambert_Only'
+        self.Model = 'Lambert'
         
         Mode = os.getenv('mode') # get mode from environment variable
         if Mode == 'PC':
             self.mode = 'Phase curve'   # Phase curve & Transit
+            # main_function.py -> BRDF()->line 40: controled by this parameter (whether consider the block effect of star)
         elif Mode == "TR":
             self.mode = 'Transit'
         else:
