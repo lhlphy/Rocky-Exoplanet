@@ -3,6 +3,7 @@ import numpy as np
 from scipy.constants import h, c, k
 from scipy.integrate import quad
 
+# 计算光子数N，并计算信噪比1/sqrt(N)
 # 常量
 R_earth = 6371
 R_Jupiter = 69911
