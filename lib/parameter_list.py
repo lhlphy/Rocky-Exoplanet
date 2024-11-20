@@ -24,13 +24,13 @@ class Accuracy_parameters:
         self.thetaP_list = np.linspace(0, 2 * np.pi, self.SIZE[1])
         self.Obs_array = np.array([3]) * 1e-6  # The wavelength of the observation array
         
-        # if float(os.getenv('roughness')) < 1e-3: # if roughness = 0, use the Specular_Only model
-        #     self.Model =  'Specular_Only'
-        # elif float(os.getenv('roughness')) >= 1e-3 and float(os.getenv('roughness')) <= 90 :
-        #     self.Model =  'Gaussian_wave' 
-        # else:
-        #     self.Model = 'Lambert_Only'
-        self.Model = 'Lambert'
+        if float(os.getenv('roughness')) < 1e-3: # if roughness = 0, use the Specular_Only model
+            self.Model =  'Specular_Only'
+        elif float(os.getenv('roughness')) >= 1e-3 and float(os.getenv('roughness')) <= 90 :
+            self.Model =  'Gaussian_wave' 
+        else:
+            self.Model = 'Lambert_Only'
+        # self.Model = 'Lambert'
         
         Mode = os.getenv('mode') # get mode from environment variable
         if Mode == 'PC':
@@ -70,13 +70,13 @@ class Planet_parameters:
         return  LA.A_interp(lam*1e6)
     
     def A_diffuse(self, lam, T = 0):
-        return self.Albedo(lam, T)
+        return self.Albedo(lam, T) *2/3
     
     def A_Specular(self, lam, T = 0):
         return self.Albedo(lam, T)
     
 
-PPs = Planet_parameters(733 - 98)  
+PPs = Planet_parameters(4170)  # K2-141 b
 # K2-141 b : 4264 - 98
 # 55 Cnc e : 215 - 98
 # TOI-2445 b: 34287 - 98

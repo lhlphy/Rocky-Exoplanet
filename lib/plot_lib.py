@@ -681,13 +681,13 @@ if __name__ =='__main__':
     # parser = argparse.ArgumentParser()
     # parser.add_argument('--file', default = 'R1', type = str)
     # args = parser.parse_args()
-    name = 'R6copy'
+    name = 'R10'
     IDS_plot(name, np.array([3]) * 1e-6)
-    # wave_range = np.array([0.5, 5]) * 1e-6
-    # spectrum_plot(name, wave_range)
+    wave_range = np.array([0.5, 5]) * 1e-6
+    spectrum_plot(name, wave_range)
     
     # compare_spectrum_plot(['R3', 'R4', 'R5'])
-    # real_comp2(['R3', 'R4', 'R1'])
+    real_comp2(['R10', 'R11'])
     
     # compare_phase_curve_plot(['R7copy', 'R6copy', 'R9copy'], np.array([3.9, 5])* 1e-6) # first: low albedo ; second: high albedo
     
