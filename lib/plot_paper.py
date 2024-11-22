@@ -98,6 +98,11 @@ def specular_diffuse_plot_theory(name_specular, name_diffuse, Obs_wave, transit 
         ax.plot(theta, Is_specular[i,:] *1e6, label='specular', color='b', linewidth=2)
         ax.plot(theta, Id_diffuse[i,:] *1e6, label='diffuse', color='k', linewidth=2)
     else:
+        # thermal同时包含了thermal emission 和transit的修正项， 前者为正值或0，后者为负值
+        # 对于specualr_only and lambert_only模型, 这一步并不必要，因为本来就没有计算thermal emission，整个thermal 都是transit的修正项
+        # 但如果不小心使用了非only的模型，那么这一步就是必要的， 需要将thermal emission 去除，只保留transit的修正项
+        It_diffuse[It_diffuse > 0] =0   # 当然，直接置为零会带来一定的误差，但考虑到(thermal emission << transit)，这个误差是可以接受的
+        It_specular[It_specular > 0] =0
         ax.plot(theta, (Is_specular[i,:] + It_specular[i,:]) *1e6, label='specular', color='b', linewidth=2)
         ax.plot(theta, (Id_diffuse[i,:] + It_diffuse[i,:]) *1e6, label='diffuse', color='k', linewidth=2)
         
