@@ -46,6 +46,8 @@ if __name__ == '__main__':
 
     from Full_spectrum import Full_spectrum   # have to import after log/temp_vars.txt is created
     Full_spectrum(Wavelength_bound, args)
+    from transit_cal import Transit_cal  # do the flux correction immediately, generate R{id}copy folder
+    Transit_cal(f'R{args.id}')
     
 
         
