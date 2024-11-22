@@ -9,11 +9,9 @@ Sigma_const = 5.67e-8  # W/m^2/K^4, Stefan-Boltzmann constant
 
 # parser = argparse.ArgumentParser()
 print('parameter_list.py')
-# read mode = "PC" ? "TR"
-# with open('log/temp_vars.txt', 'r') as f:
-#     lines = f.readlines()
-#     mode = lines[0].strip()  # 去除换行符
-# mode = os.getenv('mode')
+# if environment variable 'roughness' is not set, use default value 0
+if 'roughness' not in os.environ:
+    os.environ['roughness'] = '0'
 
 class Accuracy_parameters:
     ### Accuracy control parameters
@@ -84,7 +82,14 @@ PPs = Planet_parameters(4170)  # K2-141 b
 APs = Accuracy_parameters()
 
 
-
+if __name__ == '__main__':
+    os.environ['roughness'] = '0'
+    print("This is a module that contains all the parameters.")
+    print('Rs:', PPs.Rs)
+    print('Rp:', PPs.Rp)
+    print('semi_axis:', PPs.semi_axis)
+    print('Stellar_T:', PPs.Stellar_T)
+    print('pl_eqT:', PPs.pl_eqT)
 
 
 
