@@ -16,7 +16,7 @@ if 'roughness' not in os.environ:
 class Accuracy_parameters:
     ### Accuracy control parameters
     def __init__(self):
-        self.SIZE = [500, 1000]  # Size of the meshgrid
+        self.SIZE = [10, 20]  # Size of the meshgrid
         # Create meshgrid for the planet
         self.phiP_list = np.linspace(-np.pi / 2, np.pi / 2, self.SIZE[0])
         self.thetaP_list = np.linspace(0, 2 * np.pi, self.SIZE[1])

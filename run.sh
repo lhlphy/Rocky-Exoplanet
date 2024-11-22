@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --job-name=PythonTest
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
+#SBATCH --nodes=4
+#SBATCH --ntasks-per-node=32
 #SBATCH --cpus-per-task=1
-#SBATCH --partition=wzhcnormal
+#SBATCH --partition=wzhctdnormal
 #SBATCH -o log/%j.loop
 #SBATCH -e log/%j.loop
 
@@ -13,36 +13,31 @@ echo "Maxwell"
 
 module load apps/anaconda3/5.2.0
 conda activate test
+export lavatype=zero
 
-# env
-id=5
+# python  lib/Full_spectrum_main.py --id 1 --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype zero --Nsubpro 190 --heat_redist No
+# python  lib/Full_spectrum_main.py --id 2 --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype zero --Nsubpro 190 --heat_redist Full
+# python  lib/Full_spectrum_main.py --id 3 --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype low --Nsubpro 190 --heat_redist No
+# python  lib/Full_spectrum_main.py --id 4 --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype high --Nsubpro 190 --heat_redist No
+# python  lib/Full_spectrum_main.py --id 5 --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype high_OH --Nsubpro 190 --heat_redist No
+# python  lib/Full_spectrum_main.py --id 6 --Ntheta 30 --Nwave 1201 --LB 0.3 --UB 12.3 --mode PC --lavatype high --Nsubpro 190 --heat_redist No
+# python  lib/Full_spectrum_main.py --id 7 --Ntheta 30 --Nwave 1201 --LB 0.3 --UB 12.3 --mode PC --lavatype low --Nsubpro 190 --heat_redist No
+# python  lib/Full_spectrum_main.py --id 8 --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype zero --Nsubpro 62 --heat_redist Full
+# python  lib/Full_spectrum_main.py --id 9 --Ntheta 30 --Nwave 200 --LB 2.3 --UB 5.2 --mode PC --lavatype zero --Nsubpro 190 --heat_redist No
+# python  lib/Full_spectrum_main.py --id 5 --Ntheta 60 --Nwave 5 --LB 2.99 --UB 3.01 --mode PC --lavatype one --Nsubpro 124 --heat_redist No --roughness 0
+# python  lib/Full_spectrum_main.py --id 8 --Ntheta 60 --Nwave 5 --LB 2.99 --UB 3.01 --mode PC --lavatype one --Nsubpro 250 --heat_redist No --roughness 0
+# python  lib/Full_spectrum_main.py --id 9 --Ntheta 15 --Nwave 5 --LB 2.99 --UB 3.01 --mode PC --lavatype one --Nsubpro 125 --heat_redist No --roughness 1000
+# python  lib/Full_spectrum_main.py --id 11 --Ntheta 1 --Nwave 500 --LB 0.3 --UB 10 --mode TR --lavatype high --Nsubpro 250 --heat_redist No 
 
-# python  lib/Full_spectrum_main.py --id $id --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype zero --Nsubpro 190 --heat_redist No
-# python  lib/Full_spectrum_main.py --id $id --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype zero --Nsubpro 190 --heat_redist Full
-# python  lib/Full_spectrum_main.py --id $id --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype low --Nsubpro 190 --heat_redist No
-# python  lib/Full_spectrum_main.py --id $id --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype high --Nsubpro 190 --heat_redist No
-# python  lib/Full_spectrum_main.py --id $id --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype high_OH --Nsubpro 190 --heat_redist No
-# python  lib/Full_spectrum_main.py --id $id --Ntheta 30 --Nwave 1201 --LB 0.3 --UB 12.3 --mode PC --lavatype high --Nsubpro 190 --heat_redist No
-# python  lib/Full_spectrum_main.py --id $id --Ntheta 30 --Nwave 1201 --LB 0.3 --UB 12.3 --mode PC --lavatype low --Nsubpro 190 --heat_redist No
-# python  lib/Full_spectrum_main.py --id $id --Ntheta 1 --Nwave 1201 --LB 0.3 --UB 12.3 --mode TR --lavatype zero --Nsubpro 62 --heat_redist Full
+# python  lib/Full_spectrum_main.py --id 11 --Ntheta 60 --Nwave 5 --LB 2.99 --UB 3.01 --mode PC --lavatype one --Nsubpro 125 --heat_redist No --roughness 0
+python  lib/Full_spectrum_main.py --id 12 --Ntheta 60 --Nwave 5 --LB 2.99 --UB 3.01 --mode PC --lavatype one --Nsubpro 125 --heat_redist No --roughness 1000
+# python  lib/Full_spectrum_main.py --id 11 --Ntheta 60 --Nwave 5 --LB 2.99 --UB 3.01 --mode PC --lavatype one --Nsubpro 125 --heat_redist No --roughness 0
+# python  lib/Full_spectrum_main.py --id 12 --Ntheta 60 --Nwave 5 --LB 2.99 --UB 3.01 --mode PC --lavatype one --Nsubpro 125 --heat_redist No --roughness 1000
 
-# 获取当前脚本的路径
-SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SCRIPT_NAME="run.sh"
+# python  lib/Full_spectrum_main.py --id 13 --Ntheta 60 --Nwave 100 --LB 0.1 --UB 5 --mode PC --lavatype low --Nsubpro 125 --heat_redist No 
+# python  lib/Full_spectrum_main.py --id 14 --Ntheta 60 --Nwave 100 --LB 0.1 --UB 5 --mode PC --lavatype high --Nsubpro 125 --heat_redist No 
 
-echo "<$SCRIPT_NAME>"
-
-# 目标目录
-DEST_DIR="$SCRIPT_PATH/temp/R$id"
-
-# 确保目标目录存在
-mkdir -p "$DEST_DIR"
-
-# 复制当前脚本到目标目录
-cat "$SCRIPT_PATH/$SCRIPT_NAME" > "$DEST_DIR/$SCRIPT_NAME"
-
-echo "Script copied to $DEST_DIR/$SCRIPT_NAME"
-
+# python lib/transit_cal.py
 
 # python  lib/plot_lib.py
 # python  lib/bond_albedo_calculator.py
@@ -50,6 +45,8 @@ echo "Script copied to $DEST_DIR/$SCRIPT_NAME"
 # python Tmap_2D_plot.py
 # python lib/lava_data.py
 # python telescope_measure/test.py
+
+# python lib/plot_paper.py
 echo "DONE"
 
 
