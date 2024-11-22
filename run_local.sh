@@ -6,7 +6,7 @@ export lavatype=zero
 
 python3 lib/Full_spectrum_main.py --id 12 --Ntheta 6 --Nwave 5 --LB 2.99 --UB 3.01 --mode PC --lavatype one --Nsubpro 5 --heat_redist No --roughness 1000
 
-# python lib/transit_cal.py
+# python lib/transit_cal.py --name R6
 
 # python  lib/plot_lib.py
 # python  lib/bond_albedo_calculator.py

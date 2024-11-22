@@ -37,7 +37,7 @@ python  lib/Full_spectrum_main.py --id 12 --Ntheta 60 --Nwave 5 --LB 2.99 --UB 3
 # python  lib/Full_spectrum_main.py --id 13 --Ntheta 60 --Nwave 100 --LB 0.1 --UB 5 --mode PC --lavatype low --Nsubpro 125 --heat_redist No 
 # python  lib/Full_spectrum_main.py --id 14 --Ntheta 60 --Nwave 100 --LB 0.1 --UB 5 --mode PC --lavatype high --Nsubpro 125 --heat_redist No 
 
-# python lib/transit_cal.py
+# python lib/transit_cal.py --name R6
 
 # python  lib/plot_lib.py
 # python  lib/bond_albedo_calculator.py
