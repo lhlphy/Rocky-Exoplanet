@@ -63,8 +63,8 @@ class Planet_parameters:
         self.camera = camera / np.linalg.norm(camera) # normalize the camera vector
         
     def Albedo(self, lam, T = 0):
-        if lam < LA.Wmin *1e-6 or lam > LA.Wmax *1e-6:
-            raise ValueError('Albedo exceed the bounds! ')
+        if  lam > LA.Wmax *1e-6:
+            raise ValueError('Albedo exceed the high bounds! ')
         return  LA.A_interp(lam*1e6)
     
     def A_diffuse(self, lam, T = 0):

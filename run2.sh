@@ -31,6 +31,11 @@ export lavatype=zero
 
 # python  lib/Full_spectrum_main.py --id 11 --Ntheta 60 --Nwave 5 --LB 2.99 --UB 3.01 --mode PC --lavatype one --Nsubpro 125 --heat_redist No --roughness 0
 python  lib/Full_spectrum_main.py --id 12 --Ntheta 60 --Nwave 5 --LB 2.99 --UB 3.01 --mode PC --lavatype one --Nsubpro 125 --heat_redist No --roughness 1000
+# python  lib/Full_spectrum_main.py --id 11 --Ntheta 60 --Nwave 5 --LB 2.99 --UB 3.01 --mode PC --lavatype one --Nsubpro 125 --heat_redist No --roughness 0
+# python  lib/Full_spectrum_main.py --id 12 --Ntheta 60 --Nwave 5 --LB 2.99 --UB 3.01 --mode PC --lavatype one --Nsubpro 125 --heat_redist No --roughness 1000
+
+# python  lib/Full_spectrum_main.py --id 13 --Ntheta 60 --Nwave 100 --LB 0.1 --UB 5 --mode PC --lavatype low --Nsubpro 125 --heat_redist No 
+# python  lib/Full_spectrum_main.py --id 14 --Ntheta 60 --Nwave 100 --LB 0.1 --UB 5 --mode PC --lavatype high --Nsubpro 125 --heat_redist No 
 
 # python lib/transit_cal.py
 

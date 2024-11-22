@@ -182,7 +182,9 @@ def spectrum_plot(name, wave_range):
     plt.show()
     plt.savefig(f"temp/{name}/spectrum")
     
-def compare_phase_curve_plot(name_list, wave_range):
+def compare_phase_curve_plot(name_list, wave_range, instrument = '  '):
+    # 绘制full phase curve, 默认情况下name_list只有两个name，分别代表low albedo和high albedo，绘制4条曲线
+    # 分别是：low albedo & Lambert, low albedo & Specular, high albedo & Lambert, high albedo & Specular
     # load data, I_diffuse,I_specular is contrast ratio 
     sim_obs = np.loadtxt(f"telescope_measure/sim_obs (14).txt", delimiter=' ')
     x = sim_obs[:,0]
@@ -201,6 +203,8 @@ def compare_phase_curve_plot(name_list, wave_range):
     Theta_list = np.load(f'temp/{name_list[0]}/variables/Theta.npy')
     Theta_list = Theta_list / (2 *np.pi)   # 将相位角归一化
     data = np.zeros([np.size(Theta_list), 6])
+    
+    up_bound = 0  # control xlim up_lim
     for i, name in enumerate(name_list):
         Theta_list = np.load(f'temp/{name}/variables/Theta.npy')
         Theta_list = Theta_list / (2 *np.pi)   # 将相位角归一化
@@ -213,6 +217,7 @@ def compare_phase_curve_plot(name_list, wave_range):
         plotarr[i*2], = plt.plot(Theta_list, CR_D, '-', color = pallet[i], linewidth = 2)
         plotarr[i*2+1], = plt.plot(Theta_list, CR_S, '--', color = pallet[i], linewidth = 2)
         data[:,0] = Theta_list
+        up_bound = np.max([np.max(CR_D), np.max(CR_S), up_bound]) # find the max value for ylim
         if i != 2:
             data[:,2 + i*2] = CR_S
             data[:,3 + i*2] = CR_D
@@ -237,6 +242,8 @@ def compare_phase_curve_plot(name_list, wave_range):
     # ax.axvspan(0.3303, 0.4593, color='gray', alpha=0.2)
     # ax.axvspan(0.5407, 0.6697, color='gray', alpha=0.2)
     # 设置图例并放置在图窗的正下方  
+    plt.ylim([0,up_bound * 1.1])
+    plt.xlim([0,1])
     plt.legend([plotarr[0],plotarr[2],plotarr[4],plotarr[1],plotarr[3]], ['Low albedo & Lambert', 'High albedo & Lambert', 'Blackbody',
                     'Low albedo & Specular', 'High albedo & Specular'], loc='upper center', bbox_to_anchor=(0.5, -0.13), ncol=2)
     # plt.legend(plotarr, ['Low albedo & Lambert', 'Low albedo & Specular',  'Mid albedo & Lambert', 'Mid albedo & Specular',
@@ -252,8 +259,10 @@ def compare_phase_curve_plot(name_list, wave_range):
     # plt.text(0.6052, 0, '1 hour', fontsize=10,fontweight='bold', color='black', ha='center')
     # # plt.text(0.3948, -3, '1 hour', fontsize=12, color='black', ha='center')
     
-    plt.text(0.5,-100, 'NIRCam/F444W', fontsize = 10, ha='center', fontweight='bold')
-    plt.text(0.5,-120, '3.9-5 μm', fontsize = 10, ha='center', fontweight='bold')
+    # plt.text(0.5,-100, 'NIRCam/F444W', fontsize = 10, ha='center', fontweight='bold')
+    # plt.text(0.5,-120, '3.9-5 μm', fontsize = 10, ha='center', fontweight='bold')
+    plt.text(0.83, up_bound *1 , instrument, fontsize = 10, ha='center', fontweight='bold') # label instrument name and wavelength range
+    plt.text(0.83, up_bound *0.9, f'{wave_range[0]*1e6 :.2f}-{wave_range[1]*1e6 :.2f} μm', fontsize = 10, ha='center', fontweight='bold')
     # plt.axis([0, 1, -5, 40])
     Transit_depth = PPs.Rp**2 / PPs.Rs**2 * 1e6
     print(f'Transit depth: {Transit_depth:.2f} ppm')
@@ -681,16 +690,16 @@ if __name__ =='__main__':
     # parser = argparse.ArgumentParser()
     # parser.add_argument('--file', default = 'R1', type = str)
     # args = parser.parse_args()
-    name = 'R10'
-    IDS_plot(name, np.array([3]) * 1e-6)
-    wave_range = np.array([0.5, 5]) * 1e-6
-    spectrum_plot(name, wave_range)
+    # name = 'R10'
+    # IDS_plot(name, np.array([3]) * 1e-6)
+    # wave_range = np.array([0.5, 5]) * 1e-6
+    # spectrum_plot(name, wave_range)
     
     # compare_spectrum_plot(['R3', 'R4', 'R5'])
-    real_comp2(['R10', 'R11'])
+    # real_comp2(['R10', 'R11'])
     
     # compare_phase_curve_plot(['R7copy', 'R6copy', 'R9copy'], np.array([3.9, 5])* 1e-6) # first: low albedo ; second: high albedo
-    
+    compare_phase_curve_plot(['R13copy', 'R14copy'], np.array([0.33, 1.1])* 1e-6, instrument = 'CHEOPS') # first: low albedo ; second: high albedo
     # Intenstiy_comp(['R3', 'R4'])
     
     

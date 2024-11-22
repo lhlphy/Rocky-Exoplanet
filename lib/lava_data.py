@@ -147,6 +147,11 @@ class lava_Albedo:
         elif self.type == 'one':
             return 1
         else:
+            if lam < self.Wmin:  # excess low bound situation
+                if self.type == 'low':
+                    return 0.1   # excess low bound, set "low albedo" to 0.1
+                elif self.type == 'high':
+                    return 0.3  # excess low bound, set "high albedo" to 0.3
             return self.interp_func(lam)
     
     def albedo_plotter(self):

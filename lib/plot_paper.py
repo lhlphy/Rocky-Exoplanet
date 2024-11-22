@@ -49,6 +49,44 @@ def data_loader(name, Obs_wave):
     
     
 def specular_diffuse_plot(name_specular, name_diffuse, Obs_wave, transit = 'off'):
+    # 绘制diffuse和specular的phase curve(*not* include thermal emission), 绘图中包含2曲线，
+    # 分别是specular和diffuse的phase curve, 不区分表面材料性质的low与high albedo, 仅用于对比高分辨率的diffuse and specular_only model
+    Is_specular, Ii_specular, Id_specular, It_specular, theta = data_loader(name_specular, Obs_wave)
+    Is_diffuse, Ii_diffuse, Id_diffuse, It_diffuse, theta = data_loader(name_diffuse, Obs_wave)
+    
+    i = 0  # specular 与 diffuse与波长无关，仅取决于几何结构，所以i可以任意选取
+    theta = theta/(2 *np.pi)
+
+    fig, ax = plt.subplots(figsize=(9,6))
+    up_lim = 0  # ylim的上限
+    if transit == 'off':  # 不考虑transit的情况
+        ax.plot(theta, Is_specular[i,:] *1e6, label='specular', color='b', linewidth=2)
+        ax.plot(theta, Id_diffuse[i,:] *1e6, label='diffuse', color='k', linewidth=2)
+        up_lim = np.max([np.max(Is_specular[i,:]), np.max(Id_diffuse[i,:])]) *1e6
+    else: # 考虑transit的情况, transit修正存储在一个数组中 It_specular, It_diffuse
+        ax.plot(theta, (Is_specular[i,:] + It_specular[i,:]) *1e6, label='specular', color='b', linewidth=2)
+        ax.plot(theta, (Id_diffuse[i,:] + It_diffuse[i,:]) *1e6, label='diffuse', color='k', linewidth=2)
+        up_lim = np.max([np.max(Is_specular[i,:] + It_specular[i,:]), np.max(Id_diffuse[i,:] + It_diffuse[i,:])]) *1e6
+        
+    ax.set_xlabel('Orbital phase', fontsize=18)
+    ax.set_ylabel(r'$F_p/F_*$ (ppm)', fontsize=18)
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, up_lim *1.1)
+    ax.spines['bottom'].set_linewidth(2)    ###设置底部坐标轴的粗细
+    ax.spines['left'].set_linewidth(2)  ####设置左边坐标轴的粗细
+    ax.spines['right'].set_linewidth(2) ###设置右边坐标轴的粗细
+    ax.spines['top'].set_linewidth(2)   ####设置上部坐标轴的粗细
+    #刻度值字体大小设置（x轴和y轴同时设置）
+    plt.tick_params(labelsize=16)
+    plt.legend(fontsize=17, frameon=False)
+    plt.savefig(f"temp/{name_specular}/specular_diffuse_{Obs_wave[0]*1e6}_{transit}.png")
+    plt.savefig(f"temp/{name_diffuse}/specular_diffuse_{Obs_wave[0]*1e6}_{transit}.png")
+    plt.close()
+ 
+   
+def specular_diffuse_plot_theory(name_specular, name_diffuse, Obs_wave, transit = 'off'):
+     # 绘制模拟的diffuse和specular的phase curve, 以及解析近似理论和光学理论结果，绘图中包含4曲线
+     # 分别是： 模拟的specular和diffuse的phase curve, 解析近似理论和光学理论结果
     Is_specular, Ii_specular, Id_specular, It_specular, theta = data_loader(name_specular, Obs_wave)
     Is_diffuse, Ii_diffuse, Id_diffuse, It_diffuse, theta = data_loader(name_diffuse, Obs_wave)
     
@@ -62,10 +100,19 @@ def specular_diffuse_plot(name_specular, name_diffuse, Obs_wave, transit = 'off'
     else:
         ax.plot(theta, (Is_specular[i,:] + It_specular[i,:]) *1e6, label='specular', color='b', linewidth=2)
         ax.plot(theta, (Id_diffuse[i,:] + It_diffuse[i,:]) *1e6, label='diffuse', color='k', linewidth=2)
+        
+    theory1 = np.loadtxt('theory1.txt', delimiter = ',')
+    ax.plot(theory1[:,0]/(2*np.pi), theory1[:,1], label='analytical', color='r', linewidth=2, linestyle='--')
+    
+    # 绘制一条平行于x轴的直线，颜色为'gray'，线宽为1
+    theory2 = 21.3234 # 21.1722
+    ax.axhline(y=theory2, color='gray', linestyle='--', linewidth=2, label = 'optical')
+    # ax.plot((0, theory2), (1, theory2), color='gray', linestyle='--', linewidth=2, label = 'virtual image')
+    
     ax.set_xlabel('Orbital phase', fontsize=18)
     ax.set_ylabel(r'$F_p/F_*$ (ppm)', fontsize=18)
     ax.set_xlim(0, 1)
-    ax.set_ylim(0, 12)
+    ax.set_ylim(0, 40)
     ax.spines['bottom'].set_linewidth(2)    ###设置底部坐标轴的粗细
     ax.spines['left'].set_linewidth(2)  ####设置左边坐标轴的粗细
     ax.spines['right'].set_linewidth(2) ###设置右边坐标轴的粗细
@@ -73,10 +120,12 @@ def specular_diffuse_plot(name_specular, name_diffuse, Obs_wave, transit = 'off'
     #刻度值字体大小设置（x轴和y轴同时设置）
     plt.tick_params(labelsize=16)
     plt.legend(fontsize=17, frameon=False)
-    plt.savefig(f"temp/{name_specular}/specular_diffuse_{Obs_wave[0]*1e6}_{transit}.png")
-    plt.savefig(f"temp/{name_diffuse}/specular_diffuse_{Obs_wave[0]*1e6}_{transit}.png")
+    plt.savefig(f"temp/{name_specular}/specular_diffuse_{Obs_wave[0]*1e6}_{transit}_theory.png")
+    plt.savefig(f"temp/{name_diffuse}/specular_diffuse_{Obs_wave[0]*1e6}_{transit}_theory.png")
     plt.close()
-    
+      
     
 if __name__ == "__main__":
-    specular_diffuse_plot("R8copy", "R6copy", np.array([3]) * 1e-6, transit='off')
+    # specular_diffuse_plot("R8copy", "R6copy", np.array([3]) * 1e-6, transit='off')
+    # 在使用transit='on'时，注意'R1'和'R2'位置上的PC必须经过 transit_cal.py 的计算；应该为'R1copy'和'R2copy'的形式
+    specular_diffuse_plot_theory("R11copy", "R12copy", np.array([3]) * 1e-6, transit='on')
