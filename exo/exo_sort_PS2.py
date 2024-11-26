@@ -33,8 +33,10 @@ df_c = df.copy()
 # 确保R、a和name列存在  
 if 'pl_orbsmax' in df_c.columns and 'pl_rade' in df_c.columns and 'pl_name' in df_c.columns:  
     # 计算R/a  
+
     fl_df = df_c[(df_c['pl_rade']<1.6) & (df_c['pl_eqt']>850)]
     # 反射对比度
+    fl_df['Tsub'] = fl_df['st_teff'] * np.sqrt(fl_df['st_rad'] *R_Sun /fl_df['pl_orbsmax'] /AU) 
     fl_df['Reflected_contrast'] = Ag * (fl_df['pl_rade'] / fl_df['pl_orbsmax']) ** 2 * Co1
 
     # 噪声估计相关参数
