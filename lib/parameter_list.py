@@ -79,6 +79,7 @@ PPs = Planet_parameters(4170)  # K2-141 b
 # 55 Cnc e : 215 - 98
 # TOI-2445 b: 34287 - 98
 # GJ-367 b: 733 - 98
+# Kepler-808 b: 30420 ## this planet has best specular/thermal*Melt_area ratio in 1 um (from exo_rank.py)
 APs = Accuracy_parameters()
 
 
