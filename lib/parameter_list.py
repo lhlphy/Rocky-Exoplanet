@@ -68,7 +68,7 @@ class Planet_parameters:
         return  LA.A_interp(lam*1e6)
     
     def A_diffuse(self, lam, T = 0):
-        return self.Albedo(lam, T) *2/3
+        return self.Albedo(lam, T)
     
     def A_Specular(self, lam, T = 0):
         return self.Albedo(lam, T)

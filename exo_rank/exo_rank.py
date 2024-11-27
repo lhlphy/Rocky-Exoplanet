@@ -6,7 +6,7 @@ def B_func(T, lam, B=1): # palnk function
     return 2 * B * h * c**2 / lam**5 / (np.exp(h * c / (lam * k * T)) - 1)
 
 # rank exoplanets by Specular/Thermal at lam_spec
-lam_spec = 1e-6
+lam_spec = 0.5e-6
 R_E = 6357
 AU = 149_597_870.7 
 Co1 = (R_E/AU)**2

@@ -29,7 +29,7 @@ def Rank_exo(lam_spec = 1e-6, T_liq = 1600, Nhead = 30, rank_standard = 'Specula
     # 确保R、a和name列存在  
     if 'pl_orbsmax' in df_c.columns and 'pl_rade' in df_c.columns and 'pl_name' in df_c.columns:  
         # 计算R/a  
-        fl_df1 = df_c[(df_c['pl_rade']<1.6)].copy()
+        fl_df1 = df_c[(df_c['pl_rade'] < 1.6)].copy()
         fl_df1['Tsub'] = fl_df1['st_teff'] * np.sqrt(fl_df1['st_rad'] *R_Sun /fl_df1['pl_orbsmax'] /AU)  # sub-stellar temperature
         fl_df1['liq_area'] = 1- (T_liq/fl_df1['Tsub'])**8 # 计算熔融覆盖率
         fl_df = fl_df1[(fl_df1['Tsub'] > T_liq) & (fl_df1['liq_area'] > 0.9)].copy() # 选择Tsub > T_liq, 并且熔融覆盖率>80%的行
@@ -46,7 +46,10 @@ def Rank_exo(lam_spec = 1e-6, T_liq = 1600, Nhead = 30, rank_standard = 'Specula
         sorted_df = fl_df.sort_values(by = rank_standard, ascending=False) 
         
         # 提取前N个恒星的name参数  
-        top_names = sorted_df[['pl_name','Specular', 'Specular_corr','st_rad', 'pl_orbsmax', 'st_teff', 'pl_eqt', 'Tsub', 'Spl_CR', 'liq_area']].head(Nhead)  
+        if Nhead ==0:
+            top_names = sorted_df[['pl_name','Specular', 'Specular_corr', 'Spl_CR']]
+        else:
+            top_names = sorted_df[['pl_name','Specular', 'Specular_corr','st_rad', 'pl_orbsmax', 'st_teff', 'pl_eqt', 'Tsub', 'Spl_CR', 'liq_area']].head(Nhead)  
         
         # for i in range(len(top_10_names)):  
         #     print(f" {top_10_names.iloc[i]['pl_name']}")

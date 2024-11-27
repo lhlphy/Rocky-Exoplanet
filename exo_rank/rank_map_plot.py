@@ -48,12 +48,18 @@ class Rank_plot:
             top_exo = self.Exo_rank(lam_spec)
 
             # Plot the 'Specular' data
-            for i in range(self.Nhead - 1, -1, -1):  # Reverse order plotting
+            if self.Nhead == 0:  # 如果Nhead为0，则绘制所有数据(若不单独设置，则不会绘制任何数据)
+                NN = len(top_exo)-1
+            else:
+                NN = self.Nhead-1
+            for i in range(NN, -1, -1):  # Reverse order plotting
                 if i == 0:
                     ax1.plot(lam_spec, top_exo['Specular'].iloc[i], 'o', color='red', zorder=2)
-                    ax1.text(lam_spec, top_exo['Specular'].iloc[i], top_exo['pl_name'].iloc[i].split('.txt')[0], fontsize=8)
+                    # ax1.text(lam_spec, top_exo['Specular'].iloc[i], top_exo['pl_name'].iloc[i].split('.txt')[0], fontsize=8)
+                    print(top_exo['pl_name'].iloc[i].split('.txt')[0])
+
                 else:
-                    ax1.plot(lam_spec, top_exo['Specular'].iloc[i], 'o', color='black', zorder=2)
+                    ax1.plot(lam_spec, top_exo['Specular'].iloc[i], 'o', color='black', zorder=2, markersize=3)
 
             # Plot the bar chart for 'Spl_CR' of the top-ranked exoplanet
             ax2.bar(lam_spec, top_exo['Spl_CR'].iloc[0], width=bar_width, color='blue', alpha=0.4, zorder=1)
@@ -61,10 +67,10 @@ class Rank_plot:
         # Set labels and styles
         # ax1.set_yscale('log')
         ax1.set_xlabel('Wavelength (nm)', fontsize=15)
-        ax1.set_ylabel('Specular_corr', fontsize=15)
+        ax1.set_ylabel('S/N', fontsize=15)
         ax1.tick_params(axis='both', labelsize=12)
 
-        ax2.set_ylabel('contrast ratio of specular reflection (ppm)', color='blue', fontsize=15)
+        ax2.set_ylabel(r'$F_{specular}/F_*$ (ppm)', color='blue', fontsize=15)
         ax2.tick_params(axis='y', labelcolor='blue', labelsize=12)
         ax2.spines['right'].set_color('blue')
         # 设置边框的宽度
@@ -77,7 +83,7 @@ class Rank_plot:
         plt.show()
             
 if __name__ == '__main__':
-    rank_plot = Rank_plot([1e-6, 5e-6], Nlam=20, T_liq=1600, Nname=10, Nhead=30)
+    rank_plot = Rank_plot([1e-6, 5e-6], Nlam=30, T_liq=1600, Nname=10, Nhead=100)
     rank_plot.Plot_Rank()
         
 
