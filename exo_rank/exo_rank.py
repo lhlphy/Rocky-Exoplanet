@@ -35,7 +35,7 @@ if 'pl_orbsmax' in df_c.columns and 'pl_rade' in df_c.columns and 'pl_name' in d
     fl_df['Specular_corr'] = fl_df['Specular']  * fl_df['liq_area'] # 融化区域修正后的Specular
     
     fl_df['Spl_CR'] = (fl_df['pl_rade']/fl_df['pl_orbsmax']/2 )**2 *Co1 *1e6 # calculate the ratio of specular
-    sorted_df = fl_df.sort_values(by='Specular_corr', ascending=False) 
+    sorted_df = fl_df.sort_values(by='Specular', ascending=False) 
     
     # 提取前10个恒星的name参数  
     top_10_names = sorted_df[['pl_name','Specular', 'Specular_corr','st_rad', 'pl_orbsmax', 'st_teff', 'pl_eqt', 'Tsub', 'Spl_CR', 'liq_area']].head(30)  
