@@ -16,20 +16,21 @@ if 'roughness' not in os.environ:
 class Accuracy_parameters:
     ### Accuracy control parameters
     def __init__(self):
-        self.SIZE = [10, 20]  # Size of the meshgrid
+        self.SIZE = [250, 500]  # Size of the meshgrid
         # Create meshgrid for the planet
         self.phiP_list = np.linspace(-np.pi / 2, np.pi / 2, self.SIZE[0])
         self.thetaP_list = np.linspace(0, 2 * np.pi, self.SIZE[1])
         self.Obs_array = np.array([3]) * 1e-6  # The wavelength of the observation array
         
-        if float(os.getenv('roughness')) < 1e-3: # if roughness = 0, use the Specular_Only model
-            self.Model =  'Specular_Only'
-        elif float(os.getenv('roughness')) >= 1e-3 and float(os.getenv('roughness')) <= 90 :
-            self.Model =  'Gaussian_wave' 
-        else:
-            self.Model = 'Lambert_Only'
-        # self.Model = 'Lambert'
-        
+        #####################################################################################################
+        # if float(os.getenv('roughness')) < 1e-3: # if roughness = 0, use the Specular_Only model
+        #     self.Model =  'Specular_Only'
+        # elif float(os.getenv('roughness')) >= 1e-3 and float(os.getenv('roughness')) <= 90 :
+        #     self.Model =  'Gaussian_wave' 
+        # else:
+        #     self.Model = 'Lambert_Only'
+        self.Model = 'Lambert'
+        ######################################################################################################
         Mode = os.getenv('mode') # get mode from environment variable
         if Mode == 'PC':
             self.mode = 'Phase curve'   # Phase curve & Transit
@@ -74,12 +75,13 @@ class Planet_parameters:
         return self.Albedo(lam, T)
     
 
-PPs = Planet_parameters(4170)  # K2-141 b
+PPs = Planet_parameters(10781) 
 # K2-141 b : 4264 - 98
 # 55 Cnc e : 215 - 98
 # TOI-2445 b: 34287 - 98
 # GJ-367 b: 733 - 98
 # Kepler-808 b: 30420 ## this planet has best specular/thermal*Melt_area ratio in 1 um (from exo_rank.py)
+# 10781  Kepler-1320 b
 APs = Accuracy_parameters()
 
 
