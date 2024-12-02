@@ -16,9 +16,10 @@ class Rank_plot:
         self.lam_list = np.linspace(lam_range[0], lam_range[1], Nlam)
         self.Nname = Nname
         self.Nhead = Nhead
+        self.rank_standard = 'Specular_corr'
         
     def Exo_rank(self, lam_spec):
-        return Rank_exo(lam_spec=lam_spec, T_liq=self.T_liq, Nhead=self.Nhead, rank_standard='Specular')
+        return Rank_exo(lam_spec=lam_spec, T_liq=self.T_liq, Nhead=self.Nhead, rank_standard=self.rank_standard)
     
     # def Plot_Rank(self):
     #     plt.figure()
@@ -54,12 +55,12 @@ class Rank_plot:
                 NN = self.Nhead-1
             for i in range(NN, -1, -1):  # Reverse order plotting
                 if i == 0:
-                    ax1.plot(lam_spec, top_exo['Specular'].iloc[i], 'o', color='red', zorder=2)
+                    ax1.plot(lam_spec, top_exo[self.rank_standard].iloc[i], 'o', color='red', zorder=2)
                     # ax1.text(lam_spec, top_exo['Specular'].iloc[i], top_exo['pl_name'].iloc[i].split('.txt')[0], fontsize=8)
-                    print(top_exo['pl_name'].iloc[i].split('.txt')[0])
+                    print(top_exo['pl_name'].iloc[i].split('.txt')[0],'  ', top_exo['Spl_CR'].iloc[i])
 
                 else:
-                    ax1.plot(lam_spec, top_exo['Specular'].iloc[i], 'o', color='black', zorder=2, markersize=3)
+                    ax1.plot(lam_spec, top_exo[self.rank_standard].iloc[i], 'o', color='black', zorder=2, markersize=3)
 
             # Plot the bar chart for 'Spl_CR' of the top-ranked exoplanet
             ax2.bar(lam_spec, top_exo['Spl_CR'].iloc[0], width=bar_width, color='blue', alpha=0.4, zorder=1)
@@ -80,6 +81,7 @@ class Rank_plot:
         ax1.spines['bottom'].set_linewidth(2)
 
         plt.tight_layout()  # 自动调整布局
+        plt.savefig('Rank_exo.pdf')
         plt.show()
             
 if __name__ == '__main__':
