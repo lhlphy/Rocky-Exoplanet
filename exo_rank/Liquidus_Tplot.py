@@ -34,7 +34,7 @@ plt.ylabel('Liquidus Temperature (K)', fontsize=15)  # 修改单位为开尔文
 plt.yticks(fontsize=13)
 
 # 倾斜 x 轴标签
-plt.xticks(rotation=45, ha='right', fontsize=13)
+plt.xticks(rotation=60, ha='center', fontsize=12)
 # 自动调整 x 轴范围
 plt.xlim(-0.5, len(sample) - 1.5)
 
@@ -74,7 +74,7 @@ for planet, teq in zip(Planet, Teq):
         VA = 'center'
         
     plt.text(
-        last_bar_x + 0.05 * (x_max - x_min),  # 将x位置向左移动10%
+        last_bar_x + 0.03 * (x_max - x_min),  # 将x位置向左移动10%
         teq, 
         planet,
         color=line_color,
