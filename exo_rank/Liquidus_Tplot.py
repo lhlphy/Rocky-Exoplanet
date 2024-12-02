@@ -8,12 +8,12 @@ sample = [
     'Fasnia', 
     'MORB', 
     'B´arðarbunga\nbasalts',  # 添加换行符
+    'Quartz', 
     'Hawaiian\nbasalt',        # 添加换行符
     'Teide', 
-    'Quartz', 
     'Erebus'
 ]
-T_liq_celsius = [1176.56, 1174.02, 1201.16, 1169.92, 1193.16, 1172.66, 1072.85, 1722.85, 1085.94]
+T_liq_celsius = [1176.56, 1174.02, 1201.16, 1169.92, 1193.16, 1722.85, 1172.66, 1072.85, 1085.94]
 T_liq = [temp + 273.15 for temp in T_liq_celsius]  # 转换为开尔文
 
 # 额外数据
@@ -22,7 +22,7 @@ Teq_celsius = [2103, 1409, 1324, 1876, 1652]  # 假设这些温度以摄氏度�
 Teq = [temp + 273.15 for temp in Teq_celsius]  # 转换为开尔文
 
 # 设置图形大小
-plt.figure(figsize=(8, 6))  # 增加宽度以适应标签
+plt.figure(figsize=(6, 6))  # 增加宽度以适应标签
 
 # 绘制柱状图
 bars = plt.bar(sample, T_liq, color='skyblue')
@@ -35,6 +35,8 @@ plt.yticks(fontsize=13)
 
 # 倾斜 x 轴标签
 plt.xticks(rotation=45, ha='right', fontsize=13)
+# 自动调整 x 轴范围
+plt.xlim(-0.5, len(sample) - 1.5)
 
 # # 添加数据标签在每个柱子顶部
 # for bar in bars:
@@ -65,38 +67,19 @@ for planet, teq in zip(Planet, Teq):
     
     # 在最后一个柱子的上方添加标签，稍微向左移动
     if planet == 'Kepler-808 b':
-            plt.text(
-        last_bar_x + 0.17 * (x_max - x_min),  # 将x位置向左移动10%
-        teq, 
-        planet,
-        color=line_color,
-        fontsize=13,
-        va='top',
-        ha='right',  # 标签右对齐
-        backgroundcolor='white',  # 背景为白色，避免覆盖图像
-        bbox=dict(facecolor='white', edgecolor='none', pad=1, alpha = 1)
-    )
+        VA = 'top'
     elif planet == 'Kepler-1320 b':
-            plt.text(
-        last_bar_x + 0.17 * (x_max - x_min),  # 将x位置向左移动10%
-        teq, 
-        planet,
-        color=line_color,
-        fontsize=13,
-        va='bottom',
-        ha='right',  # 标签右对齐
-        backgroundcolor='white',  # 背景为白色，避免覆盖图像
-        bbox=dict(facecolor='white', edgecolor='none', pad=1, alpha = 1)
-        
-    )
+        VA ='bottom'
     else:
-        plt.text(
-        last_bar_x + 0.17 * (x_max - x_min),  # 将x位置向左移动10%
+        VA = 'center'
+        
+    plt.text(
+        last_bar_x + 0.05 * (x_max - x_min),  # 将x位置向左移动10%
         teq, 
         planet,
         color=line_color,
         fontsize=13,
-        va='center',
+        va= VA,
         ha='right',  # 标签右对齐
         backgroundcolor='white',  # 背景为白色，避免覆盖图像
         bbox=dict(facecolor='white', edgecolor='none', pad=1, alpha = 1)
