@@ -410,13 +410,17 @@ def specular_reflection(RV, camera, normal, r):
     """
     # Calculate the angle between the camera and the reflected vector
     angle = angle_between(camera, RV)
+    theta_c = angle_between(camera, normal)
+    theta = angle_between(normal, np.array([0,0,1]))
     # Ensure the angle is within the valid range
-    angle_max = np.arcsin(PPs.Rs/r)
+    sina = PPs.Rp/r *np.sin(theta_c)
+    cosa = np.sqrt(1 - sina**2)
+    LL = PPs.Rp/sina *(np.sin(theta_c)* cosa - np.cos(theta_c)* sina)
+    angle_max = np.arcsin(PPs.Rs/LL)
     if angle > angle_max:
         return 0
     
-    theta_c = angle_between(camera, normal)
-    theta = angle_between(normal, np.array([0,0,1]))
+
     # Calculate the intensity of the reflected light
     Dtheta = np.pi/APs.SIZE[0]
     Dphi = 2*np.pi/APs.SIZE[1]

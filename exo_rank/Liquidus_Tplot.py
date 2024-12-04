@@ -22,19 +22,19 @@ Teq_celsius = [2103, 1409, 1324, 1876, 1652]  # 假设这些温度以摄氏度�
 Teq = [temp + 273.15 for temp in Teq_celsius]  # 转换为开尔文
 
 # 设置图形大小
-plt.figure(figsize=(6, 6))  # 增加宽度以适应标签
+plt.figure(figsize=(7, 6))  # 增加宽度以适应标签
 
 # 绘制柱状图
 bars = plt.bar(sample, T_liq, color='skyblue')
 
 # 添加标题和标签
-plt.title('Liquidus Temperature of Various Samples', fontsize=16)
+# plt.title('Liquidus Temperature of Various Samples', fontsize=16)
 plt.xlabel('Sample Type', fontsize=15)
-plt.ylabel('Liquidus Temperature (K)', fontsize=15)  # 修改单位为开尔文
-plt.yticks(fontsize=13)
+plt.ylabel('Liquidus Temperature (K)', fontsize=17)  # 修改单位为开尔文
+plt.yticks(fontsize=14)
 
 # 倾斜 x 轴标签
-plt.xticks(rotation=60, ha='center', fontsize=12)
+plt.xticks(rotation=60, ha='center', fontsize=14)
 # 自动调整 x 轴范围
 plt.xlim(-0.5, len(sample) - 1.5)
 
@@ -68,8 +68,8 @@ for planet, teq in zip(Planet, Teq):
     # 在最后一个柱子的上方添加标签，稍微向左移动
     if planet == 'Kepler-808 b':
         VA = 'top'
-    elif planet == 'Kepler-1320 b':
-        VA ='bottom'
+    # elif planet == 'Kepler-1320 b':
+    #     VA ='bottom'
     else:
         VA = 'center'
         
@@ -91,7 +91,7 @@ plt.xlim(x_min, x_max + 1)  # 增加x轴上限
 
 # 调整布局以防止标签被截断
 plt.tight_layout()
-plt.savefig('lava_Tplot.png')
-plt.savefig('lava_Tplot.pdf')
+plt.savefig('Liquidus_Tplot.png')
+plt.savefig('Liquidus_Tplot.pdf')
 # 显示图形
 plt.show()
