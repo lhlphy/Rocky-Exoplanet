@@ -137,7 +137,7 @@ def specular_diffuse_plot_theory(name_specular, name_diffuse, Obs_wave, transit 
     ax.set_xlabel('Orbital phase', fontsize=18)
     ax.set_ylabel(r'$F_p/F_*$ (ppm)', fontsize=18)
     ax.set_xlim(0, 1)
-    ax.set_ylim(0, np.max((Id_diffuse[i,:] + It_diffuse[i,:])) *1e6)
+    ax.set_ylim(0, np.max((Id_diffuse[i,:] + It_diffuse[i,:])) *1e6 *1.1)
     ax.spines['bottom'].set_linewidth(2)    ###设置底部坐标轴的粗细
     ax.spines['left'].set_linewidth(2)  ####设置左边坐标轴的粗细
     ax.spines['right'].set_linewidth(2) ###设置右边坐标轴的粗细
@@ -155,4 +155,4 @@ def specular_diffuse_plot_theory(name_specular, name_diffuse, Obs_wave, transit 
 if __name__ == "__main__":
     # specular_diffuse_plot("R8copy", "R6copy", np.array([3]) * 1e-6, transit='off')
     # 在使用transit='on'时，注意'R1'和'R2'位置上的PC必须经过 transit_cal.py 的计算；应该为'R1copy'和'R2copy'的形式
-    specular_diffuse_plot_theory("R12copy", "R12copy", np.array([3]) * 1e-6, transit='on')
+    specular_diffuse_plot_theory("specular_copy", "lambert_copy", np.array([3]) * 1e-6, transit='on')
