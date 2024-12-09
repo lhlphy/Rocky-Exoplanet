@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "test debug",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/lib/Full_spectrum_main.py",
+            "console": "integratedTerminal",
+            "env": {
+                "lavatype": "zero"
+            },
+            "args": [
+                "--id", "1",
+                "--Ntheta", "2",
+                "--Nwave", "5",
+                "--LB", "2.99",
+                "--UB", "3.01",
+                "--mode", "PC",
+                "--lavatype", "one",
+                "--Nsubpro", "5",
+                "--heat_redist", "No",
+                "--roughness", "1000"
+            ]
+        }
+    ]
+}

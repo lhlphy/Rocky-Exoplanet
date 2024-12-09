@@ -3,6 +3,7 @@ from parameter_list import APs, PPs, Sigma_const
 from scipy.integrate import dblquad, quad
 from scipy.interpolate import interp1d
 from scipy.optimize import root  
+import matplotlib
 import matplotlib.pyplot as plt
 import os
 import multiprocessing
@@ -10,6 +11,8 @@ import time
 from lava_data import LA
 
 print('function_library')
+
+matplotlib.use('Agg')
 
 def decorator_timer(name):
     def run_time(func):
