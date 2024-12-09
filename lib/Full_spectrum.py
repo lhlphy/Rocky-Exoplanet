@@ -16,7 +16,7 @@ def Fresnel_coefficient(lam, Mtheta=-1, Mphi=-1):
     COSI = np.cos(Mtheta) * np.cos(Mphi)
     SINI = np.sqrt(1 - COSI**2)
         
-    A = 0.5  # PPs.A_Specular(lam)
+    A = PPs.std_FR  # PPs.A_Specular(lam)
     n = 2/(1- np.sqrt(A)) -1 
     Co1 = np.sqrt(n**2 - SINI**2)
     Rs = ((COSI - Co1) / (COSI + Co1)) **2

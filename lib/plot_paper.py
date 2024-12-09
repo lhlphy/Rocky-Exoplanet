@@ -176,8 +176,8 @@ def surface_model_compare(name_specular, name_diffuse, name_Fresnel, Obs_wave, t
         It_diffuse[It_diffuse > 0] =0   # 当然，直接置为零会带来一定的误差，但考虑到(thermal emission << transit)，这个误差是可以接受的
         It_specular[It_specular > 0] =0
         It_Fresnel[It_Fresnel > 0] =0
-        ax.plot(thetas, (Is_specular[i,:] + It_specular[i,:]) *1e6, label='specular', color='b', linewidth=2)
-        ax.plot(thetad, (Id_diffuse[i,:] + It_diffuse[i,:]) *1e6, label='diffuse', color='k', linewidth=2)
+        ax.plot(thetas, (Is_specular[i,:] + It_specular[i,:])*PPs.std_FR *1e6, label='specular', color='b', linewidth=2)
+        ax.plot(thetad, (Id_diffuse[i,:] + It_diffuse[i,:])*PPs.std_FR *3/2 *1e6, label='diffuse', color='k', linewidth=2)
         ax.plot(thetaf, (Is_Fresnel[i,:] + It_Fresnel[i,:]) *1e6, label='Fresnel', color='g', linewidth=2)
         
     theory1 = analytical_theory_cal()
@@ -185,18 +185,18 @@ def surface_model_compare(name_specular, name_diffuse, name_Fresnel, Obs_wave, t
     theory1 = np.nan_to_num(theory1, nan=0)
     # print(theory1)
     # theory1 = np.loadtxt('theory1.txt', delimiter = ',')
-    ax.plot(theory1[:,0]/(2*np.pi), theory1[:,1] * 1e6, label='Our model', color='r', linewidth=2, linestyle='--')
+    ax.plot(theory1[:,0]/(2*np.pi), theory1[:,1]* PPs.std_FR * 1e6, label='Our model', color='r', linewidth=2, linestyle='--')
     print('theory1:', theory1[(theory1.shape[0])//2, 1] *1e6)
     
     # 绘制一条平行于x轴的直线，颜色为'gray'，线宽为1
-    theory2 = (PPs.Rp/2/PPs.semi_axis)**2 *1e6 # 21.1722  #21.3234
+    theory2 = (PPs.Rp/2/PPs.semi_axis)**2 * PPs.std_FR *1e6 # 21.1722  #21.3234
     ax.axhline(y=theory2, color='gray', linestyle='--', linewidth=2, label = 'optical')
     # ax.plot((0, theory2), (1, theory2), color='gray', linestyle='--', linewidth=2, label = 'virtual image')
     
     ax.set_xlabel('Orbital phase', fontsize=18)
     ax.set_ylabel(r'$F_p/F_*$ (ppm)', fontsize=18)
     ax.set_xlim(0, 1)
-    ax.set_ylim(0, np.max((Id_diffuse[i,:] + It_diffuse[i,:])) *1e6 *1.1)
+    ax.set_ylim(0, np.max((Id_diffuse[i,:] + It_diffuse[i,:]))*3/2 *PPs.std_FR *1e6 *1.05)
     ax.spines['bottom'].set_linewidth(2)    ###设置底部坐标轴的粗细
     ax.spines['left'].set_linewidth(2)  ####设置左边坐标轴的粗细
     ax.spines['right'].set_linewidth(2) ###设置右边坐标轴的粗细
@@ -215,6 +215,6 @@ if __name__ == "__main__":
     # specular_diffuse_plot("R8copy", "R6copy", np.array([3]) * 1e-6, transit='off')
     # 在使用transit='on'时，注意'R1'和'R2'位置上的PC必须经过 transit_cal.py 的计算；应该为'R1copy'和'R2copy'的形式
     # specular_diffuse_plot_theory("specular_copy", "lambert_copy", np.array([3]) * 1e-6, transit='on')
-    surface_model_compare("specular_copy", "lambert_copy", "Fresnel_copy", np.array([3]) * 1e-6, transit='on')
-    # surface_model_compare("specular_copy", "lambert_copy", "R11copy", np.array([3]) * 1e-6, transit='on')
+    # surface_model_compare("specular_copy", "lambert_copy", "Fresnel_copy", np.array([3]) * 1e-6, transit='on')
+    surface_model_compare("specular_copy", "lambert_copy", "R11copy", np.array([3]) * 1e-6, transit='on')
     
