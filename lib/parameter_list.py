@@ -75,8 +75,8 @@ class Planet_parameters:
         return self.Albedo(lam, T)
     
 
-PPs = Planet_parameters(10781) 
-# K2-141 b : 4264 - 98
+PPs = Planet_parameters(4170) 
+# K2-141 b : 4264 - 98  /4170
 # 55 Cnc e : 215 - 98
 # TOI-2445 b: 34287 - 98
 # GJ-367 b: 733 - 98
