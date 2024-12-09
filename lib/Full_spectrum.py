@@ -16,7 +16,7 @@ def Fresnel_coefficient(lam, Mtheta=-1, Mphi=-1):
     COSI = np.cos(Mtheta) * np.cos(Mphi)
     SINI = np.sqrt(1 - COSI**2)
         
-    A = PPs.A_Specular(lam)
+    A = 0.5  # PPs.A_Specular(lam)
     n = 2/(1- np.sqrt(A)) -1 
     Co1 = np.sqrt(n**2 - SINI**2)
     Rs = ((COSI - Co1) / (COSI + Co1)) **2
@@ -100,7 +100,7 @@ def Full_spectrum(wavelength_bound, args = None, id = 0, Ntheta = 5, Nwave = 1):
             D1 = D * AD_matrix[j]
             S1 = S * AS_matrix[j]
             # consider Fresnel_coefficient
-            S1 = S * Fresnel_coefficient(wave)
+            S1 = S * Fresnel_coefficient(wave)* B(wave, PPs.Stellar_T)
 
             # consider the reflection coefficent, D1,S1 is diffuse and specular reflection map in different location of planet
             # I1 = D1 + S1  

@@ -216,4 +216,5 @@ if __name__ == "__main__":
     # 在使用transit='on'时，注意'R1'和'R2'位置上的PC必须经过 transit_cal.py 的计算；应该为'R1copy'和'R2copy'的形式
     # specular_diffuse_plot_theory("specular_copy", "lambert_copy", np.array([3]) * 1e-6, transit='on')
     surface_model_compare("specular_copy", "lambert_copy", "Fresnel_copy", np.array([3]) * 1e-6, transit='on')
+    # surface_model_compare("specular_copy", "lambert_copy", "R11copy", np.array([3]) * 1e-6, transit='on')
     
