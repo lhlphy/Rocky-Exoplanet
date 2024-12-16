@@ -1,3 +1,4 @@
+# 该脚本绘制模型对比图，用于比较不同模型计算的结果 model_comparison.pdf
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
@@ -5,7 +6,11 @@ from parameter_list import PPs
 
 
 def data_loader(name, Obs_wave):
-    # load data
+    '''
+    load data, transform .file to .npy array
+    name: midle name of temp folder
+    Obs_wave: wavelength in um, used for interpolation (transform a matrix into vector)
+    '''
     I_specular = np.load(f'temp/{name}/variables/I_specular.npy')
     I_intensity = np.load(f'temp/{name}/variables/I_intensity.npy')
     I_diffuse = np.load(f'temp/{name}/variables/I_diffuse.npy')
@@ -50,8 +55,10 @@ def data_loader(name, Obs_wave):
     
     
 def specular_diffuse_plot(name_specular, name_diffuse, Obs_wave, transit = 'off'):
-    # 绘制diffuse和specular的phase curve(*not* include thermal emission), 绘图中包含2曲线，
-    # 分别是specular和diffuse的phase curve, 不区分表面材料性质的low与high albedo, 仅用于对比高分辨率的diffuse and specular_only model
+    '''
+    绘制diffuse和specular的phase curve(*not* include thermal emission), 绘图中包含2曲线,
+    分别是specular和diffuse的phase curve, 不区分表面材料性质的low与high albedo, 仅用于对比高分辨率的diffuse and specular_only model
+    '''
     Is_specular, Ii_specular, Id_specular, It_specular, theta = data_loader(name_specular, Obs_wave)
     Is_diffuse, Ii_diffuse, Id_diffuse, It_diffuse, theta = data_loader(name_diffuse, Obs_wave)
     
@@ -85,6 +92,9 @@ def specular_diffuse_plot(name_specular, name_diffuse, Obs_wave, transit = 'off'
     plt.close()
  
 def analytical_theory_cal():
+    '''
+    计算解析近似理论的phase curve
+    '''
     Theta = np.linspace(0, 2*np.pi, 200)
     RESULT = np.zeros((200, 2))
     RESULT[:,0] = Theta
@@ -100,8 +110,10 @@ def analytical_theory_cal():
     return RESULT
    
 def specular_diffuse_plot_theory(name_specular, name_diffuse, Obs_wave, transit = 'off'):
-     # 绘制模拟的diffuse和specular的phase curve, 以及解析近似理论和光学理论结果，绘图中包含4曲线
-     # 分别是： 模拟的specular和diffuse的phase curve, 解析近似理论和光学理论结果
+    '''
+    绘制模拟的diffuse和specular的phase curve, 以及解析近似理论和光学理论结果, 绘图中包含4曲线
+    分别是： 模拟的specular和diffuse的phase curve, 解析近似理论和光学理论结果
+    '''
     Is_specular, Ii_specular, Id_specular, It_specular, theta = data_loader(name_specular, Obs_wave)
     Is_diffuse, Ii_diffuse, Id_diffuse, It_diffuse, theta = data_loader(name_diffuse, Obs_wave)
     
