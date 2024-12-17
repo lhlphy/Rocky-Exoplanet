@@ -42,7 +42,7 @@ def Rank_exo(lam_spec = 1e-6, T_liq = 1600, Nhead = 30, rank_standard = 'Specula
         # 根据R/a降序排序  
         fl_df['Specular_corr'] = fl_df['Specular']  * fl_df['liq_area'] # 融化区域修正后的Specular
         
-        fl_df['Spl_CR'] = (fl_df['pl_rade']/fl_df['pl_orbsmax']/2 )**2 *Co1 *1e6 # calculate the ratio of specular
+        fl_df['Spl_CR'] = (fl_df['pl_rade']/fl_df['pl_orbsmax']/2 )**2 *Co1 *1e6 # calculate the ratio of specular F_{specular}/F_*
         sorted_df = fl_df.sort_values(by = rank_standard, ascending=False) 
         
         # 提取前N个恒星的name参数  

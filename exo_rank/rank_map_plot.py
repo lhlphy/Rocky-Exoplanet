@@ -3,18 +3,16 @@ import matplotlib.pyplot as plt
 from exo_rank_function import Rank_exo
 
 class Rank_plot:
-    def __init__(self, lam_range, Nlam=5, T_liq = 1600, Nname = 10, Nhead = 30):
+    def __init__(self, lam_range, Nlam=5, T_liq = 1600, Nhead = 10):
         '''    
         lam_range: range of observed wavelengths
         Nlam: number of wavelengths to be plotted, divide the range into Nlam parts
         T_liq: liquid temperature, 作为完全融化区域的温度阈值
-        # Nname: number of names of planets
         Nhead: number of planets in the head'''
         self.lam_range = lam_range
         self.Nlam = Nlam
         self.T_liq = T_liq
         self.lam_list = np.linspace(lam_range[0], lam_range[1], Nlam)
-        self.Nname = Nname
         self.Nhead = Nhead
         self.rank_standard = 'Specular_corr'
         
@@ -53,14 +51,17 @@ class Rank_plot:
                 NN = len(top_exo)-1
             else:
                 NN = self.Nhead-1
-            for i in range(NN, -1, -1):  # Reverse order plotting
+            for i in range(NN, -1, -1):  # Reverse order plotting, avoid Rank 0 being covered
                 if i == 0:
                     ax1.plot(lam_spec, top_exo[self.rank_standard].iloc[i], 'o', color='red', zorder=2)
                     # ax1.text(lam_spec, top_exo['Specular'].iloc[i], top_exo['pl_name'].iloc[i].split('.txt')[0], fontsize=8)
-                    print(top_exo['pl_name'].iloc[i].split('.txt')[0],'  ', top_exo['Spl_CR'].iloc[i])
+                    print(round(lam_spec *1e6,2),f' rank{i}', top_exo['pl_name'].iloc[i].split('.txt')[0],' ',round(top_exo['Specular_corr'].iloc[i],4),'  ', round(top_exo['Spl_CR'].iloc[i]/2 ,2))
+                    # Spl_CR : F_{specular}/F_*
+                    # Specular_corr : R^*
 
                 else:
                     ax1.plot(lam_spec, top_exo[self.rank_standard].iloc[i], 'o', color='black', zorder=2, markersize=3)
+                    print(round(lam_spec *1e6,2),f' rank{i}', top_exo['pl_name'].iloc[i].split('.txt')[0],' ',round(top_exo['Specular_corr'].iloc[i],4),'  ', round(top_exo['Spl_CR'].iloc[i]/2 ,2))
 
             # Plot the bar chart for 'Spl_CR' of the top-ranked exoplanet
             ax2.bar(lam_spec, top_exo['Spl_CR'].iloc[0], width=bar_width, color='blue', alpha=0.4, zorder=1)
@@ -85,7 +86,7 @@ class Rank_plot:
         plt.show()
             
 if __name__ == '__main__':
-    rank_plot = Rank_plot([1e-6, 5e-6], Nlam=30, T_liq=1600, Nname=10, Nhead=100)
+    rank_plot = Rank_plot([1e-6, 5e-6], Nlam=5, T_liq=1429, Nhead=10)
     rank_plot.Plot_Rank()
         
 
