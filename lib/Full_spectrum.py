@@ -5,6 +5,37 @@ from function_library import B, sym_complete, decorator_timer
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import os
+
+def Phase_curve_thermal(wavelength_bound, args = None, id = 0, Ntheta = 5, Nwave = 1):
+    """
+    calculate thermal spectrum and reflection spectrum
+    """
+
+    if args != None:
+        id = args.id
+        Ntheta = args.Ntheta
+        Nwave = args.Nwave
+    
+    # Create the folder to store the results
+    os.makedirs(f'temp/R{id}/variables', exist_ok=True)
+    os.makedirs(f'temp/R{id}/Results', exist_ok=True)
+
+    """ Calculate the thermal spectrum """ 
+    mf.thermal_spectrum(wavelength_bound, id= id, Ntheta = Ntheta, NWavelength= Nwave, Nsubpro= args.Nsubpro)
+    # Load the results
+    thermal_ratio = np.load(f'temp/R{id}/variables/Thermal.npy')
+    Theta_list  = np.load(f'temp/R{id}/variables/Theta.npy')
+    Star_flux  = np.load(f'temp/R{id}/variables/Star_flux.npy')
+    
+    Wave_list = np.linspace(wavelength_bound[0], wavelength_bound[1], Nwave)
+    I_intensity = np.zeros([Nwave, Ntheta])
+    I_diffuse = I_intensity.copy()
+    I_specular = I_intensity.copy()
+    np.save(f'temp/R{id}/variables/I_intensity.npy', I_intensity)
+    np.save(f'temp/R{id}/variables/I_diffuse.npy', I_diffuse)
+    np.save(f'temp/R{id}/variables/I_specular.npy', I_specular)
+    np.save(f'temp/R{id}/variables/wave_list.npy', Wave_list)
+
  
 @decorator_timer('Full_spectrum')
 def Full_spectrum(wavelength_bound, args = None, id = 0, Ntheta = 5, Nwave = 1):
