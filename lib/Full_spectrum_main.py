@@ -28,6 +28,7 @@ if __name__ == '__main__':
     parser.add_argument('--roughness', default = 0, type = float)  # roughness
     parser.add_argument('--FRnormal', default=0.1, type=float) # Fresnel reflection coefficient when normal incidence
     parser.add_argument('--polarization', default = "None", type = str)  # polarization "None", "P", "S"
+    parser.add_argument('--Model', default = "None", type = str ) 
     args = parser.parse_args()
     Wavelength_bound = np.array([args.LB, args.UB]) *1e-6   # Wavelength range (m)
 
@@ -38,6 +39,7 @@ if __name__ == '__main__':
     os.environ['roughness'] = str(args.roughness)
     os.environ['polarization'] = args.polarization
     os.environ['FRnormal'] = str(args.FRnormal)
+    os.environ['Model'] = args.Model
     os.makedirs('log', exist_ok= True)
     os.makedirs('temp', exist_ok=True)
     

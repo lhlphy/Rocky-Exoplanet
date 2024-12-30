@@ -23,13 +23,16 @@ class Accuracy_parameters:
         self.Obs_array = np.array([3]) * 1e-6  # The wavelength of the observation array
         
         #####################################################################################################
-        if float(os.getenv('roughness')) < 1e-3: # if roughness = 0, use the Specular_Only model
-            self.Model =  'Specular_Only'
-        elif float(os.getenv('roughness')) >= 1e-3 and float(os.getenv('roughness')) <= 90 :
-            self.Model =  'Gaussian_wave' 
+        if os.getenv('Model') != None:
+            self.Model = os.getenv('Model')
         else:
-            self.Model = 'Lambert_Only'
-        # self.Model = 'Lambert'
+            if float(os.getenv('roughness')) < 1e-3: # if roughness = 0, use the Specular_Only model
+                self.Model =  'Specular_Only'
+            elif float(os.getenv('roughness')) >= 1e-3 and float(os.getenv('roughness')) <= 90 :
+                self.Model =  'Gaussian_wave' 
+            else:
+                self.Model = 'Lambert_Only'
+            # self.Model = 'Lambert'
         ######################################################################################################
         Mode = os.getenv('mode') # get mode from environment variable
         if Mode == 'PC':
