@@ -4,10 +4,10 @@
 --LB 2.99
 --UB 3.01
 --mode PC
---lavatype one
+--lavatype Low
 --Nsubpro 31
 --heat_redist No
 --roughness 0
---FRnormal 0.4
---polarization P
+--FRnormal 0.1
+--polarization None
 --Model SD_combined

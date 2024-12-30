@@ -74,31 +74,31 @@ def Full_spectrum(wavelength_bound, args = None, id = 0, Ntheta = 5, Nwave = 1):
 
     # calculate the reflection coefficent in different wavelength and different location
     # different wavelength and different surface temperature result in different albedo
-    consider_temperature = False   # this key determined wheather consider the influence of T, False will save the time #######
-    if consider_temperature:  # consider the influence of Temperature
-        # need a matrix to save the albedo in each location and each wavelength
-        AD_matrix = np.zeros([Nwave, APs.SIZE[0], APs.SIZE[1]])
-        AS_matrix = np.zeros([Nwave, APs.SIZE[0], APs.SIZE[1]])
+    # consider_temperature = False   # this key determined wheather consider the influence of T, False will save the time #######
+    # if consider_temperature:  # consider the influence of Temperature
+    #     # need a matrix to save the albedo in each location and each wavelength
+    #     AD_matrix = np.zeros([Nwave, APs.SIZE[0], APs.SIZE[1]])
+    #     AS_matrix = np.zeros([Nwave, APs.SIZE[0], APs.SIZE[1]])
         
-        for j, wave in enumerate(Wave_list): 
-            for n, phi in enumerate(APs.phiP_list):
-                for m, theta in enumerate(APs.thetaP_list):
-                    AD_matrix[j, n, m] = PPs.A_diffuse( wave, Tmap[n, m])
-                    AS_matrix[j, n, m] = PPs.A_Specular( wave, Tmap[n, m])
-            # 补上planck函数, global_intensity给出的结果不包含普朗克函数和反射率
-            AD_matrix[j,:,:] = AD_matrix[j,:,:] * B(wave, PPs.Stellar_T)   
-            AS_matrix[j,:,:] = AS_matrix[j,:,:] * B(wave, PPs.Stellar_T)
+    #     for j, wave in enumerate(Wave_list): 
+    #         for n, phi in enumerate(APs.phiP_list):
+    #             for m, theta in enumerate(APs.thetaP_list):
+    #                 AD_matrix[j, n, m] = PPs.A_diffuse( wave, Tmap[n, m])
+    #                 AS_matrix[j, n, m] = PPs.A_Specular( wave, Tmap[n, m])
+    #         # 补上planck函数, global_intensity给出的结果不包含普朗克函数和反射率
+    #         AD_matrix[j,:,:] = AD_matrix[j,:,:] * B(wave, PPs.Stellar_T)   
+    #         AS_matrix[j,:,:] = AS_matrix[j,:,:] * B(wave, PPs.Stellar_T)
             
-    else:   # do not consider the influence of Temperature
-        # only need to save albedo in each wavelength
-        AD_matrix = np.zeros(Nwave)
-        AS_matrix = np.zeros(Nwave)
-        for j, wave in enumerate(Wave_list):
-            AD_matrix[j] = PPs.A_diffuse(wave)
-            AS_matrix[j] = PPs.A_Specular(wave)
-            # 补上planck函数, global_intensity给出的结果不包含普朗克函数和反射率
-            AD_matrix[j] = AD_matrix[j] * B(wave, PPs.Stellar_T)   
-            AS_matrix[j] = AS_matrix[j] * B(wave, PPs.Stellar_T)
+    # else:   # do not consider the influence of Temperature
+    #     # only need to save albedo in each wavelength
+    #     AD_matrix = np.zeros(Nwave)
+    #     AS_matrix = np.zeros(Nwave)
+    #     for j, wave in enumerate(Wave_list):
+    #         AD_matrix[j] = PPs.A_diffuse(wave)
+    #         AS_matrix[j] = PPs.A_Specular(wave)
+    #         # 补上planck函数, global_intensity给出的结果不包含普朗克函数和反射率
+    #         AD_matrix[j] = AD_matrix[j] * B(wave, PPs.Stellar_T)   
+    #         AS_matrix[j] = AS_matrix[j] * B(wave, PPs.Stellar_T)
             
     # calculate the reflection using global_intensity
     for i, Theta in enumerate(Theta_list2):
@@ -112,8 +112,8 @@ def Full_spectrum(wavelength_bound, args = None, id = 0, Ntheta = 5, Nwave = 1):
             I = D + S
 
         for j, wave in enumerate(Wave_list):
-            D1 = D * AD_matrix[j]
-            S1 = S * AS_matrix[j]
+            # D1 = D * AD_matrix[j]
+            # S1 = S * AS_matrix[j]
             # consider Fresnel_coefficient
             D1 = D * PPs.std_FR * B(wave, PPs.Stellar_T)
             S1 = S * Fresnel_coefficient(wave)* B(wave, PPs.Stellar_T)
