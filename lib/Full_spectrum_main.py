@@ -26,6 +26,7 @@ if __name__ == '__main__':
     parser.add_argument('--Nsubpro', default = 1, type = int)  # 求解时分为多少个子进程
     parser.add_argument('--heat_redist', default = 'No', type = str) # 热再分配 "No","Full","Yes"
     parser.add_argument('--roughness', default = 0, type = float)  # roughness
+    parser.add_argument('--polarization', default = "None", type = str)  # polarization "None", "P", "S"
     args = parser.parse_args()
     Wavelength_bound = np.array([args.LB, args.UB]) *1e-6   # Wavelength range (m)
 
@@ -34,6 +35,7 @@ if __name__ == '__main__':
     os.environ['lavatype'] = args.lavatype
     os.environ['heat_redist'] = args.heat_redist
     os.environ['roughness'] = str(args.roughness)
+    os.environ['polarization'] = args.polarization
     os.makedirs('log', exist_ok= True)
     os.makedirs('temp', exist_ok=True)
     

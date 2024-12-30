@@ -7,7 +7,9 @@ import matplotlib.pyplot as plt
 import os
  
  
-def Fresnel_coefficient(lam, Mtheta=-1, Mphi=-1):
+def Fresnel_coefficient(lam, Mtheta=-1, Mphi=-1, Polarization="None"):
+    if Polarization in os.environ:  # get the polarization from the environment variable
+        Polarization = os.getenv('polarization')
     # calculate the reflection coefficent in different wavelength and different location
     if Mtheta == -1 and Mphi == -1:
         Mtheta, Mphi = np.meshgrid(APs.thetaP_list, APs.phiP_list)
@@ -22,7 +24,15 @@ def Fresnel_coefficient(lam, Mtheta=-1, Mphi=-1):
     Rs = ((COSI - Co1) / (COSI + Co1)) **2
     Rp = ((Co1 - n**2 *COSI)/ (Co1 + n**2 *COSI))**2
     R = (Rs + Rp) / 2
-    return R
+    if Polarization == "None":  # natural light, no polarization
+        return R
+    elif Polarization == "S":  # Observer is S polarization
+        Rs_O = (Rp *np.cos(Mphi)**2 + Rs * np.sin(Mphi)**2 )/2
+        return Rs_O
+    elif Polarization == "P": # Observer is P polarization
+        Rp_O = (Rp *np.sin(Mphi)**2 + Rs * np.cos(Mphi)**2 )/2
+        return Rp_O
+        
     
 @decorator_timer('Full_spectrum')
 def Full_spectrum(wavelength_bound, args = None, id = 0, Ntheta = 5, Nwave = 1):
