@@ -684,7 +684,66 @@ def Intenstiy_comp(name_list):
     
     np.save(f"temp/{name}/res.npy", res)
     
+def phase_curve_plot_withdata(name_list, wave_range, instrument = '  ', model = ' '):
+    # 绘制full phase curve, 只绘制一组数据
+    # 分别是： Lambert,  Specular
+    # load data, I_diffuse,I_specular is contrast ratio 
+    data = np.loadtxt(f'telescope_measure/K2-141b_{instrument}.txt', delimiter=',')
+    data_x = data[:,0]
+    data_y = data[:,1]
     
+    pallet = ['b','r','k']
+    plotarr  = [0] * 8
+    chi2_array = np.zeros([8])
+    fig, ax = plt.subplots()
+    
+    plt.plot(data_x, data_y,'.k')
+    # Period: 7.72614 h
+    Theta_list = np.load(f'temp/{name_list[0]}/variables/Theta.npy')
+    Theta_list = Theta_list / (2 *np.pi)   # 将相位角归一化
+    data = np.zeros([np.size(Theta_list), 6])
+    
+    up_bound = 0  # control xlim up_lim
+    for i, name in enumerate(name_list):
+        Theta_list = np.load(f'temp/{name}/variables/Theta.npy')
+        Theta_list = Theta_list / (2 *np.pi)   # 将相位角归一化
+        Nt = np.size(Theta_list)
+        CR_S = np.zeros([Nt])
+        CR_D = np.zeros([Nt])
+        for j, theta in enumerate(Theta_list):
+            CR_S[j], CR_D[j] = bond_albedo_calculator(wave_range[0], wave_range[1], name, j)
+        
+        plotarr[i*2], = plt.plot(Theta_list, CR_D, '-', color = pallet[i], linewidth = 2)
+        plotarr[i*2+1], = plt.plot(Theta_list, CR_S, '--', color = pallet[i], linewidth = 2)
+        data[:,0] = Theta_list
+        up_bound = np.max([np.max(CR_D), np.max(CR_S), up_bound]) # find the max value for ylim
+        if i != 2:
+            data[:,2 + i*2] = CR_S
+            data[:,3 + i*2] = CR_D
+        elif i == 2:
+            data[:,1] = CR_S
+        
+        # calculate chi2
+        if instrument == 'Kepler':
+            ERR = 13.5
+        elif instrument == 'Spitzer':
+            ERR = 75.4
+        chi2_array[i*2] = chi2_cal(data_x, data_y, ERR ,Theta_list, CR_D)
+        chi2_array[i*2+1] = chi2_cal(data_x, data_y, ERR ,Theta_list, CR_S)
+        
+    plt.ylim([0,np.max([up_bound, np.max(data_y)]) * 1.1])
+    plt.xlim([0,1])
+    plt.legend([plotarr[0],plotarr[1]], [f'Lambert, $\chi^2$={chi2_array[0]:.2f}', f'Specular, $\chi^2$={chi2_array[1]:.2f}'])
+    # ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=2)  
+    plt.xlabel('Orbital Phase', fontsize = 13)
+    plt.ylabel(r'$F_p/F_*$ (ppm)', fontsize = 13)
+    plt.title(f'{instrument}: {wave_range[0]*1e6:.2f}-{wave_range[1]*1e6:.2f} μm, {model} albedo model')
+    # 添加文字和箭头，设置字体透明度  
+
+    # plt.savefig(f"temp/{name}/phase_curve_comp1.pdf", format = 'pdf')
+    plt.savefig(f"temp/{name_list[0]}/phase_curve_withdata.pdf", format = 'pdf')
+    plt.show()
+    plt.close()
     
 if __name__ =='__main__':
     # parser = argparse.ArgumentParser()
@@ -699,9 +758,12 @@ if __name__ =='__main__':
     # real_comp2(['R10', 'R11'])
     
     # compare_phase_curve_plot(['R7copy', 'R6copy', 'R9copy'], np.array([3.9, 5])* 1e-6) # first: low albedo ; second: high albedo
-    compare_phase_curve_plot(['R13copy', 'R14copy'], np.array([0.33, 1.1])* 1e-6, instrument = 'CHEOPS') # first: low albedo ; second: high albedo
+    # compare_phase_curve_plot(['R13copy', 'R14copy'], np.array([0.33, 1.1])* 1e-6, instrument = 'CHEOPS') # first: low albedo ; second: high albedo
     # Intenstiy_comp(['R3', 'R4'])
     
-    
+    phase_curve_plot_withdata(['R1copy'], np.array([0.43, 0.89])* 1e-6, instrument = 'Kepler', model = 'Low')
+    phase_curve_plot_withdata(['R2copy'], np.array([0.43, 0.89])* 1e-6, instrument = 'Kepler', model='High')
+    # phase_curve_plot_withdata(['R3copy'], np.array([4, 5])* 1e-6, instrument='Spitzer', model ='Low')
+    # phase_curve_plot_withdata(['R4copy'], np.array([4, 5])* 1e-6, instrument='Spitzer', model ='High') 
     
     

@@ -143,7 +143,7 @@ def Full_spectrum(wavelength_bound, args = None, id = 0, Ntheta = 5, Nwave = 1):
 
     FS = I_intensity + thermal_ratio   # Full Spectrum  [size: Nwave * (2*Ntheta)]  xaixs: Wave_list, yaixs: Theta_list
 
-    FS_plotter(FS, Wave_list, Theta_list, Nwave, Ntheta, id)
+    FS_plotter(FS, Wave_list, Theta_list, Nwave, Ntheta, id, Obs_wavelength = (Wave_list[0]+ Wave_list[-1])/2)
 
 
 def FS_plotter(FS, Wave_list, Theta_list, Nwave, Ntheta, id = 0 , Obs_wavelength = APs.Obs_array):
