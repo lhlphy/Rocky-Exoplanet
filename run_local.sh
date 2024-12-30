@@ -14,5 +14,6 @@ mkdir -p temp/R$ID
 # Copy params.txt to temp/Rn
 cp params.txt temp/R$ID
 # Run the Python script with the parameters
-# python lib/Full_spectrum_main.py $PARAMS
+python lib/Full_spectrum_main.py $PARAMS
+# python  lib/Full_spectrum_main.py --id 11 --Ntheta 6 --Nwave 5 --LB 2.99 --UB 3.01 --mode PC --lavatype one --Nsubpro 125 --heat_redist No --roughness 0
 echo "DONE"
