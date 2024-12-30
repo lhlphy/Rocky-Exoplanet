@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=PythonTest
-#SBATCH --nodes=4
+#SBATCH --nodes=1
 #SBATCH --ntasks-per-node=32
 #SBATCH --cpus-per-task=1
 #SBATCH --partition=wzhctdnormal

@@ -16,7 +16,7 @@ if 'roughness' not in os.environ:
 class Accuracy_parameters:
     ### Accuracy control parameters
     def __init__(self):
-        self.SIZE = [30, 60]  # Size of the meshgrid
+        self.SIZE = [372, 744]  # Size of the meshgrid
         # Create meshgrid for the planet
         self.phiP_list = np.linspace(-np.pi / 2, np.pi / 2, self.SIZE[0])
         self.thetaP_list = np.linspace(0, 2 * np.pi, self.SIZE[1])
@@ -58,7 +58,8 @@ class Planet_parameters:
         self.Coarse_g = 0  # Coarseness of the surface
         self.Wind_speed = 10   # wind speed in m/s (only available for the Gaussian wave model)
         self.roughness = float(os.getenv('roughness'))
-        self.std_FR = 0.2
+        self.std_FR = float(os.getenv('FRnormal'))  # Fresnel reflection coefficient when normal incidence
+        print("Planet parameters are loaded.", self.std_FR)
         
         ### Observation parameters
         camera = np.array([1, 0, 0]) # Define the direction of the camera (observation vector)

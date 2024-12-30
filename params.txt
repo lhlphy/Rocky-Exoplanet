@@ -5,7 +5,8 @@
 --UB 3.01
 --mode PC
 --lavatype one
---Nsubpro 125
+--Nsubpro 31
 --heat_redist No
 --roughness 0
+--FRnormal 0.4
 --polarization P
