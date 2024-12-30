@@ -3,17 +3,16 @@
 # this script is for wsl, not for windows
 echo "Maxwell" 
 export lavatype=zero
-
-python3 lib/Full_spectrum_main.py --id 12 --Ntheta 6 --Nwave 5 --LB 2.99 --UB 3.01 --mode PC --lavatype one --Nsubpro 5 --heat_redist No --roughness 1000
-
-# python lib/transit_cal.py --name R6
-
-# python  lib/plot_lib.py
-# python  lib/bond_albedo_calculator.py
-# python demo_vertify.py
-# python Tmap_2D_plot.py
-# python lib/lava_data.py
-# python telescope_measure/test.py
-
-# python lib/plot_paper.py
+# Read parameters from params.txt
+PARAMS=$(cat params.txt)
+# Extract the value of --id parameter and remove any trailing whitespace
+ID=$(grep -oP '(?<=--id )\d+' params.txt | tr -d '[:space:]')
+echo "ID: $ID"
+echo "PARAMS: $PARAMS"
+# Create the directory temp/Rn
+mkdir -p temp/R$ID  
+# Copy params.txt to temp/Rn
+cp params.txt temp/R$ID
+# Run the Python script with the parameters
+# python lib/Full_spectrum_main.py $PARAMS
 echo "DONE"

@@ -25,7 +25,7 @@ ID=$(grep -oP '(?<=--id )\d+' params.txt)
 mkdir -p temp/R$ID
 
 # Copy params.txt to temp/Rn
-cp params.txt temp/R$ID/
+cp params.txt temp/R$ID
 
 # Run the Python script with the parameters
 python lib/Full_spectrum_main.py $PARAMS
