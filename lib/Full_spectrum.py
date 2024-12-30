@@ -110,7 +110,9 @@ def Full_spectrum(wavelength_bound, args = None, id = 0, Ntheta = 5, Nwave = 1):
             D1 = D * AD_matrix[j]
             S1 = S * AS_matrix[j]
             # consider Fresnel_coefficient
-            S1 = S * Fresnel_coefficient(wave)* B(wave, PPs.Stellar_T)
+            Fresnel_matrix = Fresnel_coefficient(wave)* B(wave, PPs.Stellar_T)
+            D1 = D * Fresnel_matrix
+            S1 = S * Fresnel_matrix
 
             # consider the reflection coefficent, D1,S1 is diffuse and specular reflection map in different location of planet
             # I1 = D1 + S1  

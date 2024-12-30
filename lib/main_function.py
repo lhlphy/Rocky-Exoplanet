@@ -60,6 +60,16 @@ def BRDF(i, j, Theta, Coarse, Model= APs.Model, id= 0):
         elif Model == "Specular_Only":
             Diffuse = 0
             SR = specular_reflection(RV, PPs.camera, nv, r)
+        elif Model == "SD_combined":
+            TMAP0 = Tmap(0, id)
+            Diffuse = Lambert_BRDF(i, j, id, nv, Pos, PPs.camera, Theta)
+            SR  = specular_reflection(RV, PPs.camera, nv, r)
+            
+            # Set SR to zero where TMAP0 < PPs.T_liq
+            SR[TMAP0 < PPs.T_liq] = 0
+            # Set Diffuse to zero where TMAP0 > PPs.T_liq
+            Diffuse[TMAP0 > PPs.T_liq] = 0
+            
 
         return Diffuse, SR
     else:
@@ -183,8 +193,9 @@ def thermal_spectrum(wavelength_bound, id=0, Ntheta = 5, NWavelength = 1, Nsubpr
     Ratio: [size]: NWavelength * (2*Ntheta)
     Theta_list: [size]: (2*Ntheta)
     """ 
-    # if Model == 'Specular_Only', we don't need to consider the thermal radiation, only consider the geometry problem
-    if APs.Model == 'Specular_Only' or APs.Model == 'Gaussian_wave' or APs.Model == 'Lambert_Only':
+    # if Model in NO_Thermal_list, we don't need to consider the thermal radiation, only consider the geometry problem
+    NO_Thermal_list = ['Specular_Only', 'Gaussian_wave', 'Lambert_Only', 'SD_combined']
+    if APs.Model in NO_Thermal_list:
         # we have to save a zero array to save the thermal spectrum
         os.makedirs(f'temp/R{id}/plots', exist_ok=True)
         if Ntheta == 1:
