@@ -105,14 +105,18 @@ def Full_spectrum(wavelength_bound, args = None, id = 0, Ntheta = 5, Nwave = 1):
         I, D, S = mf.global_intensity(Theta, id, Model= APs.Model)
         # I: total intensity; D:diffuse ; S:specular reflection
         # both under the condition of albedo = 1
+        if APs.Model == 'SD_combined':
+            TMAP0 = np.load(f'temp/R{id}/plots/Tmap0.npy')
+            D[TMAP0 > PPs.T_liq] = 0
+            S[TMAP0 < PPs.T_liq] = 0
+            I = D + S
 
         for j, wave in enumerate(Wave_list):
             D1 = D * AD_matrix[j]
             S1 = S * AS_matrix[j]
             # consider Fresnel_coefficient
-            Fresnel_matrix = Fresnel_coefficient(wave)* B(wave, PPs.Stellar_T)
-            D1 = D * Fresnel_matrix
-            S1 = S * Fresnel_matrix
+            D1 = D * PPs.std_FR * B(wave, PPs.Stellar_T)
+            S1 = S * Fresnel_coefficient(wave)* B(wave, PPs.Stellar_T)
 
             # consider the reflection coefficent, D1,S1 is diffuse and specular reflection map in different location of planet
             # I1 = D1 + S1  

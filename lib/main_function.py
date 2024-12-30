@@ -44,7 +44,7 @@ def BRDF(i, j, Theta, Coarse, Model= APs.Model, id= 0):
         # angle = angle_between(PPs.camera, RV)
         # Calculate the intensity of the reflected light
         # Model Choice 
-        if Model == 'Lambert':   #Coarse = 0
+        if Model == 'Lambert' or Model == 'SD_combined':   #Coarse = 0
             Diffuse = Lambert_BRDF(i, j, id, nv, Pos, PPs.camera, Theta)
             SR  = specular_reflection(RV, PPs.camera, nv, r)
             # SR is the reflected light intensity divided by B(T,lam)
@@ -60,17 +60,7 @@ def BRDF(i, j, Theta, Coarse, Model= APs.Model, id= 0):
         elif Model == "Specular_Only":
             Diffuse = 0
             SR = specular_reflection(RV, PPs.camera, nv, r)
-        elif Model == "SD_combined":
-            TMAP0 = Tmap(0, id)
-            Diffuse = Lambert_BRDF(i, j, id, nv, Pos, PPs.camera, Theta)
-            SR  = specular_reflection(RV, PPs.camera, nv, r)
-            
-            # Set SR to zero where TMAP0 < PPs.T_liq
-            SR[TMAP0 < PPs.T_liq] = 0
-            # Set Diffuse to zero where TMAP0 > PPs.T_liq
-            Diffuse[TMAP0 > PPs.T_liq] = 0
-            
-
+    
         return Diffuse, SR
     else:
         return 0, 0
@@ -212,7 +202,7 @@ def thermal_spectrum(wavelength_bound, id=0, Ntheta = 5, NWavelength = 1, Nsubpr
         np.save(f'temp/R{id}/variables/Theta.npy', Theta_list)
         np.save(f'temp/R{id}/plots/Tmap0.npy', Tmap0)
         
-        if  APs.Model == 'Lambert_Only':
+        if  APs.Model == 'Lambert_Only' or APs.Model == 'SD_combined':
             Tmap(0, id)  # cal Tmap to get Area_1D.npy
         return 0
         
