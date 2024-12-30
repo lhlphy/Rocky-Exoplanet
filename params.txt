@@ -4,7 +4,7 @@
 --LB 2.99
 --UB 3.01
 --mode PC
---lavatype Low
+--lavatype low
 --Nsubpro 31
 --heat_redist No
 --roughness 0
