@@ -12,7 +12,10 @@ print('parameter_list.py')
 # if environment variable 'roughness' is not set, use default value 0
 if 'roughness' not in os.environ:
     os.environ['roughness'] = '0'
-
+if 'FRnormal' not in os.environ:
+    os.environ['FRnormal'] = '0'
+if 'lavatype' not in os.environ:
+    os.environ['lavatype'] = 'zero'
 class Accuracy_parameters:
     ### Accuracy control parameters
     def __init__(self):
@@ -23,7 +26,7 @@ class Accuracy_parameters:
         self.Obs_array = np.array([3]) * 1e-6  # The wavelength of the observation array
         
         #####################################################################################################
-        if os.getenv('Model') != None:
+        if os.getenv('Model') != 'None':
             self.Model = os.getenv('Model')
         else:
             if float(os.getenv('roughness')) < 1e-3: # if roughness = 0, use the Specular_Only model

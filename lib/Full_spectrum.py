@@ -8,7 +8,7 @@ import os
  
  
 def Fresnel_coefficient(lam, Mtheta=-1, Mphi=-1, Polarization="None"):
-    if Polarization in os.environ:  # get the polarization from the environment variable
+    if 'polarization' in os.environ:  # get the polarization from the environment variable
         Polarization = os.getenv('polarization')
     # calculate the reflection coefficent in different wavelength and different location
     if Mtheta == -1 and Mphi == -1:
@@ -32,6 +32,8 @@ def Fresnel_coefficient(lam, Mtheta=-1, Mphi=-1, Polarization="None"):
     elif Polarization == "P": # Observer is P polarization
         Rp_O = (Rp *np.sin(Mphi)**2 + Rs * np.cos(Mphi)**2 )/2
         return Rp_O
+    else:
+        raise ValueError("Polarization must be either 'S', 'P', or 'None'")
         
     
 @decorator_timer('Full_spectrum')

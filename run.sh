@@ -13,7 +13,6 @@ echo "Maxwell"
 
 module load apps/anaconda3/5.2.0
 conda activate test
-export lavatype=zero
 
 # Read parameters from params.txt
 PARAMS=$(cat params.txt)
