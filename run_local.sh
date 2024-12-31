@@ -2,7 +2,6 @@
 # test script for wsl, test project on local machine
 # this script is for wsl, not for windows
 echo "Maxwell" 
-export lavatype=zero
 
 # Read parameters from params.txt
 PARAMS=$(cat params.txt)
