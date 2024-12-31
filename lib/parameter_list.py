@@ -70,7 +70,7 @@ class Planet_parameters:
         ### Observation parameters
         camera = np.array([1, 0, 0]) # Define the direction of the camera (observation vector)
         self.camera = camera / np.linalg.norm(camera) # normalize the camera vector
-        self.T_liq = 1155.78  # K, liquid temperature, 作为完全融化区域的温度阈值
+        self.T_liq = 1201.16  # K, liquid temperature, 作为完全融化区域的温度阈值
         
     def Albedo(self, lam, T = 0):
         if  lam > LA.Wmax *1e-6:

@@ -1,0 +1,13 @@
+--id 1
+--Ntheta 18
+--Nwave 5
+--LB 2.99
+--UB 3.01
+--mode PC
+--lavatype low
+--Nsubpro 4
+--heat_redist No
+--roughness 0
+--FRnormal 0.1
+--polarization None
+--Model SD_combined

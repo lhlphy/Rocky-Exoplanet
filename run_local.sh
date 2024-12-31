@@ -4,7 +4,7 @@
 echo "Maxwell" 
 
 # Read parameters from params.txt
-PARAMS=$(cat params.txt)
+PARAMS=$(cat params_local.txt)
 
 # Extract the value of --id parameter and remove any trailing whitespace
 ID=$(grep -oP '(?<=--id )\d+' params.txt | tr -d '[:space:]')
