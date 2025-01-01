@@ -162,10 +162,62 @@ def specular_diffuse_plot_theory(name_specular, name_diffuse, Obs_wave, transit 
     plt.savefig(f"temp/{name_specular}/specular_diffuse_{Obs_wave[0]*1e6}_{transit}_theory.pdf")
     plt.savefig(f"temp/{name_diffuse}/specular_diffuse_{Obs_wave[0]*1e6}_{transit}_theory.pdf")
     plt.close()
+    
+def polarization_ploter(FR0 = 0.1, Obs_wave = np.array([3]) * 1e-6, transit = 'off', vertify = False):
+    '''
+    plot the comparison of phase curve of P-pol and S-pol
+    '''
+    P_pol = f'P_pol_{FR0}_copy'
+    S_pol = f'S_pol_{FR0}_copy'
+    Is_P, Ii_P, Id_P, It_P, theta = data_loader(P_pol, Obs_wave)
+    Is_S, Ii_S, Id_S, It_S, theta = data_loader(S_pol, Obs_wave)
+    
+    i = 0
+    theta =theta/(2 *np.pi)
+    
+    fig, ax = plt.subplots(figsize=(9,6))
+    if transit == 'off':
+        ax.plot(theta, Is_P[i,:] *1e6, label='P-polarization', color='b', linewidth=2)
+        ax.plot(theta, Is_S[i,:] *1e6, label='S-polarization', color='k', linewidth=2)
+    else:
+        It_P[It_P > 0] =0   # 当然，直接置为零会带来一定的误差，但考虑到(thermal emission << transit)，这个误差是可以接受的
+        It_S[It_S > 0] =0
+        ax.plot(theta, (Is_P[i,:] + It_P[i,:]) *1e6, label='P-polarization', color='b', linewidth=2)
+        ax.plot(theta, (Is_S[i,:] + It_S[i,:]) *1e6, label='S-polarization', color='k', linewidth=2)
+        
+    if vertify:
+        no_pol = f'No_pol_{FR0}_copy'
+        Is_no, Ii_no, Id_no, It_no, _ = data_loader(no_pol, Obs_wave)
+        
+        if transit == 'off':
+            ax.plot(theta, Is_no[i,:] *1e6, label='No-polarization', color='r', linewidth=2)
+        else:
+            It_no[It_no > 0] =0   # 当然，直接置为零会带来一定的误差，但考虑到(thermal emission << transit)，这个误差是可以接受的
+            ax.plot(theta, (Is_no[i,:] + It_no[i,:]) *1e6, label='No-polarization', color='r', linewidth=2)
+            
+    ax.set_xlabel('Orbital phase', fontsize=18)
+    ax.set_ylabel(r'$F_p/F_*$ (ppm)', fontsize=18)
+    ax.set_xlim(0, 1)
+    # ax.set_ylim(0, np.max([np.max((Id_S[i,:] + It_S[i,:])), np.max((Is_P[i,:] + It_P[i,:]))])*1e6 *1.05)
+    ax.spines['bottom'].set_linewidth(2)    ###设置底部坐标轴的粗细
+    ax.spines['left'].set_linewidth(2)  ####设置左边坐标轴的粗细
+    ax.spines['right'].set_linewidth(2) ###设置右边坐标轴的粗细
+    ax.spines['top'].set_linewidth(2)   ####设置上部坐标轴的粗细
+    #刻度值字体大小设置（x轴和y轴同时设置）
+    plt.tick_params(labelsize=16)
+    plt.legend(fontsize=17, frameon=False)
+    plt.savefig(f"temp/{P_pol}/Polarization_{Obs_wave[0]*1e6}_{FR0}.png")
+    plt.savefig(f"temp/{S_pol}/Polarization_{Obs_wave[0]*1e6}_{FR0}.png")
+    plt.savefig(f"temp/{P_pol}/Polarization_{Obs_wave[0]*1e6}_{FR0}.pdf")
+    plt.savefig(f"temp/{S_pol}/Polarization_{Obs_wave[0]*1e6}_{FR0}.pdf")
+    plt.close()
       
     
 if __name__ == "__main__":
     # specular_diffuse_plot("R8copy", "R6copy", np.array([3]) * 1e-6, transit='off')
     # 在使用transit='on'时，注意'R1'和'R2'位置上的PC必须经过 transit_cal.py 的计算；应该为'R1copy'和'R2copy'的形式
     # specular_diffuse_plot_theory("specular_copy", "lambert_copy", np.array([3]) * 1e-6, transit='on')
-    specular_diffuse_plot_theory("R1copy", "R1copy", np.array([3]) * 1e-6, transit='on', FR0= 0.1)
+    # specular_diffuse_plot_theory("R1copy", "R1copy", np.array([3]) * 1e-6, transit='on', FR0= 0.1)
+    polarization_ploter(FR0 =0.1, vertify = True)
+
+
