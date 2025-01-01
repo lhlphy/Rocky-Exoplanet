@@ -698,6 +698,7 @@ if __name__ =='__main__':
     # compare_spectrum_plot(['R3', 'R4', 'R5'])
     # real_comp2(['R10', 'R11'])
     
+    
     # compare_phase_curve_plot(['R7copy', 'R6copy', 'R9copy'], np.array([3.9, 5])* 1e-6) # first: low albedo ; second: high albedo
     compare_phase_curve_plot(['R13copy', 'R14copy'], np.array([0.33, 1.1])* 1e-6, instrument = 'CHEOPS') # first: low albedo ; second: high albedo
     # Intenstiy_comp(['R3', 'R4'])

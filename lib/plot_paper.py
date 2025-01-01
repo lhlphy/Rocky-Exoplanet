@@ -108,7 +108,7 @@ def analytical_theory_cal():
     RESULT[:,1] = F
     return RESULT
    
-def specular_diffuse_plot_theory(name_specular, name_diffuse, Obs_wave, transit = 'off'):
+def specular_diffuse_plot_theory(name_specular, name_diffuse, Obs_wave, transit = 'off', FR0 = 1):
     '''
     绘制模拟的diffuse和specular的phase curve, 以及解析近似理论和光学理论结果, 绘图中包含4曲线
     分别是： 模拟的specular和diffuse的phase curve, 解析近似理论和光学理论结果
@@ -138,18 +138,18 @@ def specular_diffuse_plot_theory(name_specular, name_diffuse, Obs_wave, transit 
     theory1 = np.nan_to_num(theory1, nan=0)
     # print(theory1)
     # theory1 = np.loadtxt('theory1.txt', delimiter = ',')
-    ax.plot(theory1[:,0]/(2*np.pi), theory1[:,1] * 1e6, label='Analytical', color='r', linewidth=2, linestyle='--')
+    ax.plot(theory1[:,0]/(2*np.pi), theory1[:,1] * 1e6 *FR0, label='Analytical', color='r', linewidth=2, linestyle='--')
     print('theory1:', theory1[(theory1.shape[0])//2, 1] *1e6)
     
     # 绘制一条平行于x轴的直线，颜色为'gray'，线宽为1
     theory2 = (PPs.Rp/2/PPs.semi_axis)**2 *1e6 # 21.1722  #21.3234
-    ax.axhline(y=theory2, color='gray', linestyle='--', linewidth=2, label = 'Optical')
+    ax.axhline(y=theory2 * FR0, color='gray', linestyle='--', linewidth=2, label = 'Optical')
     # ax.plot((0, theory2), (1, theory2), color='gray', linestyle='--', linewidth=2, label = 'virtual image')
     
     ax.set_xlabel('Orbital phase', fontsize=18)
     ax.set_ylabel(r'$F_p/F_*$ (ppm)', fontsize=18)
     ax.set_xlim(0, 1)
-    ax.set_ylim(0, np.max([np.max((Id_diffuse[i,:] + It_diffuse[i,:])), np.max((Is_specular[i,:] + It_specular[i,:])), np.max(theory1[:,1])]) *1e6 *1.05)
+    ax.set_ylim(0, np.max([np.max((Id_diffuse[i,:] + It_diffuse[i,:])), np.max((Is_specular[i,:] + It_specular[i,:])), np.max(theory1[:,1] *FR0)]) *1e6 *1.05)
     ax.spines['bottom'].set_linewidth(2)    ###设置底部坐标轴的粗细
     ax.spines['left'].set_linewidth(2)  ####设置左边坐标轴的粗细
     ax.spines['right'].set_linewidth(2) ###设置右边坐标轴的粗细
@@ -168,4 +168,4 @@ if __name__ == "__main__":
     # specular_diffuse_plot("R8copy", "R6copy", np.array([3]) * 1e-6, transit='off')
     # 在使用transit='on'时，注意'R1'和'R2'位置上的PC必须经过 transit_cal.py 的计算；应该为'R1copy'和'R2copy'的形式
     # specular_diffuse_plot_theory("specular_copy", "lambert_copy", np.array([3]) * 1e-6, transit='on')
-    specular_diffuse_plot_theory("R1copy", "R1copy", np.array([3]) * 1e-6, transit='on')
+    specular_diffuse_plot_theory("R1copy", "R1copy", np.array([3]) * 1e-6, transit='on', FR0= 0.1)
