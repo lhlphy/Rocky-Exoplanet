@@ -23,13 +23,16 @@ class Accuracy_parameters:
         self.Obs_array = np.array([3]) * 1e-6  # The wavelength of the observation array
         
         #####################################################################################################
-        # if float(os.getenv('roughness')) < 1e-3: # if roughness = 0, use the Specular_Only model
-        #     self.Model =  'Specular_Only'
-        # elif float(os.getenv('roughness')) >= 1e-3 and float(os.getenv('roughness')) <= 90 :
-        #     self.Model =  'Gaussian_wave' 
-        # else:
-        #     self.Model = 'Lambert_Only'
-        self.Model = 'Lambert'
+        if os.getenv('Model') != 'None':
+            self.Model = os.getenv('Model')
+        else:
+            if float(os.getenv('roughness')) < 1e-3: # if roughness = 0, use the Specular_Only model
+                self.Model =  'Specular_Only'
+            elif float(os.getenv('roughness')) >= 1e-3 and float(os.getenv('roughness')) <= 90 :
+                self.Model =  'Gaussian_wave' 
+            else:
+                self.Model = 'Lambert_Only'
+            # self.Model = 'Lambert'
         ######################################################################################################
         Mode = os.getenv('mode') # get mode from environment variable
         if Mode == 'PC':
@@ -62,6 +65,7 @@ class Planet_parameters:
         ### Observation parameters
         camera = np.array([1, 0, 0]) # Define the direction of the camera (observation vector)
         self.camera = camera / np.linalg.norm(camera) # normalize the camera vector
+        self.T_liq = 1201.16  # K, liquid temperature, 作为完全融化区域的温度阈值
         
     def Albedo(self, lam, T = 0):
         if  lam > LA.Wmax *1e-6:

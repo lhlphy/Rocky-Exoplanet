@@ -34,9 +34,16 @@ def BRDF(i, j, Theta, Coarse, Model= APs.Model, id= 0):
     
     # Calculate the reflected vector
     RV = reflect(Pos, nv)
+    # 预算alpha_max
+    theta_c = angle_between(PPs.camera, nv)
+    # Ensure the angle is within the valid range
+    sina = PPs.Rp/r *np.sin(theta_c)
+    cosa = np.sqrt(1 - sina**2)
+    LL = PPs.Rp/sina *(np.sin(theta_c)* cosa - np.cos(theta_c)* sina)
+    alpha_max = np.arcsin(PPs.Rs/LL)
     
     # Check if the reflection direction is towards the camera
-    if check_direction(RV, nv, PPs.camera, Pos):
+    if check_direction(RV, nv, PPs.camera, Pos, alpha_max):
         if  (APs.mode == 'Phase curve') and np.abs(Theta - np.pi) < np.pi/4 and check_intersection_with_star(Pos, PPs.camera):  # Check if the line intersects with the star--Check block
             # APS.mode = 'Transit' will not consider the block of star
             return 0, 0  # if blocked , intensity is 0, 0
@@ -44,23 +51,25 @@ def BRDF(i, j, Theta, Coarse, Model= APs.Model, id= 0):
         # angle = angle_between(PPs.camera, RV)
         # Calculate the intensity of the reflected light
         # Model Choice 
-        if Model == 'Lambert':   #Coarse = 0
+        if Model == 'Lambert' or Model == 'SD_combined':   #Coarse = 0
             Diffuse = Lambert_BRDF(i, j, id, nv, Pos, PPs.camera, Theta)
-            SR  = specular_reflection(RV, PPs.camera, nv, r)
+            SR  = specular_reflection(RV, PPs.camera, nv, r, alpha_max)
             # SR is the reflected light intensity divided by B(T,lam)
         elif Model == 'Lambert_Only':
             Diffuse = Lambert_BRDF(i, j, id, nv, Pos, PPs.camera, Theta)
             SR = 0
         elif Model == 'Oren_Nayar':
-            Diffuse = Oren_Nayar_BRDF(r, nv, Pos, PPs.camera, Coarse)
-            SR  = specular_reflection(RV, PPs.camera, nv, r)
+            Diffuse = 0 #Oren_Nayar_BRDF(r, nv, Pos, PPs.camera, Coarse)
+            SR  = specular_reflection(RV, PPs.camera, nv, r, alpha_max)
         elif Model == 'Gaussian_wave':  # In this model Diffuse and RF are considered together
             Diffuse = 0
             SR = Wave_reflect(r, nv, Pos, PPs.camera, Theta ) 
         elif Model == "Specular_Only":
             Diffuse = 0
-            SR = specular_reflection(RV, PPs.camera, nv, r)
-
+            SR = specular_reflection(RV, PPs.camera, nv, r, alpha_max)
+        else:
+            raise ValueError('Model not found')
+    
         return Diffuse, SR
     else:
         return 0, 0
@@ -183,8 +192,9 @@ def thermal_spectrum(wavelength_bound, id=0, Ntheta = 5, NWavelength = 1, Nsubpr
     Ratio: [size]: NWavelength * (2*Ntheta)
     Theta_list: [size]: (2*Ntheta)
     """ 
-    # if Model == 'Specular_Only', we don't need to consider the thermal radiation, only consider the geometry problem
-    if APs.Model == 'Specular_Only' or APs.Model == 'Gaussian_wave' or APs.Model == 'Lambert_Only':
+    # if Model in NO_Thermal_list, we don't need to consider the thermal radiation, only consider the geometry problem
+    NO_Thermal_list = ['Specular_Only', 'Gaussian_wave', 'Lambert_Only', 'SD_combined']
+    if APs.Model in NO_Thermal_list:
         # we have to save a zero array to save the thermal spectrum
         os.makedirs(f'temp/R{id}/plots', exist_ok=True)
         if Ntheta == 1:
@@ -201,7 +211,7 @@ def thermal_spectrum(wavelength_bound, id=0, Ntheta = 5, NWavelength = 1, Nsubpr
         np.save(f'temp/R{id}/variables/Theta.npy', Theta_list)
         np.save(f'temp/R{id}/plots/Tmap0.npy', Tmap0)
         
-        if  APs.Model == 'Lambert_Only':
+        if  APs.Model == 'Lambert_Only' or APs.Model == 'SD_combined':
             Tmap(0, id)  # cal Tmap to get Area_1D.npy
         return 0
         

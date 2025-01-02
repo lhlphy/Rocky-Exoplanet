@@ -3,6 +3,7 @@ from parameter_list import APs, PPs, Sigma_const
 from scipy.integrate import dblquad, quad
 from scipy.interpolate import interp1d
 from scipy.optimize import root  
+import matplotlib
 import matplotlib.pyplot as plt
 import os
 import multiprocessing
@@ -10,6 +11,7 @@ import time
 from lava_data import LA
 
 print('function_library')
+matplotlib.use('Agg')
 
 def decorator_timer(name):
     def run_time(func):
@@ -160,7 +162,7 @@ def Euler2vec(theta, phi):
     return np.array([x, y, z])
 
 
-def check_direction(RV, normal, camera, Pos):
+def check_direction(RV, normal, camera, Pos, alpha_max):
     """
     Check if the reflection direction is towards the camera.
     
@@ -176,7 +178,7 @@ def check_direction(RV, normal, camera, Pos):
     i = angle_between(RV, normal)
     j = angle_between(camera, normal)
     #k = angle_between(camera, RV)
-    return j < np.pi / 2 and np.dot(Pos, normal) < 0  and 0 <= i < np.pi / 2
+    return j < np.pi/2 and i < np.pi/2 + alpha_max  #and 0 <= i < np.pi / 2  # and np.dot(Pos, normal) < 0 
 
 def check_intersection_with_star(Pos, Camera):
     """
@@ -309,7 +311,8 @@ def Lambert_BRDF(i, j, id, normal, Pos, camera, Theta):
     Phi_list = np.linspace(0, np.pi, np.size(Area))
     spl = interp1d(Phi_list, Area, kind= 'linear')
 
-    Phi = np.arccos( - np.cos(phi) * np.cos(theta - Theta))
+    # Phi = np.arccos( - np.cos(phi) * np.cos(theta - Theta))
+    Phi = np.arccos(np.cos(phi) * np.cos(theta))
     return  spl(Phi) * DA * np.cos(theta_c)/ np.pi #* blackbody_radiation(PPs.Stellar_T, Wavelength)  
 
 # def Oren_Nayar_BRDF(r, normal, Pos, camera, Coarse = 0):
@@ -396,7 +399,7 @@ def Lambert_BRDF(i, j, id, normal, Pos, camera, Theta):
 #     DA = PPs.Rp**2 *np.sin(theta) *Dtheta *Dphi 
 #     return Integ[0] *DA *np.cos(theta_c) #* blackbody_radiation(PPs.Stellar_T, Wavelength)   
 
-def specular_reflection(RV, camera, normal, r):
+def specular_reflection(RV, camera, normal, r, alpha_max = -1):
     """
     Calculate the intensity of specular reflection, when albedo = 1 
     
@@ -408,16 +411,19 @@ def specular_reflection(RV, camera, normal, r):
     Returns:
     float: Intensity I after reflection divided by B(T,lam).
     """
-    # Calculate the angle between the camera and the reflected vector
+    if alpha_max == -1:  # 如果没有预算值输入，则自动计算
+        # Calculate the angle between the camera and the reflected vector
+        theta_c = angle_between(camera, normal)
+        # Ensure the angle is within the valid range
+        sina = PPs.Rp/r *np.sin(theta_c)
+        cosa = np.sqrt(1 - sina**2)
+        LL = PPs.Rp/sina *(np.sin(theta_c)* cosa - np.cos(theta_c)* sina)
+        alpha_max = np.arcsin(PPs.Rs/LL)
+        
     angle = angle_between(camera, RV)
     theta_c = angle_between(camera, normal)
     theta = angle_between(normal, np.array([0,0,1]))
-    # Ensure the angle is within the valid range
-    sina = PPs.Rp/r *np.sin(theta_c)
-    cosa = np.sqrt(1 - sina**2)
-    LL = PPs.Rp/sina *(np.sin(theta_c)* cosa - np.cos(theta_c)* sina)
-    angle_max = np.arcsin(PPs.Rs/LL)
-    if angle > angle_max:
+    if angle > alpha_max:
         return 0
     
 
@@ -427,7 +433,6 @@ def specular_reflection(RV, camera, normal, r):
     DA = PPs.Rp**2 * np.sin(theta) * Dtheta * Dphi
     
     return  DA * np.cos(theta_c) #* blackbody_radiation(PPs.Stellar_T, Wavelength)
-   #Bug repaired in 7/1: * np.cos(theta_c)
 
 def REF_fit(theta_r):
     """
@@ -748,7 +753,7 @@ def Tmap(Theta, id = 0):
         
         
     # Otherwise, calculate the Tmap
-    spl = interp1d(ksi_list , Tmap_1D, kind='cubic') #spline interpolation
+    spl = interp1d(ksi_list , Tmap_1D, kind='linear') #spline interpolation
 
     Tmap = np.zeros((APs.SIZE[0], APs.SIZE[1]))
     phiP_list = np.linspace(-np.pi / 2, np.pi / 2, APs.SIZE[0])

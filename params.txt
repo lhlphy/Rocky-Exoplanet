@@ -1,0 +1,11 @@
+--id 1
+--Ntheta 60
+--Nwave 5
+--LB 2.99
+--UB 3.01
+--mode PC
+--lavatype low
+--Nsubpro 31
+--heat_redist No
+--roughness 0
+--Model Lambert
