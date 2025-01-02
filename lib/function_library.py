@@ -313,7 +313,8 @@ def Lambert_BRDF(i, j, id, normal, Pos, camera, Theta):
     Phi_list = np.linspace(0, np.pi, np.size(Area))
     spl = interp1d(Phi_list, Area, kind= 'linear')
 
-    Phi = np.arccos(np.cos(phi) * np.cos(theta))
+    # Phi = np.arccos(np.cos(phi) * np.cos(theta))
+    Phi = np.arccos( - np.cos(phi) * np.cos(theta - Theta))
     return  spl(Phi) * DA * np.cos(theta_c)/ np.pi #* blackbody_radiation(PPs.Stellar_T, Wavelength)  
 
 # def Oren_Nayar_BRDF(r, normal, Pos, camera, Coarse = 0):
