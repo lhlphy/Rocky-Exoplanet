@@ -26,9 +26,9 @@ if __name__ == '__main__':
     parser.add_argument('--Nsubpro', default = 1, type = int)  # 求解时分为多少个子进程
     parser.add_argument('--heat_redist', default = 'No', type = str) # 热再分配 "No","Full","Yes"
     parser.add_argument('--roughness', default = 0, type = float)  # roughness
+    parser.add_argument('--Model', default = "None", type = str ) 
     args = parser.parse_args()
     Wavelength_bound = np.array([args.LB, args.UB]) *1e-6   # Wavelength range (m)
-    parser.add_argument('--Model', default = "None", type = str ) 
 
     # 设置环境变量
     os.environ['mode'] = args.mode

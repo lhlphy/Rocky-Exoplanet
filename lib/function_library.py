@@ -311,8 +311,17 @@ def Lambert_BRDF(i, j, id, normal, Pos, camera, Theta):
     Phi_list = np.linspace(0, np.pi, np.size(Area))
     spl = interp1d(Phi_list, Area, kind= 'linear')
 
-    # Phi = np.arccos( - np.cos(phi) * np.cos(theta - Theta))
-    Phi = np.arccos(np.cos(phi) * np.cos(theta))
+    # A segment of code that check which Phi is the correct one
+    # Phi1 = np.arccos( - np.cos(phi) * np.cos(theta - Theta))
+    # Phi2 = np.arccos(np.cos(phi) * np.cos(theta))
+    # Ste_pos = np.array([-np.cos(Theta), -np.sin(Theta), 0])
+    # Phi = angle_between(Ste_pos, normal)
+    # if np.abs(Phi - Phi1) < 0.01:
+    #     print("Phi1")
+    # if np.abs(Phi - Phi2) < 0.01:
+    #     print("Phi2")
+    Phi = np.arccos( - np.cos(phi) * np.cos(theta - Theta))
+    
     return  spl(Phi) * DA * np.cos(theta_c)/ np.pi #* blackbody_radiation(PPs.Stellar_T, Wavelength)  
 
 # def Oren_Nayar_BRDF(r, normal, Pos, camera, Coarse = 0):
