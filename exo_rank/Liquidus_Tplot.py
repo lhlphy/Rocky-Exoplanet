@@ -1,18 +1,23 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
+
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
 
 # 数据
-sample = [
-    'B-glass', 
-    'B-Nat', 
-    'Fasnia', 
-    'MORB', 
-    'B´arðarbunga\nbasalts',  # 添加换行符
-    'Quartz', 
-    'Hawaiian\nbasalt',        # 添加换行符
-    'Teide', 
-    'Erebus'
-]
+# sample = [
+#     'B-glass', 
+#     'B-Nat', 
+#     'Fasnia', 
+#     'MORB', 
+#     'B´arðarbunga\nbasalts',  # 添加换行符
+#     'Quartz', 
+#     'Hawaiian\nbasalt',        # 添加换行符
+#     'Teide', 
+#     'Erebus'
+# ]
+sample = [f'S{i}' for i in range(1, 10)]
 T_liq_celsius = [1176.56, 1174.02, 1201.16, 1169.92, 1193.16, 1722.85, 1172.66, 1072.85, 1085.94]
 T_liq = [temp + 273.15 for temp in T_liq_celsius]  # 转换为开尔文
 
@@ -22,19 +27,20 @@ Teq_celsius = [2103, 1409, 1324, 1876, 1652]  # 假设这些温度以摄氏度�
 Teq = [temp + 273.15 for temp in Teq_celsius]  # 转换为开尔文
 
 # 设置图形大小
-plt.figure(figsize=(7, 6))  # 增加宽度以适应标签
+plt.figure(figsize=(7.5, 6))  # 增加宽度以适应标签
 
 # 绘制柱状图
 bars = plt.bar(sample, T_liq, color='skyblue')
 
 # 添加标题和标签
 # plt.title('Liquidus Temperature of Various Samples', fontsize=16)
-plt.xlabel('Sample Type', fontsize=15)
-plt.ylabel('Liquidus Temperature (K)', fontsize=17)  # 修改单位为开尔文
-plt.yticks(fontsize=14)
+plt.xlabel('Sample index', fontsize=18)
+plt.ylabel('Liquidus Temperature (K)', fontsize=19)  # 修改单位为开尔文
+plt.yticks(fontsize=16)
 
 # 倾斜 x 轴标签
-plt.xticks(rotation=60, ha='center', fontsize=14)
+# plt.xticks(rotation=60, ha='center', fontsize=14)
+plt.xticks(ha='center', fontsize=16)
 # 自动调整 x 轴范围
 plt.xlim(-0.5, len(sample) - 1.5)
 
