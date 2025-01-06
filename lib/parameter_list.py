@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd 
 from lava_data import LA
 import os
+from scipy.interpolate import interp1d
 
 # Constants List
 AU = 149_597_870.7  # km, 1 Astronomical Unit 149597870.7
@@ -19,12 +20,14 @@ if 'lavatype' not in os.environ:
 class Accuracy_parameters:
     ### Accuracy control parameters
     def __init__(self):
-        self.SIZE = [372, 744]  # Size of the meshgrid
+        self.SIZE = [37, 74]  # Size of the meshgrid
         # Create meshgrid for the planet
         self.phiP_list = np.linspace(-np.pi / 2, np.pi / 2, self.SIZE[0])
         self.thetaP_list = np.linspace(0, 2 * np.pi, self.SIZE[1])
         self.Obs_array = np.array([3]) * 1e-6  # The wavelength of the observation array
-        
+        self.Polarization = os.getenv('Polarization', default="None")
+        self.OpticalFrame = os.getenv('OpticalFrame', default="Demo")
+
         #####################################################################################################
         if os.getenv('Model') != 'None':
             self.Model = os.getenv('Model')
@@ -46,6 +49,7 @@ class Accuracy_parameters:
         else:
             self.mode = Mode
 
+APs = Accuracy_parameters()
 
 class Planet_parameters:
     def __init__(self, Nline):
@@ -64,14 +68,24 @@ class Planet_parameters:
         self.Coarse_g = 0  # Coarseness of the surface
         self.Wind_speed = 10   # wind speed in m/s (only available for the Gaussian wave model)
         self.roughness = float(os.getenv('roughness'))
-        self.std_FR = float(os.getenv('FRnormal'))  # Fresnel reflection coefficient when normal incidence
-        print("Planet parameters are loaded.", self.std_FR)
+        if APs.OpticalFrame == 'Demo':
+            self.std_FR = float(os.getenv('FRnormal'))  # Fresnel reflection coefficient when normal incidence
+        elif APs.OpticalFrame == 'Full_cal':
+            def std_FR(self, Lam):
+                return self.Albedo(Lam)
+        else:
+            raise ValueError("Version ERROR: OpticalFrame must be either 'Demo' or 'Full_cal', other options are under construction")
         
         ### Observation parameters
         camera = np.array([1, 0, 0]) # Define the direction of the camera (observation vector)
         self.camera = camera / np.linalg.norm(camera) # normalize the camera vector
         self.T_liq = 1201.16  # K, liquid temperature, 作为完全融化区域的温度阈值
         
+        self.An_list = np.linspace(0, 1, 100)
+        self.A_Mean_list = self.A_Mean_list_Cal(self.An_list)
+        self.A_Mean_interp = interp1d(self.An_list, self.A_Mean_list, kind = 'linear')
+       
+            
     def Albedo(self, lam, T = 0):
         if  lam > LA.Wmax *1e-6:
             raise ValueError('Albedo exceed the high bounds! ')
@@ -83,6 +97,60 @@ class Planet_parameters:
     def A_Specular(self, lam, T = 0):
         return self.Albedo(lam, T)
     
+    def Fresnel(self, Lam = -1, I_angle = 0, Polarization = 'default', A_normal = 0):
+        if Polarization == 'default':  # get the polarization from the environment variable
+            Polarization = APs.Polarization
+            
+        SINI = np.sin(I_angle)
+        COSI = np.cos(I_angle)
+        if Lam < 0:
+            A = A_normal
+        else:
+            A = self.Albedo(Lam)
+            
+        n = 2/(1- np.sqrt(A)) -1
+        Co1 = np.sqrt(n**2 - SINI**2)
+        if Polarization == 'S':
+            Rs = ((COSI - Co1) / (COSI + Co1)) **2
+            return Rs
+        elif Polarization == 'P':
+            Rp = ((Co1 - n**2 *COSI)/ (Co1 + n**2 *COSI))**2
+            return Rp
+        elif Polarization == 'None':
+
+            Rs = ((COSI - Co1) / (COSI + Co1)) **2
+            Rp = ((Co1 - n**2 *COSI)/ (Co1 + n**2 *COSI))**2
+            return (Rs+Rp)/2
+        else:
+            raise ValueError("Polarization must be either 'S', 'P', or 'None'")
+        
+    def A_Mean_list_Cal(self, An_list):  # calculate the mean albedo for each An
+        from scipy.integrate import quad
+        A_Mean_list = np.zeros(len(An_list))
+        Polarization = APs.Polarization
+        
+        for i, An in enumerate(An_list):
+            A_Mean_list[i] = quad(lambda theta: self.Fresnel(-1, theta, Polarization, A_normal= An) *np.sin(theta), 0, np.pi/2)[0]
+            
+        return A_Mean_list
+        
+    def A_Mean(self, An = -1, Wavelength = -1):
+        if (Wavelength == -1) and (An == -1):
+            raise ValueError('lam or An must be specified')
+        elif (Wavelength != -1) and (An != -1):
+            raise ValueError('lam and An cannot be both specified')
+        
+        if Wavelength > 0:
+            A = self.Albedo(Wavelength)
+        elif An > 1e-6:
+            A = An
+        elif An < 1e-6:
+            return 0
+        else:
+            raise ValueError('A_Mean: lam or An must have a proper value')
+        
+        return self.A_Mean_interp(A)
+        
 
 PPs = Planet_parameters(4170) 
 # K2-141 b : 4264 - 98  /4170
@@ -91,7 +159,6 @@ PPs = Planet_parameters(4170)
 # GJ-367 b: 733 - 98
 # Kepler-808 b: 30420 ## this planet has best specular/thermal*Melt_area ratio in 1 um (from exo_rank.py)
 # 10781  Kepler-1320 b
-APs = Accuracy_parameters()
 
 
 if __name__ == '__main__':

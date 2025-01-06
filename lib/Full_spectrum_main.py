@@ -29,6 +29,7 @@ if __name__ == '__main__':
     parser.add_argument('--FRnormal', default=0.1, type=float) # Fresnel reflection coefficient when normal incidence
     parser.add_argument('--polarization', default = "None", type = str)  # polarization "None", "P", "S"
     parser.add_argument('--Model', default = "None", type = str ) 
+    parser.add_argument('--OpticalFrame', default="Demo" , type=str) # "Demo", "Full_cal", "Non_Fresnel", "Non_Fresnel_Demo"
     args = parser.parse_args()
     Wavelength_bound = np.array([args.LB, args.UB]) *1e-6   # Wavelength range (m)
 
@@ -40,6 +41,7 @@ if __name__ == '__main__':
     os.environ['polarization'] = args.polarization
     os.environ['FRnormal'] = str(args.FRnormal)
     os.environ['Model'] = args.Model
+    os.environ['OpticalFrame'] = args.OpticalFrame
     os.makedirs('log', exist_ok= True)
     os.makedirs('temp', exist_ok=True)
     

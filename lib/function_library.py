@@ -645,7 +645,7 @@ def B(lam,T):
 def Temperature_cal(ksi, Theta, Tmap_1D = [], i = -1, Ar_1D = []):
     ## calculate the temperature distribution of the planet
     ## ksi is the angle between the normal vector and the vector from the star to the planet
-    r = orbit_calculator(PPs.semi_axis, PPs.eccentricity, Theta)
+    r = PPs.semi_axis  # orbit_calculator(PPs.semi_axis, PPs.eccentricity, Theta)
 
     ksi_m1 = np.pi/2 - np.arcsin((PPs.Rs+PPs.Rp)/r)
     ksi_m2 = np.pi/2 + np.arcsin((PPs.Rs-PPs.Rp)/r)
@@ -669,7 +669,7 @@ def Temperature_cal(ksi, Theta, Tmap_1D = [], i = -1, Ar_1D = []):
         def equation(T):
             # func1 = lambda lam: B(lam, PPs.Stellar_T) * (1- PPs.Albedo(lam, T))
             # func2 = lambda lam: B(lam, T) * (1-PPs.Albedo(lam, T))
-            func3 = lambda lam: (B(lam, T) - LHS* B(lam, PPs.Stellar_T)) * (1- PPs.Albedo(lam, T))
+            func3 = lambda lam: (B(lam, T) - LHS* B(lam, PPs.Stellar_T)) * (1- PPs.A_Mean(Wavelength = lam))
             return quad(func3, LA.Wmin *1e-6, LA.Wmax *1e-6)[0] 
         
         sol = root(equation, T0)
@@ -701,7 +701,7 @@ def Temperature_cal(ksi, Theta, Tmap_1D = [], i = -1, Ar_1D = []):
         def equation(T): # the integral function
             # func1 = lambda lam: B(lam, PPs.Stellar_T) * (1- PPs.Albedo(lam, T))
             # func2 = lambda lam: B(lam, T) * (1-PPs.Albedo(lam, T))
-            func3 = lambda lam: (B(lam, T) - B(lam, PPs.Stellar_T)* LHS)* (1-PPs.Albedo(lam, T))
+            func3 = lambda lam: (B(lam, T) - B(lam, PPs.Stellar_T)* LHS)* (1-PPs.A_Mean(Wavelength = lam))
             return quad(func3 , LA.Wmin * 1e-6, LA.Wmax * 1e-6)[0]
 
         sol = root(equation, T0)
@@ -829,7 +829,7 @@ def Radiation_cal(Tmap, Theta, camera, Wavelength = 0):
                     Rad += sigma * T**4/np.pi * np.cos(angle) * dA
                     print("all wavelength radiation ")
                 else: # if wavelength is specified, only the radiation around the wavelength
-                    Rad += (1-PPs.Albedo(Wavelength, T)) * B(Wavelength, T) * np.cos(angle) * dA
+                    Rad += (1-PPs.Fresnel(Lam = Wavelength, I_angle = angle)) * B(Wavelength, T) * np.cos(angle) * dA
 
     return Rad
 

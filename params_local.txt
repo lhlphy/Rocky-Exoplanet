@@ -10,4 +10,5 @@
 --roughness 0
 --FRnormal 0.1
 --polarization None
---Model SD_combined
+--Model Lambert
+--OpticalFrame Full_cal

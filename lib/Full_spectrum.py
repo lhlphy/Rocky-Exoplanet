@@ -7,9 +7,16 @@ import matplotlib.pyplot as plt
 import os
  
  
-def Fresnel_coefficient(lam, Mtheta=-1, Mphi=-1, Polarization="None"):
-    if 'polarization' in os.environ:  # get the polarization from the environment variable
-        Polarization = os.getenv('polarization')
+def Fresnel_coefficient(Lam, Mtheta=-1, Mphi=-1, Polarization="default"):
+    """
+    calculate the reflection coefficient for specular reflector
+    OpticalFrame: 
+        "Demo": no input parameter needed
+        "Full_cal": Lam is the only needed parameter
+    """
+    if Polarization == "default":
+        Polarization = APs.Polarization
+
     # calculate the reflection coefficent in different wavelength and different location
     if Mtheta == -1 and Mphi == -1:
         Mtheta, Mphi = np.meshgrid(APs.thetaP_list, APs.phiP_list)
@@ -18,8 +25,14 @@ def Fresnel_coefficient(lam, Mtheta=-1, Mphi=-1, Polarization="None"):
     COSI = np.cos(Mtheta) * np.cos(Mphi)
     SINI = np.sqrt(1 - COSI**2)
         
-    A = PPs.std_FR  # PPs.A_Specular(lam)
-    n = 2/(1- np.sqrt(A)) -1 
+    if APs.OpticalFrame == "Demo":
+        An = PPs.std_FR
+    elif APs.OpticalFrame == "Full_cal":
+        An = PPs.A_Specular(Lam)
+    else:
+        raise ValueError("Version ERROR: OpticalFrame must be either 'Demo' or 'Full_cal', other options are under construction")
+        
+    n = 2/(1- np.sqrt(An)) -1 
     Co1 = np.sqrt(n**2 - SINI**2)
     Rs = ((COSI - Co1) / (COSI + Co1)) **2
     Rp = ((Co1 - n**2 *COSI)/ (Co1 + n**2 *COSI))**2
@@ -117,8 +130,9 @@ def Full_spectrum(wavelength_bound, args = None, id = 0, Ntheta = 5, Nwave = 1):
             # D1 = D * AD_matrix[j]
             # S1 = S * AS_matrix[j]
             # consider Fresnel_coefficient
-            D1 = D * PPs.std_FR * B(wave, PPs.Stellar_T)
-            S1 = S * Fresnel_coefficient(wave)* B(wave, PPs.Stellar_T)
+            Fresnel_matrix = Fresnel_coefficient(wave)* B(wave, PPs.Stellar_T)
+            D1 = D * Fresnel_matrix  # PPs.std_FR * B(wave, PPs.Stellar_T)
+            S1 = S * Fresnel_matrix
 
             # consider the reflection coefficent, D1,S1 is diffuse and specular reflection map in different location of planet
             # I1 = D1 + S1  
