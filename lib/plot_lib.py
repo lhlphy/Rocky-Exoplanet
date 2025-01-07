@@ -182,7 +182,7 @@ def spectrum_plot(name, wave_range):
     plt.show()
     plt.savefig(f"temp/{name}/spectrum")
     
-def compare_phase_curve_plot(name_list, wave_range, instrument = '  ', legend = 'below'):
+def compare_phase_curve_plot(name_list, wave_range, instrument = '  ', legend = 'below', xlabel = 'on', ylabel = 'on'):
     '''
     绘制full phase curve, 默认情况下name_list只有两个name, 分别代表low albedo和high albedo, 绘制4条曲线
     分别是: low albedo & Lambert, low albedo & Specular, high albedo & Lambert, high albedo & Specular
@@ -265,8 +265,10 @@ def compare_phase_curve_plot(name_list, wave_range, instrument = '  ', legend = 
     # plt.legend(plotarr, ['Low albedo & Lambert', 'Low albedo & Specular',  'Mid albedo & Lambert', 'Mid albedo & Specular',
     #             'High albedo & Lambert', 'High albedo & Specular'], loc='upper center', bbox_to_anchor=(0.5, -0.13), ncol=2)
     # ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=2)  
-    plt.xlabel('Orbital Phase', fontsize = 13)
-    plt.ylabel(r'$F_p/F_*$ (ppm)', fontsize = 13)
+    if xlabel == 'on':
+        plt.xlabel('Orbital Phase', fontsize = 13)
+    if ylabel == 'on':
+        plt.ylabel(r'$F_p/F_*$ (ppm)', fontsize = 13)
     # 添加文字和箭头，设置字体透明度  
     # plt.text(0.3948, 0, '1 hour', fontsize=10,fontweight='bold', color='black', ha='center') 
     # # plt.text(0.3948, -5, '', fontsize=12, color='black', ha='center')
@@ -774,10 +776,10 @@ if __name__ =='__main__':
     Spitzer: [4, 5]
     '''   
     # first: low albedo ; second: high albedo
-    compare_phase_curve_plot(['Low_copy', 'High_copy'], np.array([0.33, 1.1])* 1e-6, instrument = 'CHEOPS', legend = 'insert')
-    compare_phase_curve_plot(['Low_copy', 'High_copy'], np.array([0.80, 1.15])* 1e-6, instrument = 'HST/WFC3/G102', legend = 'off')
-    compare_phase_curve_plot(['Low_copy', 'High_copy'], np.array([1.075, 1.70])* 1e-6, instrument = 'HST/WFC3/G141', legend = 'off')
-    compare_phase_curve_plot(['Low_copy', 'High_copy'], np.array([2.7, 4.0])* 1e-6, instrument = 'JWST/NIRCam/F322W2', legend = 'off')
+    compare_phase_curve_plot(['Low_copy', 'High_copy'], np.array([0.33, 1.1])* 1e-6, instrument = 'CHEOPS', legend = 'insert', xlabel = 'off', ylabel='on')
+    compare_phase_curve_plot(['Low_copy', 'High_copy'], np.array([0.80, 1.15])* 1e-6, instrument = 'HST/WFC3/G102', legend = 'off', xlabel='off', ylabel='off')
+    compare_phase_curve_plot(['Low_copy', 'High_copy'], np.array([1.075, 1.70])* 1e-6, instrument = 'HST/WFC3/G141', legend = 'off', xlabel = 'on', ylabel='on')
+    compare_phase_curve_plot(['Low_copy', 'High_copy'], np.array([2.7, 4.0])* 1e-6, instrument = 'JWST/NIRCam/F322W2', legend = 'off', xlabel = 'on', ylabel='off')
     
     # phase_curve_plot_withdata(['R1copy'], np.array([0.43, 0.89])* 1e-6, instrument = 'Kepler', model = 'Low')
     # phase_curve_plot_withdata(['R2copy'], np.array([0.43, 0.89])* 1e-6, instrument = 'Kepler', model='High')
