@@ -104,12 +104,12 @@ class lava_Albedo:
             # 读取数据并拼接
             wave_combined, IS_combined = Alow()
             # 创建插值函数  
-            self.interp_func = interp1d(wave_combined, IS_combined, kind='slinear')  
+            self.interp_func = interp1d(wave_combined, IS_combined, kind='linear')  
             
         elif type == 'high':
             wave_combined, IS_combined = Ahigh()
             # 创建插值函数
-            self.interp_func = interp1d(wave_combined, IS_combined, kind='slinear')
+            self.interp_func = interp1d(wave_combined, IS_combined, kind='linear')
             
         elif type == 'mode1': # have the same low-albedo at <1.5 micron, and same albedo at 5-12 micron, but clearly diverge between 1.5-5 micron.
             wave_combined_l, IS_combined_l = Alow()
@@ -122,14 +122,14 @@ class lava_Albedo:
                         wave_combined_h[(wave_combined_h > 1.5) & (wave_combined_h < 5)], wave_combined_l[wave_combined_l > 5]))
             
             # 创建插值函数
-            self.interp_func = interp1d(wave_combined, IS_combined, kind='slinear')
+            self.interp_func = interp1d(wave_combined, IS_combined, kind='linear')
         elif type == 'zero' or 'one':
             wave_combined  = np.array([0.1, 25])
             
         elif type == 'high_OH':  # high albedo model includes O-H vibration absorber at 3600 cm^{-1} (2.7778 um)
             wave_combined, IS_combined = Ahigh_OH()
             # 创建插值函数
-            self.interp_func = interp1d(wave_combined, IS_combined, kind='slinear')
+            self.interp_func = interp1d(wave_combined, IS_combined, kind='linear')
             
         else:
             print('No such type of lava albedo model')
@@ -152,7 +152,7 @@ class lava_Albedo:
                     return 0.1   # excess low bound, set "low albedo" to 0.1
                 elif self.type == 'high':
                     return 0.3  # excess low bound, set "high albedo" to 0.3
-            return self.interp_func(lam)
+            return max(self.interp_func(lam) ,0)
     
     def albedo_plotter(self):
         wave_list = np.linspace(self.Wmin, self.Wmax, 1000)
