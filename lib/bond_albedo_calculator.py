@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.integrate import simps, quad
+from scipy.integrate import simpson, quad
 from parameter_list import PPs
 
 def integrate_spectrum_with_interpolation(wave_list, IS, Wavelength_min, Wavelength_max):
@@ -20,7 +20,7 @@ def integrate_spectrum_with_interpolation(wave_list, IS, Wavelength_min, Wavelen
     IS_range = np.concatenate(([IS_min], IS_range, [IS_max]))
 
     # 使用辛普森积分公式进行积分
-    integral = simps(IS_range, wave_list_range)
+    integral = simpson(IS_range, wave_list_range)
     
     return integral
 
@@ -63,9 +63,9 @@ def bond_albedo_calculator(Wavelength_min, Wavelength_max, name , Nmark = -1):
     Spectral_Contrast_ratio_D = TD / Tstar
     Spectral_Contrast_ratio_T = TT / Tstar
 
-    print('Spectral Contrast ratio of Specular reflection in [',Wavelength_min, Wavelength_max,'] $\mu$m is:', Spectral_Contrast_ratio_S* 1e6,' ppm' )
-    print('Spectral Contrast ratio of diffuse reflection in [',Wavelength_min, Wavelength_max,'] $\mu$m is:', Spectral_Contrast_ratio_D* 1e6, ' ppm' )
-    print('Spectral Contrast ratio of Thermal radiation in [',Wavelength_min, Wavelength_max,'] $\mu$m is:', Spectral_Contrast_ratio_T* 1e6,' ppm' )
+    # print('Spectral Contrast ratio of Specular reflection in [',Wavelength_min, Wavelength_max,'] $\mu$m is:', Spectral_Contrast_ratio_S* 1e6,' ppm' )
+    # print('Spectral Contrast ratio of diffuse reflection in [',Wavelength_min, Wavelength_max,'] $\mu$m is:', Spectral_Contrast_ratio_D* 1e6, ' ppm' )
+    # print('Spectral Contrast ratio of Thermal radiation in [',Wavelength_min, Wavelength_max,'] $\mu$m is:', Spectral_Contrast_ratio_T* 1e6,' ppm' )
     
     return (Spectral_Contrast_ratio_S + Spectral_Contrast_ratio_T) *1e6, (Spectral_Contrast_ratio_D + Spectral_Contrast_ratio_T) *1e6
 

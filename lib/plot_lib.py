@@ -734,9 +734,9 @@ def phase_curve_plot_withdata(name_list, wave_range, instrument = '  ', model = 
     # data_err = data[:,2]  # load method 1
     # data_err = np.loadtxt(f'telescope_measure/K2-141b_{instrument}_err.txt', delimiter=',')  # load method 2
     if instrument == 'Kepler':  # load method 3
-        data_err = np.ones(np.size(data_x)) * 13.5  
+        data_err = np.ones(np.size(data_x)) * 13.5/2  
     elif instrument == 'Spitzer':
-        data_err = np.ones(np.size(data_x)) * 75.4
+        data_err = np.ones(np.size(data_x)) * 75.4/2
     
     pallet = ['b','r','k']
     plotarr  = [0] * 8
@@ -774,13 +774,15 @@ def phase_curve_plot_withdata(name_list, wave_range, instrument = '  ', model = 
         chi2_array[i*2] = chi2_cal(data_x, data_y, data_err ,Theta_list, CR_D)
         chi2_array[i*2+1] = chi2_cal(data_x, data_y, data_err ,Theta_list, CR_S)
         
+    fig.subplots_adjust(bottom=0.25)  # adjust the bottom margin to make room for the legend
     plt.ylim([0,np.max([up_bound, np.max(data_y)]) * 1.1])
     plt.xlim([0,1])
     # set legend based on the size of name_list
+    sc = r'$\chi_{\nu}^2$'  # set the chi2 symbol: chi2 (r'$\chi^2$') or reduced chi2 (r'$\chi_{\nu}^2$')
     if len(name_list) == 1:
-        plt.legend([plotarr[0],plotarr[1]], [f'Lambert, $\chi^2$={chi2_array[0]:.2f}', f'Specular, $\chi^2$={chi2_array[1]:.2f}'])
+        plt.legend([plotarr[0],plotarr[1]], ['Lambert, '+sc+f'={chi2_array[0]:.2f}', 'Specular, '+sc+f'={chi2_array[1]:.2f}'])
     elif len(name_list) == 2:
-        plt.legend([plotarr[0],plotarr[2],plotarr[1],plotarr[3]], [f'Low albedo & Lambert, $\chi^2$={chi2_array[0]:.2f}', f'High albedo & Lambert, $\chi^2$={chi2_array[2]:.2f}', f'Low albedo & Specular, $\chi^2$={chi2_array[1]:.2f}', f'High albedo & Specular, $\chi^2$={chi2_array[3]:.2f}'], loc='upper center', bbox_to_anchor=(0.5, -0.13), ncol=2)
+        plt.legend([plotarr[0],plotarr[2],plotarr[1],plotarr[3]], ['Low albedo & Lambert, '+sc+f'={chi2_array[0]:.2f}', 'High albedo & Lambert, '+sc+f'={chi2_array[2]:.2f}', 'Low albedo & Specular, '+sc+f'={chi2_array[1]:.2f}', 'High albedo & Specular, '+sc+f'={chi2_array[3]:.2f}'], loc='upper center', bbox_to_anchor=(0.5, -0.13), ncol=2)
             
     # ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=2)  
     plt.xlabel('Orbital Phase', fontsize = 13)
@@ -793,7 +795,7 @@ def phase_curve_plot_withdata(name_list, wave_range, instrument = '  ', model = 
 
     # plt.savefig(f"temp/{name}/phase_curve_comp1.pdf", format = 'pdf')
     for name in name_list:
-        plt.savefig(f"temp/{name}/phase_curve_withdata.pdf", format = 'pdf')
+        plt.savefig(f"temp/{name}/phase_curve_withdata_{instrument}.pdf", format = 'pdf')
     plt.show()
     plt.close()
     
