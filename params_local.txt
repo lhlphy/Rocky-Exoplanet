@@ -1,8 +1,8 @@
 --id 1
---Ntheta 18
---Nwave 5
---LB 2.99
---UB 3.01
+--Ntheta 6
+--Nwave 19
+--LB 2
+--UB 3
 --mode PC
 --lavatype low
 --Nsubpro 4

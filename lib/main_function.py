@@ -239,12 +239,23 @@ def thermal_spectrum(wavelength_bound, id=0, Ntheta = 5, NWavelength = 1, Nsubpr
     
     Nsubpro = np.min([Nsubpro, NWavelength])
     sub_Nwave = NWavelength // Nsubpro  # decompose the process to subprocesses
+    DN = NWavelength - Nsubpro * sub_Nwave 
+    # 子进程分配优化：剩余的子进程平均分配到前DN个子进程包中，避免了最后一个子进程包子进程过多的情况 
     sub_wave_pack = []
     
+    N_sign = 0  # 子进程分配优化
+    Index_list = []
     for i in range(Nsubpro - 1):
-        sub_wave_pack.append(Wave_list[i *sub_Nwave : (i+1) *sub_Nwave])
+        Index_list.append(N_sign)
+        if i < DN:  # 子进程分配优化：前DN个子进程包每个包含有（sub_Nwave+1）个子进程
+            sub_wave_pack.append(Wave_list[N_sign : N_sign + sub_Nwave + 1])
+            N_sign += sub_Nwave + 1
+        else:   # 子进程分配优化：后面的子进程包每个包含有（sub_Nwave）个子进程
+            sub_wave_pack.append(Wave_list[N_sign : N_sign + sub_Nwave])
+            N_sign += sub_Nwave
         
-    sub_wave_pack.append(Wave_list[(Nsubpro-1) *sub_Nwave : ])
+    Index_list.append(N_sign)
+    sub_wave_pack.append(Wave_list[N_sign : ])
 
     for i, Theta in enumerate(Theta_list):
         if Theta < 1e-4:
@@ -267,7 +278,9 @@ def thermal_spectrum(wavelength_bound, id=0, Ntheta = 5, NWavelength = 1, Nsubpr
         
         for j, sub_wave_list in enumerate(sub_wave_pack):
             # Calculate the blackbody radiation spectrum
-            indx_start = j * sub_Nwave
+            # print(sub_wave_list)  # debug mode
+            indx_start = Index_list[j]
+            # print("index start: ", indx_start) # debug mode
             process = multiprocessing.Process(target= multiprocess_func2, args = (spectrum_P, spectrum_S, Theta, TMAP, sub_wave_list, indx_start))
             processes.append(process)
             process.start()
