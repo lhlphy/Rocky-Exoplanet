@@ -28,9 +28,12 @@ def Fresnel_coefficient(Lam, Mtheta=-1, Mphi=-1, Polarization="default"):
     if APs.OpticalFrame == "Demo":
         An = PPs.std_FR
     elif APs.OpticalFrame == "Full_cal":
-        An = PPs.A_Specular(Lam)
+        An = PPs.Albedo(Lam)
+    elif APs.OpticalFrame == "Non_Fresnel":  # Non_Fresnel : Do not use Fresnel equation, just return Albedo
+        An = PPs.Albedo(Lam)
+        return An
     else:
-        raise ValueError("Version ERROR: OpticalFrame must be either 'Demo' or 'Full_cal', other options are under construction")
+        raise ValueError("Version ERROR: OpticalFrame must be either 'Demo', 'Full_cal' or 'Non_Fresnel', other options are under construction")
         
     n = 2/(1- np.sqrt(An)) -1 
     Co1 = np.sqrt(n**2 - SINI**2)

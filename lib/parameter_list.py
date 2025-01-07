@@ -29,7 +29,7 @@ class Accuracy_parameters:
         self.OpticalFrame = os.getenv('OpticalFrame', default="Demo")
 
         #####################################################################################################
-        if os.getenv('Model') != 'None':
+        if os.getenv('Model') != 'None':  # Model优先由指定值确定，若未指定model,则由roughness来决定
             self.Model = os.getenv('Model')
         else:
             if float(os.getenv('roughness')) < 1e-3: # if roughness = 0, use the Specular_Only model
@@ -70,11 +70,11 @@ class Planet_parameters:
         self.roughness = float(os.getenv('roughness'))
         if APs.OpticalFrame == 'Demo':
             self.std_FR = float(os.getenv('FRnormal'))  # Fresnel reflection coefficient when normal incidence
-        elif APs.OpticalFrame == 'Full_cal':
+        elif APs.OpticalFrame == 'Full_cal' or APs.OpticalFrame == "Non_Fresnel":
             def std_FR(self, Lam):
                 return self.Albedo(Lam)
         else:
-            raise ValueError("Version ERROR: OpticalFrame must be either 'Demo' or 'Full_cal', other options are under construction")
+            raise ValueError("Version ERROR: OpticalFrame must be either 'Demo', 'Full_cal', 'Non_Fresnel', other options are under construction")
         
         ### Observation parameters
         camera = np.array([1, 0, 0]) # Define the direction of the camera (observation vector)
@@ -91,24 +91,32 @@ class Planet_parameters:
             raise ValueError('Albedo exceed the high bounds! ')
         return  LA.A_interp(lam*1e6)
     
-    def A_diffuse(self, lam, T = 0):
-        return self.Albedo(lam, T)
+    # def A_diffuse(self, lam, T = 0):
+    #     return self.Albedo(lam, T)
     
-    def A_Specular(self, lam, T = 0):
-        return self.Albedo(lam, T)
+    # def A_Specular(self, lam, T = 0):
+    #     return self.Albedo(lam, T)
     
-    def Fresnel(self, Lam = -1, I_angle = 0, Polarization = 'default', A_normal = 0):
+    def A_Fresnel(self, Lam = -1, I_angle = 0, Polarization = 'default', A_normal = 0):
         if Polarization == 'default':  # get the polarization from the environment variable
             Polarization = APs.Polarization
             
         SINI = np.sin(I_angle)
         COSI = np.cos(I_angle)
         if Lam < 0:
-            A = A_normal
+            An = A_normal
         else:
-            A = self.Albedo(Lam)
+            if APs.OpticalFrame == 'Demo':
+                An = self.std_FR
+            elif APs.OpticalFrame == 'Full_cal':
+                An = self.Albedo(Lam)
+            elif APs.OpticalFrame == "Non_Fresnel":  # Non_Fresnel : Do not use Fresnel equation, just return Albedo
+                An = self.Albedo(Lam)
+                return An
+            else:
+                raise ValueError("Version ERROR: OpticalFrame must be either 'Demo' or 'Full_cal' or 'Non_Fresnel', other options are under construction")
             
-        n = 2/(1- np.sqrt(A)) -1
+        n = 2/(1- np.sqrt(An)) -1
         Co1 = np.sqrt(n**2 - SINI**2)
         if Polarization == 'S':
             Rs = ((COSI - Co1) / (COSI + Co1)) **2
@@ -130,7 +138,7 @@ class Planet_parameters:
         Polarization = APs.Polarization
         
         for i, An in enumerate(An_list):
-            A_Mean_list[i] = quad(lambda theta: self.Fresnel(-1, theta, Polarization, A_normal= An) *np.sin(theta), 0, np.pi/2)[0]
+            A_Mean_list[i] = quad(lambda theta: self.A_Fresnel(-1, theta, Polarization, A_normal= An) *np.sin(theta), 0, np.pi/2)[0]
             
         return A_Mean_list
         

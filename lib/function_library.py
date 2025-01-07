@@ -577,21 +577,6 @@ def Cal_star_flux(Theta, Wavelength = 0, temperature = PPs.Stellar_T):
 
     return Flux * B(Wavelength, temperature)
 
-
-def Fresnel(theta_i, n1, n2):
-    # Calculate the Fresnel coefficient
-    # n1, n2: refractive index of the two media
-    # theta_i: angle of incidence
-    # no polarized light
-    # Reference: https://en.wikipedia.org/wiki/Fresnel_equations
-
-    theta_t = np.arcsin(n1/n2 * np.sin(theta_i))
-    Rs = ((n1 * np.cos(theta_i) - n2 * np.cos(theta_t)) / (n1 * np.cos(theta_i) + n2 * np.cos(theta_t)) )**2
-    Rp = ((n1 * np.cos(theta_t) - n2 * np.cos(theta_i)) / (n1 * np.cos(theta_t) + n2 * np.cos(theta_i)) )**2
-    Reff = (Rs + Rp) / 2
-
-    return Reff
-
 def rotate_vector(vector, axis, angle):
     """
     旋转向量。
@@ -829,7 +814,7 @@ def Radiation_cal(Tmap, Theta, camera, Wavelength = 0):
                     Rad += sigma * T**4/np.pi * np.cos(angle) * dA
                     print("all wavelength radiation ")
                 else: # if wavelength is specified, only the radiation around the wavelength
-                    Rad += (1-PPs.Fresnel(Lam = Wavelength, I_angle = angle)) * B(Wavelength, T) * np.cos(angle) * dA
+                    Rad += (1-PPs.A_Fresnel(Lam = Wavelength, I_angle = angle)) * B(Wavelength, T) * np.cos(angle) * dA
 
     return Rad
 
