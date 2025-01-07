@@ -184,13 +184,18 @@ def spectrum_plot(name, wave_range):
     
 def compare_phase_curve_plot(name_list, wave_range, instrument = '  ', legend = 'below', xlabel = 'on', ylabel = 'on', errorbar = 0):
     '''
-    绘制full phase curve, 默认情况下name_list只有两个name, 分别代表low albedo和high albedo, 绘制4条曲线
+    绘制主要full phase curve, 默认情况下name_list只有两个name, 分别代表low albedo和high albedo, 绘制4条曲线
     分别是: low albedo & Lambert, low albedo & Specular, high albedo & Lambert, high albedo & Specular
+    可绘制 OpticalFrame == 'Full_cal' or 'Non_Fresnel' 两种情况下的phase_curve_comp plot
     
     legend: 'below', 'insert', 'off'
         'below' means legend below center the plot
         'insert' means legend in the plot
         'off' means no legend
+        
+    ylabel, xlabel: 'on', 'off': on or off the y and x label, because when four pics merge together, only the boundary axis label is needed
+    
+    errorbar: if errorbar == 0, no errorbar; Otherwise, draw a errorbar
     '''
     # load data, I_diffuse,I_specular is contrast ratio 
     sim_obs = np.loadtxt(f"telescope_measure/sim_obs (14).txt", delimiter=' ')
@@ -710,19 +715,36 @@ def Intenstiy_comp(name_list):
     np.save(f"temp/{name}/res.npy", res)
     
 def phase_curve_plot_withdata(name_list, wave_range, instrument = '  ', model = ' '):
-    # 绘制full phase curve, 只绘制一组数据
-    # 分别是： Lambert,  Specular
-    # load data, I_diffuse,I_specular is contrast ratio 
+    '''
+    绘制phase curve, 并绘制真实datapoint以及errorbar, 并计算chi2 
+    # 功能一定程度上与compare_phase_curve_plot类似, 但包含了对data的处理和绘制
+    name_list: 可以为一个或两个name; 
+        if len(name_list) == 1, <model> is needed to determine albedo model
+        if len(name_list) == 2, first is low albedo, second is high albedo
+    instrument [wave_range]: For K2-141b, only 'Kepler' and 'Spitzer' are available
+        Kepler: [0.43, 0.89]
+        Spitzer: [4, 5]
+        
+    model: 'low' or 'high'. Only len(name_list) == 1 available (仅当只有一个name_list对象时可用,用来确定name的albedo模型)
+    '''
+    ### load data points and errorbar
     data = np.loadtxt(f'telescope_measure/K2-141b_{instrument}.txt', delimiter=',')
     data_x = data[:,0]
     data_y = data[:,1]
+    # data_err = data[:,2]  # load method 1
+    # data_err = np.loadtxt(f'telescope_measure/K2-141b_{instrument}_err.txt', delimiter=',')  # load method 2
+    if instrument == 'Kepler':  # load method 3
+        data_err = np.ones(np.size(data_x)) * 13.5  
+    elif instrument == 'Spitzer':
+        data_err = np.ones(np.size(data_x)) * 75.4
     
     pallet = ['b','r','k']
     plotarr  = [0] * 8
     chi2_array = np.zeros([8])
     fig, ax = plt.subplots()
     
-    plt.plot(data_x, data_y,'.k')
+    # plt.plot(data_x, data_y,'.k')
+    ax.errorbar(data_x, data_y, yerr=data_err, fmt='o', color='black', markersize=4)
     # Period: 7.72614 h
     Theta_list = np.load(f'temp/{name_list[0]}/variables/Theta.npy')
     Theta_list = Theta_list / (2 *np.pi)   # 将相位角归一化
@@ -749,24 +771,29 @@ def phase_curve_plot_withdata(name_list, wave_range, instrument = '  ', model = 
             data[:,1] = CR_S
         
         # calculate chi2
-        if instrument == 'Kepler':
-            ERR = 13.5
-        elif instrument == 'Spitzer':
-            ERR = 75.4
-        chi2_array[i*2] = chi2_cal(data_x, data_y, ERR ,Theta_list, CR_D)
-        chi2_array[i*2+1] = chi2_cal(data_x, data_y, ERR ,Theta_list, CR_S)
+        chi2_array[i*2] = chi2_cal(data_x, data_y, data_err ,Theta_list, CR_D)
+        chi2_array[i*2+1] = chi2_cal(data_x, data_y, data_err ,Theta_list, CR_S)
         
     plt.ylim([0,np.max([up_bound, np.max(data_y)]) * 1.1])
     plt.xlim([0,1])
-    plt.legend([plotarr[0],plotarr[1]], [f'Lambert, $\chi^2$={chi2_array[0]:.2f}', f'Specular, $\chi^2$={chi2_array[1]:.2f}'])
+    # set legend based on the size of name_list
+    if len(name_list) == 1:
+        plt.legend([plotarr[0],plotarr[1]], [f'Lambert, $\chi^2$={chi2_array[0]:.2f}', f'Specular, $\chi^2$={chi2_array[1]:.2f}'])
+    elif len(name_list) == 2:
+        plt.legend([plotarr[0],plotarr[2],plotarr[1],plotarr[3]], [f'Low albedo & Lambert, $\chi^2$={chi2_array[0]:.2f}', f'High albedo & Lambert, $\chi^2$={chi2_array[2]:.2f}', f'Low albedo & Specular, $\chi^2$={chi2_array[1]:.2f}', f'High albedo & Specular, $\chi^2$={chi2_array[3]:.2f}'], loc='upper center', bbox_to_anchor=(0.5, -0.13), ncol=2)
+            
     # ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=2)  
     plt.xlabel('Orbital Phase', fontsize = 13)
     plt.ylabel(r'$F_p/F_*$ (ppm)', fontsize = 13)
-    plt.title(f'{instrument}: {wave_range[0]*1e6:.2f}-{wave_range[1]*1e6:.2f} μm, {model} albedo model')
+    if len(name_list) == 1:
+        plt.title(f'{instrument}: {wave_range[0]*1e6:.2f}-{wave_range[1]*1e6:.2f} μm, {model} albedo model')
+    elif len(name_list) == 2:
+        plt.title(f'{instrument}: {wave_range[0]*1e6:.2f}-{wave_range[1]*1e6:.2f} μm')
     # 添加文字和箭头，设置字体透明度  
 
     # plt.savefig(f"temp/{name}/phase_curve_comp1.pdf", format = 'pdf')
-    plt.savefig(f"temp/{name_list[0]}/phase_curve_withdata.pdf", format = 'pdf')
+    for name in name_list:
+        plt.savefig(f"temp/{name}/phase_curve_withdata.pdf", format = 'pdf')
     plt.show()
     plt.close()
     
@@ -782,17 +809,17 @@ if __name__ =='__main__':
     Spitzer: [4, 5]
     '''   
     # first: low albedo ; second: high albedo
-    compare_phase_curve_plot(['Low_copy', 'High_copy'], np.array([0.33, 1.1])* 1e-6, instrument = 'CHEOPS', legend = 'insert', xlabel = 'off', ylabel='on', errorbar=38.73)
-    compare_phase_curve_plot(['Low_copy', 'High_copy'], np.array([0.80, 1.15])* 1e-6, instrument = 'HST/WFC3/G102', legend = 'off', xlabel='off', ylabel='off', errorbar=7.40)
-    compare_phase_curve_plot(['Low_copy', 'High_copy'], np.array([1.075, 1.70])* 1e-6, instrument = 'HST/WFC3/G141', legend = 'off', xlabel = 'on', ylabel='on', errorbar=6.85)
-    compare_phase_curve_plot(['Low_copy', 'High_copy'], np.array([2.7, 4.0])* 1e-6, instrument = 'JWST/NIRCam/F322W2', legend = 'off', xlabel = 'on', ylabel='off', errorbar=5.14)
+    # compare_phase_curve_plot(['Low_copy', 'High_copy'], np.array([0.33, 1.1])* 1e-6, instrument = 'CHEOPS', legend = 'insert', xlabel = 'off', ylabel='on', errorbar=38.73)
+    # compare_phase_curve_plot(['Low_copy', 'High_copy'], np.array([0.80, 1.15])* 1e-6, instrument = 'HST/WFC3/G102', legend = 'off', xlabel='off', ylabel='off', errorbar=7.40)
+    # compare_phase_curve_plot(['Low_copy', 'High_copy'], np.array([1.075, 1.70])* 1e-6, instrument = 'HST/WFC3/G141', legend = 'off', xlabel = 'on', ylabel='on', errorbar=6.85)
+    # compare_phase_curve_plot(['Low_copy', 'High_copy'], np.array([2.7, 4.0])* 1e-6, instrument = 'JWST/NIRCam/F322W2', legend = 'off', xlabel = 'on', ylabel='off', errorbar=5.14)
+    
+    phase_curve_plot_withdata(['Low_copy', 'High_copy'], np.array([0.43, 0.89])* 1e-6, instrument = 'Kepler')
+    phase_curve_plot_withdata(['Low_copy', 'High_copy'], np.array([4, 5])* 1e-6, instrument='Spitzer')
     
     # phase_curve_plot_withdata(['R1copy'], np.array([0.43, 0.89])* 1e-6, instrument = 'Kepler', model = 'Low')
     # phase_curve_plot_withdata(['R2copy'], np.array([0.43, 0.89])* 1e-6, instrument = 'Kepler', model='High')
     # phase_curve_plot_withdata(['R3copy'], np.array([4, 5])* 1e-6, instrument='Spitzer', model ='Low')
     # phase_curve_plot_withdata(['R4copy'], np.array([4, 5])* 1e-6, instrument='Spitzer', model ='High') 
-    
-    
-    
     
     
