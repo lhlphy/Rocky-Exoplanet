@@ -277,15 +277,15 @@ def compare_phase_curve_plot(name_list, wave_range, instrument = '  ', legend = 
     
     # plt.text(0.5,-100, 'NIRCam/F444W', fontsize = 10, ha='center', fontweight='bold')
     # plt.text(0.5,-120, '3.9-5 μm', fontsize = 10, ha='center', fontweight='bold')
-    plt.text(0.83, up_bound *1 , instrument, fontsize = 10, ha='center', fontweight='bold') # label instrument name and wavelength range
-    plt.text(0.83, up_bound *0.9, f'{wave_range[0]*1e6 :.2f}-{wave_range[1]*1e6 :.2f} μm', fontsize = 10, ha='center', fontweight='bold')
+    plt.text(0.81, up_bound *1 , instrument, fontsize = 10, ha='center', fontweight='bold') # label instrument name and wavelength range
+    plt.text(0.81, up_bound *0.92, f'{wave_range[0]*1e6 :.2f}-{wave_range[1]*1e6 :.2f} μm', fontsize = 10, ha='center', fontweight='bold')
     # plt.axis([0, 1, -5, 40])
     Transit_depth = PPs.Rp**2 / PPs.Rs**2 * 1e6
     print(f'Transit depth: {Transit_depth:.2f} ppm')
 
     # plt.savefig(f"temp/{name}/phase_curve_comp1.pdf", format = 'pdf')
-    plt.savefig(f"temp/{name_list[0]}/phase_curve_comp_{instrument}.pdf", format = 'pdf')
-    plt.savefig(f"temp/{name_list[1]}/phase_curve_comp_{instrument}.pdf", format = 'pdf')
+    plt.savefig(f"temp/{name_list[0]}/phase_curve_comp_{instrument.replace('/','_')}.pdf", format = 'pdf')
+    plt.savefig(f"temp/{name_list[1]}/phase_curve_comp_{instrument.replace('/','_')}.pdf", format = 'pdf')
     plt.show()
     plt.close()
 
