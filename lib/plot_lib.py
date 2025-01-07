@@ -182,9 +182,16 @@ def spectrum_plot(name, wave_range):
     plt.show()
     plt.savefig(f"temp/{name}/spectrum")
     
-def compare_phase_curve_plot(name_list, wave_range, instrument = '  '):
-    # 绘制full phase curve, 默认情况下name_list只有两个name，分别代表low albedo和high albedo，绘制4条曲线
-    # 分别是：low albedo & Lambert, low albedo & Specular, high albedo & Lambert, high albedo & Specular
+def compare_phase_curve_plot(name_list, wave_range, instrument = '  ', legend = 'below'):
+    '''
+    绘制full phase curve, 默认情况下name_list只有两个name, 分别代表low albedo和high albedo, 绘制4条曲线
+    分别是: low albedo & Lambert, low albedo & Specular, high albedo & Lambert, high albedo & Specular
+    
+    legend: 'below', 'insert', 'off'
+        'below' means legend below center the plot
+        'insert' means legend in the plot
+        'off' means no legend
+    '''
     # load data, I_diffuse,I_specular is contrast ratio 
     sim_obs = np.loadtxt(f"telescope_measure/sim_obs (14).txt", delimiter=' ')
     x = sim_obs[:,0]
@@ -244,8 +251,17 @@ def compare_phase_curve_plot(name_list, wave_range, instrument = '  '):
     # 设置图例并放置在图窗的正下方  
     plt.ylim([0,up_bound * 1.1])
     plt.xlim([0,1])
-    plt.legend([plotarr[0],plotarr[2],plotarr[4],plotarr[1],plotarr[3]], ['Low albedo & Lambert', 'High albedo & Lambert', 'Blackbody',
-                    'Low albedo & Specular', 'High albedo & Specular'], loc='upper center', bbox_to_anchor=(0.5, -0.13), ncol=2)
+    
+    # 设置图例位置
+    if legend == 'below':  
+        plt.legend([plotarr[0],plotarr[2],plotarr[4],plotarr[1],plotarr[3]], ['Low albedo & Lambert', 'High albedo & Lambert', 'Blackbody', 'Low albedo & Specular', 'High albedo & Specular'], loc='upper center', bbox_to_anchor=(0.5, -0.13), ncol=2)
+    elif legend == 'insert':
+        plt.legend([plotarr[0],plotarr[2],plotarr[4],plotarr[1],plotarr[3]], [r'Low $A$ & Lambert', r'High $A$ & Lambert', 'Blackbody', r'Low $A$ & Specular', r'High $A$ & Specular'], loc='upper left', bbox_to_anchor=(0, 1.01), fontsize=10, frameon=False)
+    elif legend == 'off':
+        pass
+    else:
+        raise ValueError("Invalid legend position specified.")
+
     # plt.legend(plotarr, ['Low albedo & Lambert', 'Low albedo & Specular',  'Mid albedo & Lambert', 'Mid albedo & Specular',
     #             'High albedo & Lambert', 'High albedo & Specular'], loc='upper center', bbox_to_anchor=(0.5, -0.13), ncol=2)
     # ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=2)  
@@ -268,10 +284,10 @@ def compare_phase_curve_plot(name_list, wave_range, instrument = '  '):
     print(f'Transit depth: {Transit_depth:.2f} ppm')
 
     # plt.savefig(f"temp/{name}/phase_curve_comp1.pdf", format = 'pdf')
-    plt.savefig(f"phase_curve_comp6.pdf", format = 'pdf')
+    plt.savefig(f"temp/{name_list[0]}/phase_curve_comp_{instrument}.pdf", format = 'pdf')
+    plt.savefig(f"temp/{name_list[1]}/phase_curve_comp_{instrument}.pdf", format = 'pdf')
     plt.show()
     plt.close()
-
     
     
    
