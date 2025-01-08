@@ -328,13 +328,13 @@ if __name__ == "__main__":
     # specular_diffuse_plot_theory("specular_copy", "lambert_copy", np.array([3]) * 1e-6, transit='on')
     # specular_diffuse_plot_theory("R1copy", "R1copy", np.array([3]) * 1e-6, transit='on', FR0= 0.1)
     
-    # ### 绘制不同FR的Fresnel模型与理论结果的对比
+    # ### 绘制不同FR的Fresnel模型与理论结果的对比 Appendix:Fresnel
     # FR_list = [0.1, 0.2, 0.4, 0.8]
     # color_list = [(247/255, 193/255, 198/255), (240/255, 141/255, 149/255), (232/255, 71/255, 85/255), (199/255, 25/255, 40/255)]
     # for FR, color in zip(FR_list, color_list):
     #     surface_model_compare("specular_copy", "lambert_copy", f"Fresnel {FR}copy", np.array([3]) * 1e-6, transit='on', FR=FR, F_color=color)
     
-    ### 绘制不同FRnormal下的 P,S偏振光以及非偏振光的phase curve, 并绘制偏振度PC
+    ### 绘制不同FRnormal下的 P,S偏振光以及非偏振光的phase curve, 并绘制偏振度PC Appendix:Pol
     # transit_sign = 'on'
     FR_list = [0.1, 0.2, 0.4, 0.8]
     color_list = [(247/255, 193/255, 198/255), (240/255, 141/255, 149/255), (232/255, 71/255, 85/255), (199/255, 25/255, 40/255)]

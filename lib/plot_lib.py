@@ -819,6 +819,7 @@ if __name__ =='__main__':
     Spitzer: [4, 5]
     '''   
     # first: low albedo ; second: high albedo
+    # Fig 4 & 5: PC & Fresnel_PC
     name_list = ['NF_Low_copy', 'NF_High_copy']
     compare_phase_curve_plot(name_list, np.array([0.33, 1.1])* 1e-6, instrument = 'CHEOPS', legend = 'insert', xlabel = 'off', ylabel='on', errorbar=38.73)
     compare_phase_curve_plot(name_list, np.array([0.80, 1.15])* 1e-6, instrument = 'HST/WFC3/G102', legend = 'off', xlabel='off', ylabel='off', errorbar=7.40)
