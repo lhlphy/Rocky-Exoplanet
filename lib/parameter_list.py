@@ -60,6 +60,7 @@ class Planet_parameters:
         self.Rp = row_data['pl_rade'] * 6371.4  # km, radius of the Planet
         self.eccentricity = 0 # row_data['pl_orbeccen'] # Eccentricity of the planet's orbit
         self.semi_axis = row_data['pl_orbsmax'] * AU  # km, semi-major axis of the planet's orbit
+        self.Period = row_data['pl_orbper'] *24 # hours, orbital period of the planet
         ### Thermal and optical parameters
         self.Stellar_T = row_data['st_teff'] # K, temperature of the Star
         # self.pl_eqT = row_data['pl_eqt']  # K, fully redistribution, planet equilibrium Temperature [K] (from database)

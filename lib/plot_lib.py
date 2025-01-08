@@ -249,20 +249,26 @@ def compare_phase_curve_plot(name_list, wave_range, instrument = '  ', legend = 
     save_txt(data, "Orbital Phase(normalized)\tFp/F*(Blackbody ppm)\tFp/F*(Low albedo & Specular ppm)\tFp/F*(Low albedo & Lambert ppm)\tFp/F*(High albedo & Specular ppm)\tFp/F*(High albedo & Lambert ppm)", f"phase_curve.txt") 
 
     print(ebar)
+ 
+    plt.ylim([0, up_bound * 1.1])
+    plt.xlim([0,1])
     # 设置背景颜色  
     # ax.axvspan(0.4593, 0.5407, color='gray', alpha=0.5)
     # ax.axvspan(0.3303, 0.4593, color='gray', alpha=0.2)
     # ax.axvspan(0.5407, 0.6697, color='gray', alpha=0.2)
-    # 设置图例并放置在图窗的正下方  
-    plt.ylim([0,up_bound * 1.1])
-    plt.xlim([0,1])
     
+    # 计算in transit的phase span
+    half_in_transit = np.arcsin(PPs.Rs/PPs.semi_axis) / (2 * np.pi)
+    # using gray background to sign "in transit"
+    ax.axvspan(0.5 - half_in_transit, 0.5 + half_in_transit, color='gray', alpha=0.2) 
+    plt.text(0.5, up_bound * 0.3, f'{PPs.Period *2*half_in_transit:.2f} h', fontsize=10, fontweight='bold', color='black', alpha=0.8, ha='center')
+
     # 当 errorbar != 0 时，在坐标系左上角添加一个带误差棒的点
     if errorbar != 0:
         if legend == 'insert':
-            ax.errorbar(0.5, up_bound *0.9, yerr=errorbar, fmt='o', color='black', markersize=4)
+            ax.errorbar(0.5, up_bound *0.9, xerr=half_in_transit, yerr=errorbar, fmt='o', color='black', markersize=5)
         else:
-            ax.errorbar(0.1, up_bound *0.9, yerr=errorbar, fmt='o', color='black', markersize=4)
+            ax.errorbar(0.1, up_bound *0.9, xerr=half_in_transit, yerr=errorbar, fmt='o', color='black', markersize=5)
     
     # 设置图例位置
     if legend == 'below':  
@@ -741,10 +747,11 @@ def phase_curve_plot_withdata(name_list, wave_range, instrument = '  ', model = 
     pallet = ['b','r','k']
     plotarr  = [0] * 8
     chi2_array = np.zeros([8])
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(7.5, 5))
+
     
     # plt.plot(data_x, data_y,'.k')
-    ax.errorbar(data_x, data_y, yerr=data_err, fmt='o', color='black', markersize=4)
+    ax.errorbar(data_x, data_y, yerr=data_err, fmt='o', color='black', markersize=2.5, elinewidth=1)
     # Period: 7.72614 h
     Theta_list = np.load(f'temp/{name_list[0]}/variables/Theta.npy')
     Theta_list = Theta_list / (2 *np.pi)   # 将相位角归一化
@@ -775,8 +782,9 @@ def phase_curve_plot_withdata(name_list, wave_range, instrument = '  ', model = 
         chi2_array[i*2+1] = chi2_cal(data_x, data_y, data_err ,Theta_list, CR_S)
         
     fig.subplots_adjust(bottom=0.25)  # adjust the bottom margin to make room for the legend
-    plt.ylim([0,np.max([up_bound, np.max(data_y)]) * 1.1])
+    plt.ylim([np.min(data_y - data_err) *1.05 , np.max([up_bound, np.max(data_y + data_err)]) * 1.05])
     plt.xlim([0,1])
+    ax.hlines(0, 0, 1, colors = 'gray', linestyles = 'dashed')
     # set legend based on the size of name_list
     sc = r'$\chi_{\nu}^2$'  # set the chi2 symbol: chi2 (r'$\chi^2$') or reduced chi2 (r'$\chi_{\nu}^2$')
     if len(name_list) == 1:
@@ -811,13 +819,14 @@ if __name__ =='__main__':
     Spitzer: [4, 5]
     '''   
     # first: low albedo ; second: high albedo
-    # compare_phase_curve_plot(['Low_copy', 'High_copy'], np.array([0.33, 1.1])* 1e-6, instrument = 'CHEOPS', legend = 'insert', xlabel = 'off', ylabel='on', errorbar=38.73)
-    # compare_phase_curve_plot(['Low_copy', 'High_copy'], np.array([0.80, 1.15])* 1e-6, instrument = 'HST/WFC3/G102', legend = 'off', xlabel='off', ylabel='off', errorbar=7.40)
-    # compare_phase_curve_plot(['Low_copy', 'High_copy'], np.array([1.075, 1.70])* 1e-6, instrument = 'HST/WFC3/G141', legend = 'off', xlabel = 'on', ylabel='on', errorbar=6.85)
-    # compare_phase_curve_plot(['Low_copy', 'High_copy'], np.array([2.7, 4.0])* 1e-6, instrument = 'JWST/NIRCam/F322W2', legend = 'off', xlabel = 'on', ylabel='off', errorbar=5.14)
+    name_list = ['NF_Low_copy', 'NF_High_copy']
+    compare_phase_curve_plot(name_list, np.array([0.33, 1.1])* 1e-6, instrument = 'CHEOPS', legend = 'insert', xlabel = 'off', ylabel='on', errorbar=38.73)
+    compare_phase_curve_plot(name_list, np.array([0.80, 1.15])* 1e-6, instrument = 'HST/WFC3/G102', legend = 'off', xlabel='off', ylabel='off', errorbar=7.40)
+    compare_phase_curve_plot(name_list, np.array([1.075, 1.70])* 1e-6, instrument = 'HST/WFC3/G141', legend = 'off', xlabel = 'on', ylabel='on', errorbar=6.85)
+    compare_phase_curve_plot(name_list, np.array([2.7, 4.0])* 1e-6, instrument = 'JWST/NIRCam/F322W2', legend = 'off', xlabel = 'on', ylabel='off', errorbar=5.14)
     
-    phase_curve_plot_withdata(['Low_copy', 'High_copy'], np.array([0.43, 0.89])* 1e-6, instrument = 'Kepler')
-    phase_curve_plot_withdata(['Low_copy', 'High_copy'], np.array([4, 5])* 1e-6, instrument='Spitzer')
+    phase_curve_plot_withdata(name_list, np.array([0.43, 0.89])* 1e-6, instrument = 'Kepler')
+    phase_curve_plot_withdata(name_list, np.array([4, 5])* 1e-6, instrument='Spitzer')
     
     # phase_curve_plot_withdata(['R1copy'], np.array([0.43, 0.89])* 1e-6, instrument = 'Kepler', model = 'Low')
     # phase_curve_plot_withdata(['R2copy'], np.array([0.43, 0.89])* 1e-6, instrument = 'Kepler', model='High')
