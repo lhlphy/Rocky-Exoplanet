@@ -189,15 +189,15 @@ def polarization_ploter(FR0 = 0.1, Obs_wave = np.array([3]) * 1e-6, transit = 'o
     
     fig, ax = plt.subplots(figsize=(9,6))
     if transit == 'off':
-        ax.plot(theta, Is_P *1e6, label='P-polarization', color=P_color, linewidth=2, linestyle='solid')
-        ax.plot(theta, Is_S *1e6, label='S-polarization', color=P_color, linewidth=2, linestyle='dashed')
-        ax.plot(theta, (Is_S + Is_P) *1e6, label='Non-polarization', color='k', linewidth=2)
+        ax.plot(theta, Is_P *1e6, label='P-polarization', color=P_color, linewidth=2.5, linestyle='solid')
+        ax.plot(theta, Is_S *1e6, label='S-polarization', color=P_color, linewidth=2.5, linestyle='dashed')
+        ax.plot(theta, (Is_S + Is_P) *1e6, label='Net-polarization', color='k', linewidth=2.5)
     else:
         It_P[It_P > 0] =0   # 当然，直接置为零会带来一定的误差，但考虑到(thermal emission << transit)，这个误差是可以接受的
         It_S[It_S > 0] =0
-        ax.plot(theta, (Is_P + It_P) *1e6, label='P-polarization', color=P_color, linewidth=2, linestyle='solid')
-        ax.plot(theta, (Is_S + It_S) *1e6, label='S-polarization', color=P_color, linewidth=2, linestyle='dashed')
-        ax.plot(theta, (Is_S + Is_P + It_P) *1e6, label='Non-polarization', color='k', linewidth=2)
+        ax.plot(theta, (Is_P + It_P) *1e6, label='P-polarization', color=P_color, linewidth=2.5, linestyle='solid')
+        ax.plot(theta, (Is_S + It_S) *1e6, label='S-polarization', color=P_color, linewidth=2.5, linestyle='dashed')
+        ax.plot(theta, (Is_S + Is_P + It_P) *1e6, label='Net-polarization', color='k', linewidth=2.5)
         if (It_P != It_S).all():
             raise ValueError('It_P and It_S are not equal')
         
@@ -207,13 +207,13 @@ def polarization_ploter(FR0 = 0.1, Obs_wave = np.array([3]) * 1e-6, transit = 'o
         Is_no, Ii_no, Id_no, It_no, _ = data_loader(no_pol, Obs_wave)
         
         if transit == 'off':
-            ax.plot(theta, Is_no *1e6, label='Non-polarization', color='b', linewidth=2, linestyle='dashed')
+            ax.plot(theta, Is_no *1e6, label='Net-polarization', color='b', linewidth=2.5, linestyle='dashed')
         else:
             It_no[It_no > 0] =0   # 当然，直接置为零会带来一定的误差，但考虑到(thermal emission << transit)，这个误差是可以接受的
-            ax.plot(theta, (Is_no + It_no) *1e6, label='Non-polarization', color='b', linewidth=2, linestyle='dashed')
+            ax.plot(theta, (Is_no + It_no) *1e6, label='Net-polarization', color='b', linewidth=2.5, linestyle='dashed')
             
-    ax.set_xlabel('Orbital phase', fontsize=18)
-    ax.set_ylabel(r'$F_p/F_*$ (ppm)', fontsize=18)
+    ax.set_xlabel('Orbital phase', fontsize=20)
+    ax.set_ylabel(r'$F_p/F_*$ (ppm)', fontsize=20)
     ax.set_xlim(0, 1)
     # ax.set_ylim(-440, -430)
     if transit == 'off':
@@ -225,8 +225,9 @@ def polarization_ploter(FR0 = 0.1, Obs_wave = np.array([3]) * 1e-6, transit = 'o
     ax.spines['right'].set_linewidth(2) ###设置右边坐标轴的粗细
     ax.spines['top'].set_linewidth(2)   ####设置上部坐标轴的粗细
     #刻度值字体大小设置（x轴和y轴同时设置）
-    plt.tick_params(labelsize=16)
-    plt.legend(fontsize=17, frameon=False)
+    plt.tick_params(labelsize=18)
+    if FR == 0.1:  # 仅在FR=0.1时绘制legend，4个子图只需要一个legend
+        plt.legend(fontsize=20, frameon=False)
     
     # set different info for .pdf name
     if transit == 'on':
@@ -242,7 +243,7 @@ def polarization_ploter(FR0 = 0.1, Obs_wave = np.array([3]) * 1e-6, transit = 'o
     ### 绘制偏振度PC
     fig, ax = plt.subplots(figsize=(9,6))
     Degree_polarization = np.abs((Is_P - Is_S) /(Is_P + Is_S))
-    ax.plot(theta, Degree_polarization, linewidth=2)
+    ax.plot(theta, Degree_polarization, linewidth=2.5)
     ax.set_xlabel('Orbital phase', fontsize=18)
     ax.set_ylabel('Degree of polarization', fontsize=18)
     ax.set_xlim(0, 1)
@@ -278,9 +279,9 @@ def surface_model_compare(name_specular, name_diffuse, name_Fresnel, Obs_wave, t
 
     fig, ax = plt.subplots(figsize=(9,6))
     if transit == 'off':
-        ax.plot(thetas, Is_specular[i,:] *1e6, label='Specular', color='b', linewidth=2)
-        ax.plot(thetad, Id_diffuse[i,:] *1e6, label='Lambert', color='k', linewidth=2)
-        ax.plot(thetaf, Is_Fresnel[i,:] *1e6, label='Fresnel', color=F_color, linewidth=2)
+        ax.plot(thetad, Id_diffuse[i,:] *1e6, label='Lambert', color='k', linewidth=2.5)
+        ax.plot(thetas, Is_specular[i,:] *1e6, label='Specular', color='b', linewidth=2.5)
+        ax.plot(thetaf, Is_Fresnel[i,:] *1e6, label='Fresnel', color=F_color, linewidth=2.5)
     else:
         # thermal同时包含了thermal emission 和transit的修正项， 前者为正值或0，后者为负值
         # 对于specualr_only and lambert_only模型, 这一步并不必要，因为本来就没有计算thermal emission，整个thermal 都是transit的修正项
@@ -288,9 +289,9 @@ def surface_model_compare(name_specular, name_diffuse, name_Fresnel, Obs_wave, t
         It_diffuse[It_diffuse > 0] =0   # 当然，直接置为零会带来一定的误差，但考虑到(thermal emission << transit)，这个误差是可以接受的
         It_specular[It_specular > 0] =0
         It_Fresnel[It_Fresnel > 0] =0
-        ax.plot(thetas, (Is_specular[i,:] + It_specular[i,:])*FR *1e6, label='Specular', color='b', linewidth=2)
-        ax.plot(thetad, (Id_diffuse[i,:] + It_diffuse[i,:])*FR *3/2 *1e6, label='Lambert', color='k', linewidth=2)
-        ax.plot(thetaf, (Is_Fresnel[i,:] + It_Fresnel[i,:]) *1e6, label='Fresnel', color=F_color, linewidth=2)
+        ax.plot(thetad, (Id_diffuse[i,:] + It_diffuse[i,:])*FR *3/2 *1e6, label='Lambert', color='k', linewidth=2.5)
+        ax.plot(thetas, (Is_specular[i,:] + It_specular[i,:])*FR *1e6, label='Specular', color='b', linewidth=2.5)
+        ax.plot(thetaf, (Is_Fresnel[i,:] + It_Fresnel[i,:]) *1e6, label='Fresnel', color=F_color, linewidth=2.5)
         
     # ### 绘制解析近似理论结果 Analytical result
     # theory1 = analytical_theory_cal() # 解析近似理论结果
@@ -306,8 +307,8 @@ def surface_model_compare(name_specular, name_diffuse, name_Fresnel, Obs_wave, t
     # ax.axhline(y=theory2, color='gray', linestyle='--', linewidth=2, label = 'Optical')
     # # ax.plot((0, theory2), (1, theory2), color='gray', linestyle='--', linewidth=2, label = 'virtual image')
     
-    ax.set_xlabel('Orbital phase', fontsize=18)
-    ax.set_ylabel(r'$F_p/F_*$ (ppm)', fontsize=18)
+    ax.set_xlabel('Orbital phase', fontsize=20)
+    ax.set_ylabel(r'$F_p/F_*$ (ppm)', fontsize=20)
     ax.set_xlim(0, 1)
     ax.set_ylim(0, max (np.max(Id_diffuse[i,:] + It_diffuse[i,:]) *3/2 * FR, np.max(Is_Fresnel[i,:] + It_Fresnel[i,:])) *1e6 *1.05)  # *1.4 for Fresnel0.1
     ax.spines['bottom'].set_linewidth(2)    ###设置底部坐标轴的粗细
@@ -315,9 +316,9 @@ def surface_model_compare(name_specular, name_diffuse, name_Fresnel, Obs_wave, t
     ax.spines['right'].set_linewidth(2) ###设置右边坐标轴的粗细
     ax.spines['top'].set_linewidth(2)   ####设置上部坐标轴的粗细
     #刻度值字体大小设置（x轴和y轴同时设置）
-    plt.tick_params(labelsize=16)
+    plt.tick_params(labelsize=18)
     if FR == 0.1:  # 仅在FR=0.1时绘制legend，4个子图只需要一个legend
-        plt.legend(fontsize=16, frameon=False, bbox_to_anchor=(0.59, 0.61))
+        plt.legend(fontsize=20, frameon=False)
     plt.savefig(f"temp/{name_Fresnel}/Fresnel{FR}.png")
     plt.savefig(f"temp/{name_Fresnel}/Fresnel{FR}.pdf")
     plt.close()
@@ -328,16 +329,19 @@ if __name__ == "__main__":
     # specular_diffuse_plot_theory("specular_copy", "lambert_copy", np.array([3]) * 1e-6, transit='on')
     # specular_diffuse_plot_theory("R1copy", "R1copy", np.array([3]) * 1e-6, transit='on', FR0= 0.1)
     
-    # ### 绘制不同FR的Fresnel模型与理论结果的对比 Appendix:Fresnel
-    # FR_list = [0.1, 0.2, 0.4, 0.8]
-    # color_list = [(247/255, 193/255, 198/255), (240/255, 141/255, 149/255), (232/255, 71/255, 85/255), (199/255, 25/255, 40/255)]
-    # for FR, color in zip(FR_list, color_list):
-    #     surface_model_compare("specular_copy", "lambert_copy", f"Fresnel {FR}copy", np.array([3]) * 1e-6, transit='on', FR=FR, F_color=color)
-    
-    ### 绘制不同FRnormal下的 P,S偏振光以及非偏振光的phase curve, 并绘制偏振度PC Appendix:Pol
-    # transit_sign = 'on'
+    ### 从plasma色图中均匀取出4个颜色
+    cmap = plt.get_cmap('plasma')
+    color_list = [cmap(i) for i in [0.5, 0.4, 0.2, 0]]
+    print(color_list)
+    ### 绘制不同FR的Fresnel模型与理论结果的对比 Appendix:Fresnel
     FR_list = [0.1, 0.2, 0.4, 0.8]
-    color_list = [(247/255, 193/255, 198/255), (240/255, 141/255, 149/255), (232/255, 71/255, 85/255), (199/255, 25/255, 40/255)]
+    # # color_list = [(247/255, 193/255, 198/255), (240/255, 141/255, 149/255), (232/255, 71/255, 85/255), (199/255, 25/255, 40/255)]
+    for FR, color in zip(FR_list, color_list):
+        surface_model_compare("specular_copy", "lambert_copy", f"Fresnel {FR}copy", np.array([3]) * 1e-6, transit='on', FR=FR, F_color=color)
+    
+    ## 绘制不同FRnormal下的 P,S偏振光以及非偏振光的phase curve, 并绘制偏振度PC Appendix:Pol
+    FR_list = [0.1, 0.2, 0.4, 0.8]
+    # color_list = [(247/255, 193/255, 198/255), (240/255, 141/255, 149/255), (232/255, 71/255, 85/255), (199/255, 25/255, 40/255)]
     for FR, color in zip(FR_list, color_list):
         polarization_ploter(FR0 =FR, vertify = False, transit= 'on', P_color=color)
         polarization_ploter(FR0 =FR, vertify = False, transit= 'off', P_color=color)

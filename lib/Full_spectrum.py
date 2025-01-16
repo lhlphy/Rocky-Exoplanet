@@ -42,11 +42,11 @@ def Fresnel_coefficient(Lam, Mtheta=-1, Mphi=-1, Polarization="default"):
     R = (Rs + Rp) / 2
     if Polarization == "None":  # natural light, no polarization
         return R
-    elif Polarization == "S":  # Observer is S polarization
-        Rs_O = (Rp *np.cos(Mphi)**2 + Rs * np.sin(Mphi)**2 )/2
+    elif Polarization == "S":  # Observer is S polarization 
+        Rs_O = (Rp *np.sin(Mphi)**2 + Rs * np.cos(Mphi)**2 )/2
         return Rs_O
     elif Polarization == "P": # Observer is P polarization
-        Rp_O = (Rp *np.sin(Mphi)**2 + Rs * np.cos(Mphi)**2 )/2
+        Rp_O = (Rp *np.cos(Mphi)**2 + Rs * np.sin(Mphi)**2 )/2
         return Rp_O
     else:
         raise ValueError("Polarization must be either 'S', 'P', or 'None'")
