@@ -19,6 +19,6 @@ echo "Maxwell"
 # python lib/Full_spectrum_main.py $PARAMS
 
 # python  lib/Full_spectrum_main.py --id 11 --Ntheta 6 --Nwave 5 --LB 2.99 --UB 3.01 --mode PC --lavatype one --Nsubpro 125 --heat_redist No --roughness 0
-# python  lib/plot_lib.py
-python lib/plot_paper.py
+python  lib/plot_lib.py
+# python lib/plot_paper.py
 echo "DONE"

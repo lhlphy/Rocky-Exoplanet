@@ -8,6 +8,9 @@ from bond_albedo_calculator import bond_albedo_calculator
 from function_library import chi2_cal
 from save_txt import save_txt
 from parameter_list import PPs
+# ignore warnings
+import warnings
+warnings.filterwarnings("ignore")
 
 def IDS_plot(name, Obs_wave):
     """
@@ -226,6 +229,18 @@ def compare_phase_curve_plot(name_list, wave_range, instrument = '  ', legend = 
         for j, theta in enumerate(Theta_list):
             CR_S[j], CR_D[j] = bond_albedo_calculator(wave_range[0], wave_range[1], name, j)
         
+        # 计算最大偏差并输出 low-high
+        if i == 0:
+            CR_Dl = CR_D
+            CR_Sl = CR_S
+            print(f"Max difference list of {instrument}") # 提示仪器名称
+            
+        # 计算最大偏差并输出 specular-diffuse
+        print(f"Max difference|specular-diffuse|{name}: ", np.max(np.abs(CR_S - CR_D)))
+        if i == 1:
+            print(f"Max difference|low-high|diffuse: ", np.max(np.abs(CR_Dl - CR_D)))
+            print(f"Max difference|low-high|specular: ", np.max(np.abs(CR_Sl - CR_S)))
+            
         plotarr[i*2], = plt.plot(Theta_list, CR_D, '-', color = pallet[i], linewidth = 2)
         plotarr[i*2+1], = plt.plot(Theta_list, CR_S, '--', color = pallet[i], linewidth = 2)
         data[:,0] = Theta_list
@@ -266,9 +281,9 @@ def compare_phase_curve_plot(name_list, wave_range, instrument = '  ', legend = 
     # 当 errorbar != 0 时，在坐标系左上角添加一个带误差棒的点
     if errorbar != 0:
         if legend == 'insert':
-            ax.errorbar(0.5, up_bound *0.9, xerr=half_in_transit, yerr=errorbar, fmt='o', color='black', markersize=5)
+            ax.errorbar(0.5, up_bound *0.9, xerr=half_in_transit, yerr=errorbar, fmt='o', color='gray', markersize=5)
         else:
-            ax.errorbar(0.1, up_bound *0.9, xerr=half_in_transit, yerr=errorbar, fmt='o', color='black', markersize=5)
+            ax.errorbar(0.1, up_bound *0.9, xerr=half_in_transit, yerr=errorbar, fmt='o', color='gray', markersize=5)
     
     # 设置图例位置
     if legend == 'below':  
@@ -820,14 +835,15 @@ if __name__ =='__main__':
     '''   
     # first: low albedo ; second: high albedo
     # Fig 4 & 5: PC & Fresnel_PC
-    name_list = ['NF_Low_copy', 'NF_High_copy']
+    # name_list = ['NF_Low_copy', 'NF_High_copy']
+    name_list = ['Fresnel_Low_copy', 'Fresnel_High_copy']
     compare_phase_curve_plot(name_list, np.array([0.33, 1.1])* 1e-6, instrument = 'CHEOPS', legend = 'insert', xlabel = 'off', ylabel='on', errorbar=38.73)
     compare_phase_curve_plot(name_list, np.array([0.80, 1.15])* 1e-6, instrument = 'HST/WFC3/G102', legend = 'off', xlabel='off', ylabel='off', errorbar=7.40)
     compare_phase_curve_plot(name_list, np.array([1.075, 1.70])* 1e-6, instrument = 'HST/WFC3/G141', legend = 'off', xlabel = 'on', ylabel='on', errorbar=6.85)
     compare_phase_curve_plot(name_list, np.array([2.7, 4.0])* 1e-6, instrument = 'JWST/NIRCam/F322W2', legend = 'off', xlabel = 'on', ylabel='off', errorbar=5.14)
     
-    phase_curve_plot_withdata(name_list, np.array([0.43, 0.89])* 1e-6, instrument = 'Kepler')
-    phase_curve_plot_withdata(name_list, np.array([4, 5])* 1e-6, instrument='Spitzer')
+    # phase_curve_plot_withdata(name_list, np.array([0.43, 0.89])* 1e-6, instrument = 'Kepler')
+    # phase_curve_plot_withdata(name_list, np.array([4, 5])* 1e-6, instrument='Spitzer')
     
     # phase_curve_plot_withdata(['R1copy'], np.array([0.43, 0.89])* 1e-6, instrument = 'Kepler', model = 'Low')
     # phase_curve_plot_withdata(['R2copy'], np.array([0.43, 0.89])* 1e-6, instrument = 'Kepler', model='High')
