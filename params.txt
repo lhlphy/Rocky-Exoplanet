@@ -11,4 +11,4 @@
 --FRnormal 0
 --polarization None
 --Model Lambert
---OpticalFrame Non_Fresnel
+--OpticalFrame Full_cal
