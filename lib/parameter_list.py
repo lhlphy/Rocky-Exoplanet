@@ -55,6 +55,8 @@ class Planet_parameters:
     def __init__(self, Nline):
         data_base = pd.read_csv('PS.csv', header = 96)
         row_data = data_base.iloc[Nline]
+        
+        print('Planet:', row_data['pl_name']) # print the name of the planet
         ### orbital parameters
         self.Rs = row_data['st_rad'] * 696340  # km, radius of the Star
         self.Rp = row_data['pl_rade'] * 6371.4  # km, radius of the Planet
@@ -161,7 +163,8 @@ class Planet_parameters:
         return self.A_Mean_interp(A)
         
 
-PPs = Planet_parameters(4170) 
+PPs = Planet_parameters(34600 - 98) 
+# TOI-561 b: 34600 - 98
 # K2-141 b : 4264 - 98  /4170
 # 55 Cnc e : 215 - 98
 # TOI-2445 b: 34287 - 98

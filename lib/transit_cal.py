@@ -44,20 +44,22 @@ def Transit_cal(name):  # package the code into a function, detailed comments ar
     IS2 = IS / SF_full 
     ID2 = ID / SF_full
     II2 = II  / SF_full
+    Thermal_nt = Thermal / SF_full
     Thermal = (Thermal + SF - SF_full) / SF_full
     # thermal同时包含了thermal emission 和transit的修正项， 前者为正值或0，后者为负值
     # 而且在我们考虑的earth-like planet的情况下，应该有在transit附近 thermal emission << transit修正
 
-    os.makedirs(f'temp/{name}copy/variables', exist_ok=True)
-    os.makedirs(f'temp/{name}copy/Results', exist_ok=True)
+    os.makedirs(f'temp/{name}_copy/variables', exist_ok=True)
+    os.makedirs(f'temp/{name}_copy/Results', exist_ok=True)
 
-    np.save(f'temp/{name}copy/variables/I_specular.npy', IS2)
-    np.save(f'temp/{name}copy/variables/I_diffuse.npy', ID2)
-    np.save(f'temp/{name}copy/variables/I_intensity.npy', II2)
-    np.save(f'temp/{name}copy/variables/Theta.npy', Theta_list)
-    np.save(f'temp/{name}copy/variables/wave_list.npy', Wave_list)
-    np.save(f'temp/{name}copy/variables/Star_flux.npy', SF)
-    np.save(f'temp/{name}copy/variables/Thermal.npy', Thermal)
+    np.save(f'temp/{name}_copy/variables/I_specular.npy', IS2)
+    np.save(f'temp/{name}_copy/variables/I_diffuse.npy', ID2)
+    np.save(f'temp/{name}_copy/variables/I_intensity.npy', II2)
+    np.save(f'temp/{name}_copy/variables/Theta.npy', Theta_list)
+    np.save(f'temp/{name}_copy/variables/wave_list.npy', Wave_list)
+    np.save(f'temp/{name}_copy/variables/Star_flux.npy', SF)
+    np.save(f'temp/{name}_copy/variables/Thermal.npy', Thermal)
+    np.save(f'temp/{name}_copy/variables/Thermal_nt.npy', Thermal_nt)
 
 
 if __name__ == "__main__":
@@ -106,14 +108,14 @@ if __name__ == "__main__":
     # thermal同时包含了thermal emission 和transit的修正项， 前者为正值或0，后者为负值
     # 而且在我们考虑的earth-like planet的情况下，应该有在transit附近 thermal emission << transit修正
 
-    os.makedirs(f'temp/{name}copy/variables', exist_ok=True)
-    os.makedirs(f'temp/{name}copy/Results', exist_ok=True)
+    os.makedirs(f'temp/{name}_copy/variables', exist_ok=True)
+    os.makedirs(f'temp/{name}_copy/Results', exist_ok=True)
 
-    np.save(f'temp/{name}copy/variables/I_specular.npy', IS2)
-    np.save(f'temp/{name}copy/variables/I_diffuse.npy', ID2)
-    np.save(f'temp/{name}copy/variables/I_intensity.npy', II2)
-    np.save(f'temp/{name}copy/variables/Theta.npy', Theta_list)
-    np.save(f'temp/{name}copy/variables/wave_list.npy', Wave_list)
-    np.save(f'temp/{name}copy/variables/Star_flux.npy', SF)
-    np.save(f'temp/{name}copy/variables/Thermal.npy', Thermal)
+    np.save(f'temp/{name}_copy/variables/I_specular.npy', IS2)
+    np.save(f'temp/{name}_copy/variables/I_diffuse.npy', ID2)
+    np.save(f'temp/{name}_copy/variables/I_intensity.npy', II2)
+    np.save(f'temp/{name}_copy/variables/Theta.npy', Theta_list)
+    np.save(f'temp/{name}_copy/variables/wave_list.npy', Wave_list)
+    np.save(f'temp/{name}_copy/variables/Star_flux.npy', SF)
+    np.save(f'temp/{name}_copy/variables/Thermal.npy', Thermal)
 

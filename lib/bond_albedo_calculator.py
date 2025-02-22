@@ -25,13 +25,16 @@ def integrate_spectrum_with_interpolation(wave_list, IS, Wavelength_min, Wavelen
     return integral
 
 
-def bond_albedo_calculator(Wavelength_min, Wavelength_max, name , Nmark = -1):
+def bond_albedo_calculator(Wavelength_min, Wavelength_max, name , Nmark = -1, transit = 'on', seperate = False):
     # load data, I_diffuse,I_specular is contrast ratio 
     I_diffuse = np.load(f'temp/{name}/variables/I_diffuse.npy')
     I_specular = np.load(f'temp/{name}/variables/I_specular.npy')
     Star_flux = np.load(f'temp/{name}/variables/Star_flux.npy')
     wave_list = np.load(f'temp/{name}/variables/wave_list.npy')
-    Thermal = np.load(f'temp/{name}/variables/Thermal.npy')
+    if transit == 'on':
+        Thermal = np.load(f'temp/{name}/variables/Thermal.npy')
+    elif transit == 'off':
+        Thermal = np.load(f'temp/{name}/variables/Thermal_nt.npy')
 
     if Wavelength_max > wave_list[-1] or Wavelength_min < wave_list[0]:
         raise ValueError('Wavelength exceed the bounds! ')
@@ -67,7 +70,10 @@ def bond_albedo_calculator(Wavelength_min, Wavelength_max, name , Nmark = -1):
     # print('Spectral Contrast ratio of diffuse reflection in [',Wavelength_min, Wavelength_max,'] $\mu$m is:', Spectral_Contrast_ratio_D* 1e6, ' ppm' )
     # print('Spectral Contrast ratio of Thermal radiation in [',Wavelength_min, Wavelength_max,'] $\mu$m is:', Spectral_Contrast_ratio_T* 1e6,' ppm' )
     
-    return (Spectral_Contrast_ratio_S + Spectral_Contrast_ratio_T) *1e6, (Spectral_Contrast_ratio_D + Spectral_Contrast_ratio_T) *1e6
+    if seperate:  # 将成分分别输出
+        return Spectral_Contrast_ratio_S *1e6, Spectral_Contrast_ratio_D *1e6, Spectral_Contrast_ratio_T *1e6
+    else:
+        return (Spectral_Contrast_ratio_S + Spectral_Contrast_ratio_T) *1e6, (Spectral_Contrast_ratio_D + Spectral_Contrast_ratio_T) *1e6 
 
 if __name__ == '__main__':
     bond_albedo_calculator(3.9e-6, 4.1e-6, 'R5')
