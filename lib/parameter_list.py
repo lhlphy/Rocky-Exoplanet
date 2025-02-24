@@ -53,19 +53,30 @@ APs = Accuracy_parameters()
 
 class Planet_parameters:
     def __init__(self, Nline):
-        data_base = pd.read_csv('PS.csv', header = 96)
-        row_data = data_base.iloc[Nline]
-        
-        print('Planet:', row_data['pl_name']) # print the name of the planet
-        ### orbital parameters
-        self.Rs = row_data['st_rad'] * 696340  # km, radius of the Star
-        self.Rp = row_data['pl_rade'] * 6371.4  # km, radius of the Planet
-        self.eccentricity = 0 # row_data['pl_orbeccen'] # Eccentricity of the planet's orbit
-        self.semi_axis = row_data['pl_orbsmax'] * AU  # km, semi-major axis of the planet's orbit
-        self.Period = row_data['pl_orbper'] *24 # hours, orbital period of the planet
-        ### Thermal and optical parameters
-        self.Stellar_T = row_data['st_teff'] # K, temperature of the Star
-        # self.pl_eqT = row_data['pl_eqt']  # K, fully redistribution, planet equilibrium Temperature [K] (from database)
+        if Nline == 'Earth':
+            self.Rs = 696340  # km, radius of the Star
+            self.Rp = 6371.4  # km, radius of the Planet
+            self.eccentricity = 0 # row_data['pl_orbeccen'] # Eccentricity of the planet's orbit
+            self.semi_axis = AU  # km, semi-major axis of the planet's orbit
+            self.Period = 365 *24 # hours, orbital period of the planet
+            ### Thermal and optical parameters
+            self.Stellar_T = 5772 # K, temperature of the Sun
+            # self.pl_eqT = 300  # K, fully redistribution, planet equilibrium Temperature [K] (from database)
+        else:
+            data_base = pd.read_csv('PS.csv', header = 96)
+            row_data = data_base.iloc[Nline]
+            
+            print('Planet:', row_data['pl_name']) # print the name of the planet
+            ### orbital parameters
+            self.Rs = row_data['st_rad'] * 696340  # km, radius of the Star
+            self.Rp = row_data['pl_rade'] * 6371.4  # km, radius of the Planet
+            self.eccentricity = 0 # row_data['pl_orbeccen'] # Eccentricity of the planet's orbit
+            self.semi_axis = row_data['pl_orbsmax'] * AU  # km, semi-major axis of the planet's orbit
+            self.Period = row_data['pl_orbper'] *24 # hours, orbital period of the planet
+            ### Thermal and optical parameters
+            self.Stellar_T = row_data['st_teff'] # K, temperature of the Star
+            # self.pl_eqT = row_data['pl_eqt']  # K, fully redistribution, planet equilibrium Temperature [K] (from database)
+            
         self.pl_eqT = self.Stellar_T * np.sqrt(self.Rs / 2 /self.semi_axis)  # from theoretical calculation
         
         self.Coarse_g = 0  # Coarseness of the surface
