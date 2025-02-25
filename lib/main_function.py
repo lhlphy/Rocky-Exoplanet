@@ -122,54 +122,10 @@ def global_intensity(Theta, id=0, Model = APs.Model, Coarse = PPs.Coarse_g, mode
     Intensity = np.array(Intensity[:]).reshape(APs.SIZE[0], APs.SIZE[1])
     I_diffuse = np.array(I_diffuse[:]).reshape(APs.SIZE[0], APs.SIZE[1])
 
-    # print(Intensity)
-    # Intensity = Intensity / np.max(Intensity)
-    # Create a sphere plot
-    phiP, thetaP = np.meshgrid(APs.phiP_list, APs.thetaP_list)
-    x = PPs.Rp * np.cos(phiP) * np.cos(thetaP)
-    y = PPs.Rp * np.cos(phiP) * np.sin(thetaP)
-    z = PPs.Rp * np.sin(phiP)
-
-    # Plotting the sphere
-    fig = plt.figure(figsize=(8, 8))
-    ax = fig.add_subplot(111, projection='3d')
-
-    # Plot the surface with intensity as color
-    temp = np.max(Intensity)
-    if temp == 0:
-        mappable = ax.plot_surface(x, y, z, facecolors=plt.cm.gray(Intensity.T ), rstride=1, cstride=1, antialiased=False)
-    else:
-        mappable = ax.plot_surface(x, y, z, facecolors=plt.cm.gray(Intensity.T /temp), rstride=1, cstride=1, antialiased=False)
-
-    # Plot the incident and reflected vectors
-    # ax.quiver(-(2000 + PPs.Rp) * np.cos(Theta), -(2000 + PPs.Rp) * np.sin(Theta), 0, np.cos(Theta), np.sin(Theta), 0, color='r', length=2000.0, normalize=True)
-    # ax.quiver(PPs.Rp * PPs.camera[0], PPs.Rp * PPs.camera[1], PPs.Rp * PPs.camera[2], PPs.camera[0], PPs.camera[1], PPs.camera[2], color='g', length=2000.0, normalize=True, linestyle='dashed')
-
-    # Set axis labels
-    ax.set_xlabel('X (km)') 
-    ax.set_ylabel('Y (km)') 
-    ax.set_zlabel('Z (km)') 
-
-    # Set the view angle 
-    elev = np.arcsin(PPs.camera[2])
-    if PPs.camera[2] == 1:
-        azim = 0
-    else:
-        azim = np.arccos(PPs.camera[0]/np.cos(elev))
-    ax.view_init(elev=np.rad2deg(elev) , azim=np.rad2deg(azim))
-
-    # Show the plot
-    #plt.show()
-    #save the plot to temp/ folder
-    os.makedirs(f'temp/R{id}/plots', exist_ok=True)
-    name = f'temp/R{id}/plots/plot_'+str(int(Coarse*180/np.pi))+'_'+str(int(Theta*180/np.pi))+'.png'
-    plt.savefig(name)
-    plt.close()
-    
+    # reflection_plot(Intensity, Theta, id) # plot the reflection intensity map, non-Fresnel
     return Intensity, I_diffuse, Intensity - I_diffuse
     #print("Program run time:",t2-t1,'s')
     
-
 # A line passes point Pos, with the direction vector Camera. Calculate the distance between this line and the origin.
 # The line is defined by the equation: r = Pos + t*Camera
 # #The distance between the line and the origin is given by: |Pos x Camera|/|Camera|

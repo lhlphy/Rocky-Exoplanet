@@ -105,8 +105,8 @@ def analytical_theory_cal(transit = 'on', An = 1, Fresnel = 'on', alpha = 0, Rp2
         alpha = np.arcsin(PPs.Rs / (PPs.semi_axis - PPs.Rp))
         Rp2Rs = PPs.Rp / PPs.Rs
     
-    Theta = np.linspace(0, 2*np.pi, 200)
-    RESULT = np.zeros((200, 2))
+    Theta = np.linspace(0, 2*np.pi, 2000)
+    RESULT = np.zeros((2000, 2))
     RESULT[:,0] = Theta
     
     deltaphi = alpha

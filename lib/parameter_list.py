@@ -20,7 +20,7 @@ if 'lavatype' not in os.environ:
 class Accuracy_parameters:
     ### Accuracy control parameters
     def __init__(self):
-        self.SIZE = [372, 744]  # Size of the meshgrid
+        self.SIZE = [30, 60]  # Size of the meshgrid
         # Create meshgrid for the planet
         self.phiP_list = np.linspace(-np.pi / 2, np.pi / 2, self.SIZE[0])
         self.thetaP_list = np.linspace(0, 2 * np.pi, self.SIZE[1])
@@ -175,8 +175,8 @@ class Planet_parameters:
         
 
 # PPs = Planet_parameters(34600 - 98) #TOI-561 b
-# PPs = Planet_parameters(4170)  # K2-141 b
-PPs = Planet_parameters(34782 - 98) # TRAPPIST-1 b
+PPs = Planet_parameters(4170)  # K2-141 b
+# PPs = Planet_parameters(34782 - 98) # TRAPPIST-1 b
 # TOI-561 b: 34600 - 98
 # K2-141 b : 4264 - 98  /4170
 # 55 Cnc e : 215 - 98

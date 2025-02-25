@@ -1,7 +1,7 @@
 import numpy as np
 from parameter_list import PPs, APs
 import main_function as mf
-from function_library import B, sym_complete, decorator_timer
+from function_library import B, sym_complete, decorator_timer, reflection_plot
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import os
@@ -143,6 +143,7 @@ def Full_spectrum(wavelength_bound, args = None, id = 0, Ntheta = 5, Nwave = 1):
             I_specular[j, i] = S1.sum()
             I_intensity[j, i] = I_diffuse[j, i] + I_specular[j, i]
             # sum up intensity in different location get the total intensity
+        reflection_plot(S1, Theta, id)  # plot the specular reflection map
 
     # symmetry
     I_intensity = sym_complete(I_intensity,1) / Star_flux
