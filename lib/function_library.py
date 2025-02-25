@@ -897,6 +897,8 @@ def reflection_plot(Intensity, Theta, id=0):
     y = PPs.Rp * np.cos(phiP) * np.sin(thetaP)
     z = PPs.Rp * np.sin(phiP)
 
+    # Apply logarithmic transformation to Intensity
+    Intensity = (Intensity)**3
     # Plotting the sphere
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot(111, projection='3d')
