@@ -40,7 +40,7 @@ def data_loader(name, Obs_wave):
         print('Secondary eclipse depth difference: ',(I_d-I_s) *1e6,' ppm')
         return 
 
-    theta = np.linspace(0, 2*np.pi, 1000)
+    theta = np.linspace(0, 2*np.pi, 2000)
     Theta_list[np.size(Theta_list)//2] += 1e-10
     spls = interp1d(Theta_list, I_s, kind='linear', fill_value='extrapolate')
     spli = interp1d(Theta_list, I_i, kind='linear', fill_value='extrapolate')
@@ -142,6 +142,15 @@ def specular_diffuse_plot_theory(name_specular, name_diffuse, Obs_wave, transit 
     from parameter_list import PPs
     Is_specular, Ii_specular, Id_specular, It_specular, theta = data_loader(name_specular, Obs_wave)
     Is_diffuse, Ii_diffuse, Id_diffuse, It_diffuse, theta = data_loader(name_diffuse, Obs_wave)
+    
+    # smooth the phase curve 平滑修正
+    alpha = np.arcsin(PPs.Rs / (PPs.semi_axis - PPs.Rp))
+    dalpha = np.arcsin(PPs.Rp / (PPs.semi_axis - PPs.Rp))
+    from scipy.signal import savgol_filter
+    Is_specular[0, (theta < np.pi - alpha) & (theta > 2 *alpha)] = savgol_filter(Is_specular[0, (theta < np.pi - alpha) & (theta > 2 *alpha)], window_length=300, polyorder=3) # 左侧平滑化
+    Is_specular[0, (theta > np.pi + alpha) & (theta < 2*np.pi -2 *alpha)] = savgol_filter(Is_specular[0, (theta > np.pi + alpha) & (theta < 2*np.pi -2 *alpha)], window_length=300, polyorder=3) # 右侧平滑化
+    Is_specular[0, (theta > np.pi - alpha +dalpha) & (theta < np.pi + alpha-dalpha)] =0 # 中间transit 修正项置为0
+    
     
     i = 0
     theta = theta/(2 *np.pi)
