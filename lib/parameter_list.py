@@ -174,8 +174,9 @@ class Planet_parameters:
         return self.A_Mean_interp(A)
         
 
-# PPs = Planet_parameters(34600 - 98) 
-PPs = Planet_parameters(4170) 
+# PPs = Planet_parameters(34600 - 98) #TOI-561 b
+# PPs = Planet_parameters(4170)  # K2-141 b
+PPs = Planet_parameters(34782 - 98) # TRAPPIST-1 b
 # TOI-561 b: 34600 - 98
 # K2-141 b : 4264 - 98  /4170
 # 55 Cnc e : 215 - 98

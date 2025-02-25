@@ -40,7 +40,7 @@ def data_loader(name, Obs_wave):
         print('Secondary eclipse depth difference: ',(I_d-I_s) *1e6,' ppm')
         return 
 
-    theta = np.linspace(0, 2*np.pi, 200)
+    theta = np.linspace(0, 2*np.pi, 1000)
     Theta_list[np.size(Theta_list)//2] += 1e-10
     spls = interp1d(Theta_list, I_s, kind='linear', fill_value='extrapolate')
     spli = interp1d(Theta_list, I_i, kind='linear', fill_value='extrapolate')
@@ -158,6 +158,7 @@ def specular_diffuse_plot_theory(name_specular, name_diffuse, Obs_wave, transit 
         It_specular[It_specular > 0] = 0
         ax.plot(theta, (Id_diffuse[i,:] + It_diffuse[i,:])*3/2 *1e6 *An, label='Lambert', color='k', linewidth=2)
         ax.plot(theta, (Is_specular[i,:] + It_specular[i,:]) *1e6, label='Numerical', color='b', linewidth=2)
+        # print((Is_specular[i,:] + It_specular[i,:]) *1e6)
         
     theory1 = analytical_theory_cal(An=0.2)
     # set all NAN to 0
@@ -352,7 +353,7 @@ if __name__ == "__main__":
     # specular_diffuse_plot("R8copy", "R6copy", np.array([3]) * 1e-6, transit='off')
     # 在使用transit='on'时, 注意'R1'和'R2'位置上的PC必须经过 transit_cal.py 的计算；应该为'R1copy'和'R2copy'的形式
     # specular_diffuse_plot_theory("specular_copy", "lambert_copy", np.array([3]) * 1e-6, transit='on')
-    specular_diffuse_plot_theory("Fresnel 0.2copy", "lambert_copy", np.array([3]) * 1e-6, transit='on', An = 0.2)
+    specular_diffuse_plot_theory("Trappist1b_Fresnel 0.2copy", "Trappist1b_Fresnel 0.2copy", np.array([3]) * 1e-6, transit='on', An = 0.2)
     # specular_diffuse_plot_theory("R1copy", "R1copy", np.array([3]) * 1e-6, transit='on', FR0= 0.1)
     
     # ### 从plasma色图中均匀取出4个颜色
