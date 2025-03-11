@@ -119,7 +119,7 @@ def analytical_theory_cal(transit = 'on', An = 1, Fresnel = 'on', alpha = 0, Rp2
     F = Rp2Rs**2 *alpha**2 /4 *(1 - alpha**2 /24 *(2-np.cos(Theta)) /np.sin(Theta/2)**2) # 化简后的解析近似理论
     
     if Fresnel == 'on':  # 对于Fresnel模型, 需要乘以Fresnel系数
-        F = F * PPs.A_Fresnel(I_angle= (np.pi-Theta)/2, A_normal= An)
+        F = F * PPs.A_Fresnel(I_angle= np.abs(np.pi-Theta)/2 + alpha/7.5, A_normal= An)
     else:      # 若不考虑Fresnel效应, 直接乘以恒定的反射率常数 An
         F = F * An
     
@@ -141,58 +141,67 @@ def specular_diffuse_plot_theory(name_specular, name_diffuse, Obs_wave, transit 
     '''
     from parameter_list import PPs
     Is_specular, Ii_specular, Id_specular, It_specular, theta = data_loader(name_specular, Obs_wave)
-    Is_diffuse, Ii_diffuse, Id_diffuse, It_diffuse, theta = data_loader(name_diffuse, Obs_wave)
-    
-    # smooth the phase curve 平滑修正
+    # Is_diffuse, Ii_diffuse, Id_diffuse, It_diffuse, theta = data_loader(name_diffuse, Obs_wave)
+
+    # # smooth the phase curve 平滑修正
     alpha = np.arcsin(PPs.Rs / (PPs.semi_axis - PPs.Rp))
     dalpha = np.arcsin(PPs.Rp / (PPs.semi_axis - PPs.Rp))
-    from scipy.signal import savgol_filter
-    Is_specular[0, (theta < np.pi - alpha) & (theta > 2 *alpha)] = savgol_filter(Is_specular[0, (theta < np.pi - alpha) & (theta > 2 *alpha)], window_length=300, polyorder=3) # 左侧平滑化
-    Is_specular[0, (theta > np.pi + alpha) & (theta < 2*np.pi -2 *alpha)] = savgol_filter(Is_specular[0, (theta > np.pi + alpha) & (theta < 2*np.pi -2 *alpha)], window_length=300, polyorder=3) # 右侧平滑化
-    Is_specular[0, (theta > np.pi - alpha +dalpha) & (theta < np.pi + alpha-dalpha)] =0 # 中间transit 修正项置为0
+    # from scipy.signal import savgol_filter
+    # Is_specular[0, (theta < np.pi - alpha) & (theta > 2 *alpha)] = savgol_filter(Is_specular[0, (theta < np.pi - alpha) & (theta > 2 *alpha)], window_length=350, polyorder=3) # 左侧平滑化
+    # Is_specular[0, (theta > np.pi + alpha) & (theta < 2*np.pi -2 *alpha)] = savgol_filter(Is_specular[0, (theta > np.pi + alpha) & (theta < 2*np.pi -2 *alpha)], window_length=350, polyorder=3) # 右侧平滑化
+    # Is_specular[0, (theta > np.pi - alpha +dalpha) & (theta < np.pi + alpha-dalpha)] =0 # 中间transit 修正项置为0
     
+    def diffuse_cal(Theta):
+        zt = np.arccos(-np.cos(Theta))
+        Id_diffuse = (np.sin(zt) + (np.pi - zt) * np.cos(zt)) / np.pi 
+        Id_diffuse = Id_diffuse * (PPs.Rp/2/PPs.semi_axis)**2 * 8/3 * 2/3
+        return Id_diffuse
+    
+    Id_diffuse = diffuse_cal(theta)
+    Id_diffuse[ (theta > np.pi - alpha) & (theta < np.pi + alpha)] =0
+    Id_diffuse = np.array([Id_diffuse])  # 保持与Is_specular的维度一致
     
     i = 0
     theta = theta/(2 *np.pi)
 
     fig, ax = plt.subplots(figsize=(9,6))
     if transit == 'off':
-        ax.plot(theta, Id_diffuse[i,:]* 3/2 *1e6 *An, label='Lambert', color='k', linewidth=2)
-        ax.plot(theta, Is_specular[i,:] *1e6, label='Numerical', color='b', linewidth=2)
+        ax.plot(theta, Id_diffuse[i,:]* 3/2 *1e6 *An, label='Lambert', color='k', linewidth=2, linestyle='dashed')
+        ax.plot(theta, Is_specular[i,:] *1e6, label='Specular: Numerical', color='b', linewidth=2)
     else:
         # thermal同时包含了thermal emission 和transit的修正项,  前者为正值或0, 后者为负值
         # 对于specualr_only and lambert_only模型, 这一步并不必要, 因为本来就没有计算thermal emission, 整个thermal 都是transit的修正项
         # 但如果不小心使用了非only的模型, 那么这一步就是必要的,  需要将thermal emission 去除, 只保留transit的修正项
-        It_diffuse[It_diffuse > 0] = 0   # 当然, 直接置为零会带来一定的误差, 但考虑到(thermal emission << transit), 这个误差是可以接受的
+        # It_diffuse[It_diffuse > 0] = 0   # 当然, 直接置为零会带来一定的误差, 但考虑到(thermal emission << transit), 这个误差是可以接受的
         It_specular[It_specular > 0] = 0
-        ax.plot(theta, (Id_diffuse[i,:] + It_diffuse[i,:])*3/2 *1e6 *An, label='Lambert', color='k', linewidth=2)
-        ax.plot(theta, (Is_specular[i,:] + It_specular[i,:]) *1e6, label='Numerical', color='b', linewidth=2)
+        ax.plot(theta, (Id_diffuse[i,:] + It_specular[i,:])*3/2 *1e6 *An, label='Lambert', color='k', linewidth=2, linestyle='dashed')
+        ax.plot(theta, (Is_specular[i,:] + It_specular[i,:]) *1e6, label='Specular: Numerical', color='b', linewidth=2)
         # print((Is_specular[i,:] + It_specular[i,:]) *1e6)
         
-    theory1 = analytical_theory_cal(An=0.2)
+    theory1 = analytical_theory_cal(An = An) # 解析近似理论结果
     # set all NAN to 0
     theory1 = np.nan_to_num(theory1, nan=0)
     # print(theory1)
     # theory1 = np.loadtxt('theory1.txt', delimiter = ',')
-    ax.plot(theory1[:,0]/(2*np.pi), theory1[:,1] * 1e6, label='Analytical', color='r', linewidth=2, linestyle='--')
+    ax.plot(theory1[:,0]/(2*np.pi), theory1[:,1] * 1e6, label='Specular: Analytical', color='r', linewidth=2, linestyle='-')
     print('theory1:', theory1[(theory1.shape[0])//2, 1] *1e6)
     
     # 绘制一条平行于x轴的直线, 颜色为'gray', 线宽为1
-    theory2 = (PPs.Rp/2/PPs.semi_axis)**2 *1e6 # 21.1722  #21.3234
-    ax.axhline(y=theory2 * An, color='gray', linestyle='--', linewidth=2, label = 'Optical')
+    # theory2 = (PPs.Rp/2/PPs.semi_axis)**2 *1e6 # 21.1722  #21.3234 # 最简的optical theory
+    # ax.axhline(y=theory2 * An, color='gray', linestyle='--', linewidth=2, label = 'Optical')
     # ax.plot((0, theory2), (1, theory2), color='gray', linestyle='--', linewidth=2, label = 'virtual image')
     
     ax.set_xlabel('Orbital phase', fontsize=18)
     ax.set_ylabel(r'$F_p/F_*$ (ppm)', fontsize=18)
     ax.set_xlim(0, 1)
-    ax.set_ylim(0, np.max([np.max((Id_diffuse[i,:] + It_diffuse[i,:])*3/2 *An), np.max((Is_specular[i,:] + It_specular[i,:])), np.max(theory1[:,1])]) *1e6 *1.05)
+    ax.set_ylim(0, np.max([np.max((Id_diffuse[i,:] + It_specular[i,:])*3/2 *An), np.max((Is_specular[i,:] + It_specular[i,:])), np.max(theory1[:,1])]) *1e6 *1.15)
     ax.spines['bottom'].set_linewidth(2)    ###设置底部坐标轴的粗细
     ax.spines['left'].set_linewidth(2)  ####设置左边坐标轴的粗细
     ax.spines['right'].set_linewidth(2) ###设置右边坐标轴的粗细
     ax.spines['top'].set_linewidth(2)   ####设置上部坐标轴的粗细
     #刻度值字体大小设置（x轴和y轴同时设置）
     plt.tick_params(labelsize=16)
-    plt.legend(fontsize=17, frameon=False)
+    # plt.legend(fontsize=14.5, frameon=False, loc='upper right')
     plt.savefig(f"temp/{name_specular}/specular_diffuse_{Obs_wave[0]*1e6}_{transit}_theory.png")
     plt.savefig(f"temp/{name_diffuse}/specular_diffuse_{Obs_wave[0]*1e6}_{transit}_theory.png")
     plt.savefig(f"temp/{name_specular}/specular_diffuse_{Obs_wave[0]*1e6}_{transit}_theory.pdf")
@@ -362,7 +371,11 @@ if __name__ == "__main__":
     # specular_diffuse_plot("R8copy", "R6copy", np.array([3]) * 1e-6, transit='off')
     # 在使用transit='on'时, 注意'R1'和'R2'位置上的PC必须经过 transit_cal.py 的计算；应该为'R1copy'和'R2copy'的形式
     # specular_diffuse_plot_theory("specular_copy", "lambert_copy", np.array([3]) * 1e-6, transit='on')
-    specular_diffuse_plot_theory("Trappist1b_Fresnel 0.2copy", "Trappist1b_Fresnel 0.2copy", np.array([3]) * 1e-6, transit='on', An = 0.2)
+    # specular_diffuse_plot_theory("Trappist1b_Fresnel 0.5copy", "Trappist1b_Fresnel 0.5copy", np.array([3]) * 1e-6, transit='on', An = 0.5)
+    specular_diffuse_plot_theory("Fresnel 0.2copy", "Fresnel 0.2copy", np.array([3]) * 1e-6, transit='on', An = 0.2)
+    specular_diffuse_plot_theory("Fresnel 0.5copy", "Fresnel 0.5copy", np.array([3]) * 1e-6, transit='on', An = 0.5)
+    # specular_diffuse_plot_theory("Trappist1b_Fresnel 0.2copy", "Trappist1b_Fresnel 0.2copy", np.array([3]) * 1e-6, transit='on', An = 0.2)
+    # specular_diffuse_plot_theory("Trappist1b_Fresnel 0.5copy", "Trappist1b_Fresnel 0.5copy", np.array([3]) * 1e-6, transit='on', An = 0.5)
     # specular_diffuse_plot_theory("R1copy", "R1copy", np.array([3]) * 1e-6, transit='on', FR0= 0.1)
     
     # ### 从plasma色图中均匀取出4个颜色

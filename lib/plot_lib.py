@@ -354,7 +354,7 @@ def best_detect_option(name_low, name_high, wave_range, instrument = '  ', error
     
     # N 为CR_D_l中第一位正数的索引值
     N_st = np.where(CR_D_l > 0)[0][0]
-    N_st = 34
+    N_st = 0
     N_ed = N_st + 100
     
     # 搜索最佳的观测参数
@@ -372,7 +372,7 @@ def best_detect_option(name_low, name_high, wave_range, instrument = '  ', error
     Res_matrix_h = cal_para(CR_D_h, CR_S_h)
     Res_matrix_D = cal_para(CR_D_l, CR_D_h)
     Res_matrix_S = cal_para(CR_S_l, CR_S_h)
-    Res_matrix_glint = cal_para(CR_S_h, CR_S_h_NF)
+    Res_matrix_glint = cal_para(CR_S_l, CR_D_l)
         
     # 计算最小值, 并找到对应的索引位置
     max_l = np.max(Res_matrix_l)
@@ -388,12 +388,12 @@ def best_detect_option(name_low, name_high, wave_range, instrument = '  ', error
     # print(max_l, max_h, max_D, max_S)
     # print(max_index_l, max_index_h, max_index_D, max_index_S)
     print(f"Best detect option for {instrument}")
-    print("Compared models  |   start time (min)  |  integrate time (min)  |    Sigma")
-    print("Diffuse-Specular (Low)   |", max_index_l[0][0] + N_st, " | ", max_index_l[1][0] + 10, " | ", max_l)
-    print("Diffuse-Specular (High)  |", max_index_h[0][0] + N_st, " | ", max_index_h[1][0] + 10, " | ", max_h)
-    print("Low-High (Diffuse)   |", max_index_D[0][0] + N_st, " | ", max_index_D[1][0] + 10, " | ", max_D)
-    print("Low-High (Specular)  |", max_index_S[0][0] + N_st, " | ", max_index_S[1][0] + 10, " | ", max_S)
-    print("Glint effect        |", max_index_glint[0][0] + N_st, " | ", max_index_glint[1][0] + 10, " | ", max_glint, ' | ',  errorbar_1s / np.sqrt((max_index_glint[1][0] + 10) * 60 *2))
+    print("Compared models  |   start time (min)  |  integrate time (min)  |    Sigma |   Errorbar (ppm)")
+    # print("Diffuse-Specular (Low)   |", max_index_l[0][0] + N_st, " | ", max_index_l[1][0] + 10, " | ", max_l)
+    # print("Diffuse-Specular (High)  |", max_index_h[0][0] + N_st, " | ", max_index_h[1][0] + 10, " | ", max_h)
+    # print("Low-High (Diffuse)   |", max_index_D[0][0] + N_st, " | ", max_index_D[1][0] + 10, " | ", max_D)
+    # print("Low-High (Specular)  |", max_index_S[0][0] + N_st, " | ", max_index_S[1][0] + 10, " | ", max_S)
+    print("Glint effect        |    ", max_index_glint[0][0] + N_st, "      |       ", max_index_glint[1][0] + 10, " | ", max_glint, ' | ',  errorbar_1s / np.sqrt((max_index_glint[1][0] + 10) * 60))
     
     
 def compare_phase_curve_plot(name_list, wave_range, instrument = '  ', legend = 'below', xlabel = 'on', ylabel = 'on', errorbar = 0):
@@ -1203,10 +1203,16 @@ if __name__ =='__main__':
     # phase_curve_plot_withdata(['R4copy'], np.array([4, 5])* 1e-6, instrument='Spitzer', model ='High') 
     
     # ## best detect option
-    # best_detect_option('Fresnel_Low_copy', 'Fresnel_High_copy', np.array([0.80, 1])* 1e-6, instrument = 'JWST/NIRISS/F090W', errorbar_1s=288.1)
-    # best_detect_option('Fresnel_Low_copy', 'Fresnel_High_copy', np.array([1, 1.2])* 1e-6, instrument = 'JWST/NIRISS/F090W', errorbar_1s=315.6)
-    # best_detect_option('Fresnel_Low_copy', 'Fresnel_High_copy', np.array([1.2, 1.4])* 1e-6, instrument = 'JWST/NIRISS/F090W', errorbar_1s=353)
+    best_detect_option('Fresnel_Low_copy', 'Fresnel_High_copy', np.array([0.80, 1])* 1e-6, instrument = 'JWST/NIRISS/F090W', errorbar_1s=288.1)
+    best_detect_option('Fresnel_Low_copy', 'Fresnel_High_copy', np.array([1, 1.26])* 1e-6, instrument = 'JWST/NIRISS/F115W', errorbar_1s=198.8)
+    best_detect_option('Fresnel_Low_copy', 'Fresnel_High_copy', np.array([1.35, 1.65])* 1e-6, instrument = 'JWST/NIRISS/F150W', errorbar_1s=228.7)
+    best_detect_option('Fresnel_Low_copy', 'Fresnel_High_copy', np.array([1.8, 2.2])* 1e-6, instrument = 'JWST/NIRISS/F200W', errorbar_1s=301.8)
+    
+    best_detect_option('Fresnel_Low_copy', 'Fresnel_High_copy', np.array([0.80, 1])* 1e-6, instrument = 'HWO/--/F090W', errorbar_1s=165)
+    best_detect_option('Fresnel_Low_copy', 'Fresnel_High_copy', np.array([1, 1.26])* 1e-6, instrument = 'HWO/--/F115W', errorbar_1s=114)
+    best_detect_option('Fresnel_Low_copy', 'Fresnel_High_copy', np.array([1.35, 1.65])* 1e-6, instrument = 'HWO/--/F150W', errorbar_1s=131)
+    best_detect_option('Fresnel_Low_copy', 'Fresnel_High_copy', np.array([1.8, 2.2])* 1e-6, instrument = 'HWO/--/F200W', errorbar_1s=173)
     
     ## 检查Specular, diffuse, thermal 分量的相位曲线，分别绘制在同一张图上
-    IDS_plot('Fresnel_Low_copy', np.array([0.80, 1])* 1e-6)
+    # IDS_plot('Fresnel_Low_copy', np.array([0.80, 1])* 1e-6)
     
