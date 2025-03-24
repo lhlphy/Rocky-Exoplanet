@@ -115,8 +115,9 @@ class Planet_parameters:
         if Polarization == 'default':  # get the polarization from the environment variable
             Polarization = APs.Polarization
             
-        SINI = np.sin(I_angle)
-        COSI = np.cos(I_angle)
+        I_angle = np.where(I_angle > np.pi/2, np.pi/2, I_angle)
+        SINI = np.abs(np.sin(I_angle))
+        COSI = np.abs(np.cos(I_angle))
         if Lam < 0:
             An = A_normal
         else:
@@ -175,7 +176,7 @@ class Planet_parameters:
         
 
 # PPs = Planet_parameters(34600 - 98) #TOI-561 b
-PPs = Planet_parameters(4170)  # K2-141 b
+PPs = Planet_parameters(4170)  # K2-141 b 4166
 # PPs = Planet_parameters(34782 - 98) # TRAPPIST-1 b
 # TOI-561 b: 34600 - 98
 # K2-141 b : 4264 - 98  /4170

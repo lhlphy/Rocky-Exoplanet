@@ -116,10 +116,13 @@ def analytical_theory_cal(transit = 'on', An = 1, Fresnel = 'on', alpha = 0, Rp2
     print('alpha:', alpha)
     
     # F = -Rp2Rs**2 /8 *(deltatheta + np.sin(deltatheta)) * (np.sin(phi0+ deltaphi/2) - np.sin(phi0- deltaphi/2)) # original解析近似理论(未完全化简)
-    F = Rp2Rs**2 *alpha**2 /4 *(1 - alpha**2 /24 *(2-np.cos(Theta)) /np.sin(Theta/2)**2) # 化简后的解析近似理论
-    
+    # F = Rp2Rs**2 *alpha**2 /4 *(1 - alpha**2 /24 *(2-np.cos(Theta)) /np.sin(Theta/2)**2) # 化简后的解析近似理论
+    F = 1/4 * np.sin(alpha/2) *(alpha + np.sin(alpha)) *Rp2Rs**2 
+    Tx = np.abs(np.pi-Theta)/2
     if Fresnel == 'on':  # 对于Fresnel模型, 需要乘以Fresnel系数
-        F = F * PPs.A_Fresnel(I_angle= np.abs(np.pi-Theta)/2 + alpha/7.5, A_normal= An)
+        F = F * np.where(Tx > np.pi/2 - alpha/2, (PPs.A_Fresnel(I_angle= Tx , A_normal= An) *(np.pi - 2*Tx)/alpha +  PPs.A_Fresnel(I_angle= Tx-alpha/3 , A_normal= An) *(2*Tx - np.pi + alpha)/alpha), PPs.A_Fresnel(I_angle= Tx , A_normal= An))
+        # F = F * PPs.A_Fresnel(I_angle= Tx - alpha/3 , A_normal= An)
+        # F = F * (PPs.A_Fresnel(I_angle= Tx , A_normal= An) *(np.pi - 2*Tx)/(np.pi -alpha) +  PPs.A_Fresnel(I_angle= Tx-alpha/3 , A_normal= An) *(2*Tx - alpha)/(np.pi -alpha))
     else:      # 若不考虑Fresnel效应, 直接乘以恒定的反射率常数 An
         F = F * An
     
@@ -233,9 +236,9 @@ def polarization_ploter(FR0 = 0.1, Obs_wave = np.array([3]) * 1e-6, transit = 'o
     
     fig, ax = plt.subplots(figsize=(9,6))
     if transit == 'off':
-        ax.plot(theta, Is_P *1e6, label='P-polarization', color=P_color, linewidth=2.5, linestyle='solid')
-        ax.plot(theta, Is_S *1e6, label='S-polarization', color=P_color, linewidth=2.5, linestyle='dashed')
-        ax.plot(theta, (Is_S + Is_P) *1e6, label='Net-polarization', color='k', linewidth=2.5)
+        # ax.plot(theta, Is_P *1e6, label='P-polarization', color=P_color, linewidth=2.5, linestyle='solid')
+        # ax.plot(theta, Is_S *1e6, label='S-polarization', color=P_color, linewidth=2.5, linestyle='dashed')
+        ax.plot(theta, (Is_S + Is_P) *1e6, label='Numerical', color='k', linewidth=2.5)
     else:
         It_P[It_P > 0] =0   # 当然, 直接置为零会带来一定的误差, 但考虑到(thermal emission << transit), 这个误差是可以接受的
         It_S[It_S > 0] =0
@@ -256,14 +259,22 @@ def polarization_ploter(FR0 = 0.1, Obs_wave = np.array([3]) * 1e-6, transit = 'o
             It_no[It_no > 0] =0   # 当然, 直接置为零会带来一定的误差, 但考虑到(thermal emission << transit), 这个误差是可以接受的
             ax.plot(theta, (Is_no + It_no) *1e6, label='Net-polarization', color='b', linewidth=2.5, linestyle='dashed')
             
+    # 绘制理论计算值
+    theory1 = analytical_theory_cal(An = FR0) # 解析近似理论结果
+    # set all NAN to 0
+    theory1 = np.nan_to_num(theory1, nan=0)
+    # print(theory1)
+    # theory1 = np.loadtxt('theory1.txt', delimiter = ',')
+    ax.plot(theory1[:,0]/(2*np.pi), theory1[:,1] * 1e6, label='Analytical', color='r', linewidth=2, linestyle='--')
+            
     ax.set_xlabel('Orbital phase', fontsize=20)
     ax.set_ylabel(r'$F_p/F_*$ (ppm)', fontsize=20)
     ax.set_xlim(0, 1)
     # ax.set_ylim(-440, -430)
-    if transit == 'off':
-        ax.set_ylim(0, np.max((Is_S+Is_P)*1e6 *1.05))
-    else:
-        ax.set_ylim(0, np.max((Is_S+Is_P+It_P)*1e6 *1.05))
+    # if transit == 'off':
+    #     ax.set_ylim(0, np.max((Is_S+Is_P)*1e6 *1.05))
+    # else:
+    #     ax.set_ylim(0, np.max((Is_S+Is_P+It_P)*1e6 *1.05))
     ax.spines['bottom'].set_linewidth(2)    ###设置底部坐标轴的粗细
     ax.spines['left'].set_linewidth(2)  ####设置左边坐标轴的粗细
     ax.spines['right'].set_linewidth(2) ###设置右边坐标轴的粗细
@@ -273,6 +284,7 @@ def polarization_ploter(FR0 = 0.1, Obs_wave = np.array([3]) * 1e-6, transit = 'o
     if FR == 0.1:  # 仅在FR=0.1时绘制legend, 4个子图只需要一个legend
         plt.legend(fontsize=20, frameon=False)
     
+    plt.title(f"An = {FR0}", fontsize=20)
     # set different info for .pdf name
     if transit == 'on':
         info = 'Transit'
@@ -282,6 +294,8 @@ def polarization_ploter(FR0 = 0.1, Obs_wave = np.array([3]) * 1e-6, transit = 'o
     # plt.savefig(f"temp/{S_pol}/Polarization_{Obs_wave[0]*1e6}_{FR0}_{info}.png")
     plt.savefig(f"temp/{P_pol}/Polarization_{Obs_wave[0]*1e6}_{FR0}_{info}.pdf")
     plt.savefig(f"temp/{S_pol}/Polarization_{Obs_wave[0]*1e6}_{FR0}_{info}.pdf")
+    plt.savefig(f"temp/{P_pol}/Polarization_{Obs_wave[0]*1e6}_{FR0}_{info}.png")
+    plt.savefig(f"temp/{S_pol}/Polarization_{Obs_wave[0]*1e6}_{FR0}_{info}.png")
     plt.close()
     
     ### 绘制偏振度PC
@@ -372,15 +386,17 @@ if __name__ == "__main__":
     # 在使用transit='on'时, 注意'R1'和'R2'位置上的PC必须经过 transit_cal.py 的计算；应该为'R1copy'和'R2copy'的形式
     # specular_diffuse_plot_theory("specular_copy", "lambert_copy", np.array([3]) * 1e-6, transit='on')
     # specular_diffuse_plot_theory("Trappist1b_Fresnel 0.5copy", "Trappist1b_Fresnel 0.5copy", np.array([3]) * 1e-6, transit='on', An = 0.5)
-    specular_diffuse_plot_theory("Fresnel 0.2copy", "Fresnel 0.2copy", np.array([3]) * 1e-6, transit='on', An = 0.2)
-    specular_diffuse_plot_theory("Fresnel 0.5copy", "Fresnel 0.5copy", np.array([3]) * 1e-6, transit='on', An = 0.5)
+    # specular_diffuse_plot_theory("Fresnel 0.2", "Fresnel 0.2", np.array([3]) * 1e-6, transit='off', An = 0.2)
+    # specular_diffuse_plot_theory("Fresnel 0.05copy", "Fresnel 0.05copy", np.array([3]) * 1e-6, transit='off', An = 0.05)
+    # specular_diffuse_plot_theory("NF_High_copy", "NF_High_copy", np.array([3]) * 1e-6, transit='off', An = 0.5)
+    # specular_diffuse_plot_theory("NF_Low_copy", "NF_Low_copy", np.array([3]) * 1e-6, transit='off', An = 0.2)
     # specular_diffuse_plot_theory("Trappist1b_Fresnel 0.2copy", "Trappist1b_Fresnel 0.2copy", np.array([3]) * 1e-6, transit='on', An = 0.2)
     # specular_diffuse_plot_theory("Trappist1b_Fresnel 0.5copy", "Trappist1b_Fresnel 0.5copy", np.array([3]) * 1e-6, transit='on', An = 0.5)
     # specular_diffuse_plot_theory("R1copy", "R1copy", np.array([3]) * 1e-6, transit='on', FR0= 0.1)
     
     # ### 从plasma色图中均匀取出4个颜色
-    # cmap = plt.get_cmap('plasma')
-    # color_list = [cmap(i) for i in [0.5, 0.4, 0.2, 0]]
+    cmap = plt.get_cmap('plasma')
+    color_list = [cmap(i) for i in [0.5, 0.4, 0.2, 0]]
     # print(color_list)
     # ### 绘制不同FR的Fresnel模型与理论结果的对比 Appendix:Fresnel
     # FR_list = [0.1, 0.2, 0.4, 0.8]
@@ -388,11 +404,11 @@ if __name__ == "__main__":
     # for FR, color in zip(FR_list, color_list):
     #     surface_model_compare("specular_copy", "lambert_copy", f"Fresnel {FR}copy", np.array([3]) * 1e-6, transit='on', FR=FR, F_color=color)
     
-    # ## 绘制不同FRnormal下的 P,S偏振光以及非偏振光的phase curve, 并绘制偏振度PC Appendix:Pol
-    # FR_list = [0.1, 0.2, 0.4, 0.8]
-    # # color_list = [(247/255, 193/255, 198/255), (240/255, 141/255, 149/255), (232/255, 71/255, 85/255), (199/255, 25/255, 40/255)]
-    # for FR, color in zip(FR_list, color_list):
-    #     polarization_ploter(FR0 =FR, vertify = False, transit= 'on', P_color=color)
-    #     polarization_ploter(FR0 =FR, vertify = False, transit= 'off', P_color=color)
+    ## 绘制不同FRnormal下的 P,S偏振光以及非偏振光的phase curve, 并绘制偏振度PC Appendix:Pol
+    FR_list = [0.1, 0.2, 0.4, 0.8]
+    # color_list = [(247/255, 193/255, 198/255), (240/255, 141/255, 149/255), (232/255, 71/255, 85/255), (199/255, 25/255, 40/255)]
+    for FR, color in zip(FR_list, color_list):
+        polarization_ploter(FR0 =FR, vertify = False, transit= 'on', P_color=color)
+        polarization_ploter(FR0 =FR, vertify = False, transit= 'off', P_color=color)
 
 

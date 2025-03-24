@@ -317,19 +317,19 @@ def best_detect_option(name_low, name_high, wave_range, instrument = '  ', error
     for j, theta in enumerate(Theta_list1):
         CR_S_h[j], CR_D_h[j] = bond_albedo_calculator(wave_range[0], wave_range[1], name_high, j)
         
-    Theta_list2 = np.load('temp/NF_Low_copy/variables/Theta.npy')
-    Theta_list2 = Theta_list2 / (2 *np.pi)   # 将相位角归一化
-    Nt = np.size(Theta_list2)
+    # Theta_list2 = np.load('temp/NF_Low_copy/variables/Theta.npy')
+    # Theta_list2 = Theta_list2 / (2 *np.pi)   # 将相位角归一化
+    # Nt = np.size(Theta_list2)
     
-    CR_S_l_NF = np.zeros([Nt])
-    CR_D_l_NF = np.zeros([Nt])
-    for j, theta in enumerate(Theta_list2):
-        CR_S_l_NF[j], CR_D_l_NF[j] = bond_albedo_calculator(wave_range[0], wave_range[1], 'NF_Low_copy', j)
+    # CR_S_l_NF = np.zeros([Nt])
+    # CR_D_l_NF = np.zeros([Nt])
+    # for j, theta in enumerate(Theta_list2):
+    #     CR_S_l_NF[j], CR_D_l_NF[j] = bond_albedo_calculator(wave_range[0], wave_range[1], 'NF_Low_copy', j)
         
-    CR_S_h_NF = np.zeros([Nt])
-    CR_D_h_NF = np.zeros([Nt])
-    for j, theta in enumerate(Theta_list2):
-        CR_S_h_NF[j], CR_D_h_NF[j] = bond_albedo_calculator(wave_range[0], wave_range[1], 'NF_High_copy', j)
+    # CR_S_h_NF = np.zeros([Nt])
+    # CR_D_h_NF = np.zeros([Nt])
+    # for j, theta in enumerate(Theta_list2):
+    #     CR_S_h_NF[j], CR_D_h_NF[j] = bond_albedo_calculator(wave_range[0], wave_range[1], 'NF_High_copy', j)
         
     # 按照每分钟进行插值
     P = round(PPs.Period * 60)
@@ -343,22 +343,23 @@ def best_detect_option(name_low, name_high, wave_range, instrument = '  ', error
     spl = interp1d(Theta_list1, CR_S_h, kind='linear')
     CR_S_h = spl(Theta_arr)
     
-    spl = interp1d(Theta_list2, CR_D_l_NF, kind='linear')
-    CR_D_l_NF = spl(Theta_arr)
-    spl = interp1d(Theta_list2, CR_S_l_NF, kind='linear')
-    CR_S_l_NF = spl(Theta_arr)
-    spl = interp1d(Theta_list2, CR_D_h_NF, kind='linear')
-    CR_D_h_NF = spl(Theta_arr)
-    spl = interp1d(Theta_list2, CR_S_h_NF, kind='linear')
-    CR_S_h_NF = spl(Theta_arr)
+    # spl = interp1d(Theta_list2, CR_D_l_NF, kind='linear')
+    # CR_D_l_NF = spl(Theta_arr)
+    # spl = interp1d(Theta_list2, CR_S_l_NF, kind='linear')
+    # CR_S_l_NF = spl(Theta_arr)
+    # spl = interp1d(Theta_list2, CR_D_h_NF, kind='linear')
+    # CR_D_h_NF = spl(Theta_arr)
+    # spl = interp1d(Theta_list2, CR_S_h_NF, kind='linear')
+    # CR_S_h_NF = spl(Theta_arr)
     
     # N 为CR_D_l中第一位正数的索引值
     N_st = np.where(CR_D_l > 0)[0][0]
-    N_st = 0
-    N_ed = N_st + 100
+    N_st = 32
+    N_ed = N_st + 20
     
     # 搜索最佳的观测参数
     def cal_para(arr1, arr2):
+        # calculate the difference between two models, and choose the best observation time
         Res_matrix = np.zeros([N_ed-N_st, 61-10])
         for int_time in range(10, 61):
             err = errorbar_1s / np.sqrt(int_time * 60)
@@ -368,21 +369,33 @@ def best_detect_option(name_low, name_high, wave_range, instrument = '  ', error
                 Res_matrix[i - N_st, int_time - 10] = abs(I1 - I2) / err
         return Res_matrix
     
-    Res_matrix_l = cal_para(CR_D_l, CR_S_l)
-    Res_matrix_h = cal_para(CR_D_h, CR_S_h)
-    Res_matrix_D = cal_para(CR_D_l, CR_D_h)
-    Res_matrix_S = cal_para(CR_S_l, CR_S_h)
-    Res_matrix_glint = cal_para(CR_S_l, CR_D_l)
+    def cal_para_abs(arr1):
+        # calculate the absolute value of the model, and choose the best observation time
+        Res_matrix = np.zeros([N_ed-N_st, 61-10])
+        for int_time in range(10, 61):
+            err = errorbar_1s / np.sqrt(int_time * 60)
+            for i in range(N_st, N_ed - int_time):
+                I1 = simpson(arr1[i : i + int_time]) / int_time
+                I2 = np.min(arr1[34: 100]) 
+                # print(arr1)
+                Res_matrix[i - N_st, int_time - 10] = abs(I1-I2) / err
+        return Res_matrix
+    
+    # Res_matrix_l = cal_para(CR_D_l, CR_S_l)
+    # Res_matrix_h = cal_para(CR_D_h, CR_S_h)
+    # Res_matrix_D = cal_para(CR_D_l, CR_D_h)
+    # Res_matrix_S = cal_para(CR_S_l, CR_S_h)
+    Res_matrix_glint = cal_para_abs(CR_S_l)
         
     # 计算最小值, 并找到对应的索引位置
-    max_l = np.max(Res_matrix_l)
-    max_index_l = np.where(Res_matrix_l == max_l)
-    max_h = np.max(Res_matrix_h)
-    max_index_h = np.where(Res_matrix_h == max_h)
-    max_D = np.max(Res_matrix_D)
-    max_index_D = np.where(Res_matrix_D == max_D)
-    max_S = np.max(Res_matrix_S)
-    max_index_S = np.where(Res_matrix_S == max_S)
+    # max_l = np.max(Res_matrix_l)
+    # max_index_l = np.where(Res_matrix_l == max_l)
+    # max_h = np.max(Res_matrix_h)
+    # max_index_h = np.where(Res_matrix_h == max_h)
+    # max_D = np.max(Res_matrix_D)
+    # max_index_D = np.where(Res_matrix_D == max_D)
+    # max_S = np.max(Res_matrix_S)
+    # max_index_S = np.where(Res_matrix_S == max_S)
     max_glint = np.max(Res_matrix_glint)
     max_index_glint = np.where(Res_matrix_glint == max_glint)
     # print(max_l, max_h, max_D, max_S)
