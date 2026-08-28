@@ -1,0 +1,14 @@
+--id 8
+--Ntheta 49
+--Nwave 5
+--LB 2.99
+--UB 3.01
+--mode PC
+--lavatype zero
+--Nsubpro 64
+--heat_redist No
+--roughness 0
+--FRnormal 0.999999
+--polarization None
+--Model Specular_Only
+--OpticalFrame Demo
